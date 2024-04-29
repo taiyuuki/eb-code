@@ -18,8 +18,12 @@ export default tyk({
                 'index',
                 'default',
                 '404',
+                'Home',
+                'About',
+                'Main',
             ],
         }],
+        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
 }, {
     files: ['quasar.config.ts'],

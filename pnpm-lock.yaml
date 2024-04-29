@@ -8,18 +8,45 @@ dependencies:
   '@quasar/extras':
     specifier: ^1.16.11
     version: 1.16.11
+  '@shikijs/core':
+    specifier: ^1.3.0
+    version: 1.3.0
+  '@shikijs/monaco':
+    specifier: ^1.3.0
+    version: 1.3.0
+  '@taiyuuki/utils':
+    specifier: ^0.5.2
+    version: 0.5.2
   '@tauri-apps/api':
     specifier: '>=2.0.0-beta.9'
     version: 2.0.0-beta.9
   '@tauri-apps/plugin-shell':
     specifier: '>=2.0.0-beta.2'
     version: 2.0.0-beta.2
+  dayjs:
+    specifier: ^1.11.11
+    version: 1.11.11
+  monaco-editor:
+    specifier: ^0.48.0
+    version: 0.48.0
+  monaco-editor-core:
+    specifier: ^0.48.0
+    version: 0.48.0
+  monaco-editor-textmate:
+    specifier: ^4.0.0
+    version: 4.0.0(monaco-editor@0.48.0)(monaco-textmate@3.0.1)
+  monaco-textmate:
+    specifier: ^3.0.1
+    version: 3.0.1(onigasm@2.2.5)
   pinia:
     specifier: ^2.1.7
     version: 2.1.7(typescript@5.3.3)(vue@3.4.25)
   quasar:
     specifier: ^2.15.4
     version: 2.15.4
+  shiki:
+    specifier: ^1.3.0
+    version: 1.3.0
   vue:
     specifier: ^3.4.25
     version: 3.4.25(typescript@5.3.3)
@@ -34,6 +61,9 @@ devDependencies:
   '@taiyuuki/eslint-config':
     specifier: ^1.4.4
     version: 1.4.4(@typescript-eslint/parser@7.7.1)(eslint@9.1.1)(typescript@5.3.3)
+  '@taiyuuki/unocss-preset':
+    specifier: ^0.0.4
+    version: 0.0.4
   '@tauri-apps/cli':
     specifier: '>=2.0.0-beta.13'
     version: 2.0.0-beta.13
@@ -1064,6 +1094,16 @@ packages:
     dev: true
     optional: true
 
+  /@shikijs/core@1.3.0:
+    resolution: {integrity: sha512-7fedsBfuILDTBmrYZNFI8B6ATTxhQAasUHllHmjvSZPnoq4bULWoTpHwmuQvZ8Aq03/tAa2IGo6RXqWtHdWaCA==}
+    dev: false
+
+  /@shikijs/monaco@1.3.0:
+    resolution: {integrity: sha512-wLpfTx67psxoZSxUjGEMgsLfaQ7owds6wBWnfOSDcqe13Z2BUO3oCvKaRGFgNB8O2Nt3XxE9dW3TqnfYzvXyeg==}
+    dependencies:
+      '@shikijs/core': 1.3.0
+    dev: false
+
   /@stylistic/eslint-plugin-js@1.7.2(eslint@9.1.1):
     resolution: {integrity: sha512-ZYX7C5p7zlHbACwFLU+lISVh6tdcRP/++PWegh2Sy0UgMT5kU0XkPa2tKWEtJYzZmPhJxu9LxbnWcnE/tTwSDQ==}
     engines: {node: ^16.0.0 || >=18.0.0}
@@ -1159,6 +1199,14 @@ packages:
       - supports-color
       - typescript
     dev: true
+
+  /@taiyuuki/unocss-preset@0.0.4:
+    resolution: {integrity: sha512-F2GODIelWmmrg9SA5I5f5vu4IF9Fs4bFdNmQEevd7JU9L4tgYF9JZg5cw1YVuEuT+NeDgLspdurDV5PBTs2q8g==}
+    dev: true
+
+  /@taiyuuki/utils@0.5.2:
+    resolution: {integrity: sha512-ZSsV6TEV4EIcyd5rkj38r8mjy+TAXmHLIdPdef/8P5sMkvN73aEcIKGFqEc+lsYP1p1tSi2uWnaJmldX3wXJVA==}
+    dev: false
 
   /@tauri-apps/api@2.0.0-beta.4:
     resolution: {integrity: sha512-Nxtj28NYUo5iwYkpYslxmOPkdI2WkELU2e3UH9nbJm9Ydki2CQwJVGQxx4EANtdZcMNsEsUzRqaDTvEUYH1l6w==}
@@ -2641,6 +2689,10 @@ packages:
       is-data-view: 1.0.1
     dev: true
 
+  /dayjs@1.11.11:
+    resolution: {integrity: sha512-okzr3f11N6WuqYtZSvm+F776mB41wRZMhKP+hc34YdW+KmtYYK9iqvHSwo2k9FEH3fhGXvOPV6yz2IcSrfRUDg==}
+    dev: false
+
   /debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
     peerDependencies:
@@ -3447,6 +3499,10 @@ packages:
   /fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
     dev: true
+
+  /fast-plist@0.1.3:
+    resolution: {integrity: sha512-d9cEfo/WcOezgPLAC/8t8wGb6YOD6JTCPMw2QcG2nAdFmyY+9rTUizCTaGjIZAloWENTEUMAPpkUAIJJJ0i96A==}
+    dev: false
 
   /fastq@1.17.1:
     resolution: {integrity: sha512-sRVD3lWVIXWg6By68ZN7vho9a1pQcN/WBFaAAsDDFzlJjvoGx0P8z7V1t72grFJfJhu3YPZBuu25f7Kaw2jN1w==}
@@ -4408,7 +4464,6 @@ packages:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
     dependencies:
       yallist: 3.1.1
-    dev: true
 
   /lru-cache@6.0.0:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
@@ -4559,6 +4614,33 @@ packages:
       pkg-types: 1.1.0
       ufo: 1.5.3
     dev: true
+
+  /monaco-editor-core@0.48.0:
+    resolution: {integrity: sha512-HaGsPuwG+2LA9Ya2lmU7zEh8TdA33E8kh94+RplFDq+4ZjW+pa3NlxOIZGyrNrBybvicitByY3Ys9c//NLaDVQ==}
+    dev: false
+
+  /monaco-editor-textmate@4.0.0(monaco-editor@0.48.0)(monaco-textmate@3.0.1):
+    resolution: {integrity: sha512-Clwup5LJzVfwURQrS+odSEC5/hZBEG36pQnvBKt4OtBndF8r2xLeXUZcK/AqEBK2u0Npy7frFp9hG7m66Ol9hA==}
+    peerDependencies:
+      monaco-editor: 0.x.x
+      monaco-textmate: ^3.0.0
+    dependencies:
+      monaco-editor: 0.48.0
+      monaco-textmate: 3.0.1(onigasm@2.2.5)
+    dev: false
+
+  /monaco-editor@0.48.0:
+    resolution: {integrity: sha512-goSDElNqFfw7iDHMg8WDATkfcyeLTNpBHQpO8incK6p5qZt5G/1j41X0xdGzpIkGojGXM+QiRQyLjnfDVvrpwA==}
+    dev: false
+
+  /monaco-textmate@3.0.1(onigasm@2.2.5):
+    resolution: {integrity: sha512-ZxxY3OsqUczYP1sGqo97tu+CJmMBwuSW+dL0WEBdDhOZ5G1zntw72hvBc68ZQAirosWvbDKgN1dL5k173QtFww==}
+    peerDependencies:
+      onigasm: ^2.0.0
+    dependencies:
+      fast-plist: 0.1.3
+      onigasm: 2.2.5
+    dev: false
 
   /mrmime@2.0.0:
     resolution: {integrity: sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==}
@@ -4743,6 +4825,12 @@ packages:
     dependencies:
       mimic-fn: 4.0.0
     dev: true
+
+  /onigasm@2.2.5:
+    resolution: {integrity: sha512-F+th54mPc0l1lp1ZcFMyL/jTs2Tlq4SqIHKIXGZOR/VkHkF9A7Fr5rRr5+ZG/lWeRsyrClLYRq7s/yFQ/XhWCA==}
+    dependencies:
+      lru-cache: 5.1.1
+    dev: false
 
   /open@10.1.0:
     resolution: {integrity: sha512-mnkeQ1qP5Ue2wd+aivTD3NHd/lZ96Lu0jgf0pwktLPtx6cTZiH7tyeGRRHs0zX0rbrahXPnXlUnbeXyaBBuIaw==}
@@ -5425,6 +5513,12 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
     dev: true
+
+  /shiki@1.3.0:
+    resolution: {integrity: sha512-9aNdQy/etMXctnPzsje1h1XIGm9YfRcSksKOGqZWXA/qP9G18/8fpz5Bjpma8bOgz3tqIpjERAd6/lLjFyzoww==}
+    dependencies:
+      '@shikijs/core': 1.3.0
+    dev: false
 
   /side-channel@1.0.6:
     resolution: {integrity: sha512-fDW/EZ6Q9RiO8eFG8Hj+7u/oW+XrPTIChwCOM2+th2A6OblDtYYIpve9m+KvI9Z4C9qSEXlaGR6bTEYHReuglA==}
@@ -6322,7 +6416,6 @@ packages:
 
   /yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
-    dev: true
 
   /yallist@4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}

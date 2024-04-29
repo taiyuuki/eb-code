@@ -96,6 +96,9 @@ export default configure((/* ctx */) => {
                 //     strictPort: true,
                 // }
                 viteConf.envPrefix = ['VITE_', 'TAURI_']
+                if (!viteConf.build) {
+                    viteConf.build = {}
+                }
 
                 viteConf.build.target = process.env.TAURI_PLATFORM === 'windows' ? 'chrome105' : 'safari13';
                 (<ViteConf>viteConf).minify = process.env.TAURI_DEBUG ? false : 'esbuild';

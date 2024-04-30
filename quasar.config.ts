@@ -181,7 +181,7 @@ export default configure((/* ctx */) => {
         devServer: {
 
             // https: true
-            open: true, // opens browser window automatically
+            open: false, // opens browser window automatically
             port: mobile ? 1421 : 1420,
         },
 

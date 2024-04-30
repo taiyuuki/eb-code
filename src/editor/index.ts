@@ -1,38 +1,38 @@
-import * as monaco from 'monaco-editor-core'
+import * as monaco from 'monaco-editor'
+
+import { emmetHTML } from 'emmet-monaco-es'
+
 import editorWorker from 'monaco-editor-core/esm/vs/editor/editor.worker?worker'
 import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
 import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
 import typescriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 
+emmetHTML(monaco)
+
 function initMonaco() {
 
-    // @ts-expect-error This script is for monaco worker
     self.MonacoEnvironment = {
-        async getWorker(_: any, label: string) {
+        getWorker: function(_workerId: string, label: string) {
+
             switch (label) {
-                case 'javascript':
-                    return new typescriptWorker()
                 case 'json':
-                    return new jsonWorker()
-
+                    return new jsonWorker({ name: label })
                 case 'css':
-                    return new cssWorker()
-
+                    return new cssWorker({ name: label })
                 case 'html':
                 case 'xhtml':
                 case 'xml':
-                    return new htmlWorker()
-
+                    return new htmlWorker({ name: label })
+                case 'javascript':
+                    return new typescriptWorker({ name: label })
                 default:
-                    return new editorWorker()
+                    return new editorWorker({ name: label })
             }
         },
     }
 
-    monaco.languages.register({ id: 'javascript', extensions: ['.js'], aliases: ['js', 'JS'] })
-    monaco.languages.register({ id: 'json', extensions: ['.json'], aliases: ['json', 'JSON'] })
-    monaco.languages.register({ id: 'html', extensions: ['.html'], aliases: ['html', 'HTML'] })
+    return monaco
 }
 
 export { initMonaco }

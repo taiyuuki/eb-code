@@ -1,0 +1,15 @@
+diff --git a/dist/emmet-monaco.esm.js b/dist/emmet-monaco.esm.js
+index 27db3ee035ab7fa3f627ee715305eea5886012fd..305cb313aaf299bff8306cf5bb4f6593bc250fa0 100644
+--- a/dist/emmet-monaco.esm.js
++++ b/dist/emmet-monaco.esm.js
+@@ -6016,9 +6016,7 @@ function registerProvider(monaco, languages, syntax) {
+     }
+     const providers = languages.map((language) => monaco.languages.registerCompletionItemProvider(language, {
+         triggerCharacters: LANGUAGE_MODES[MAPPED_MODES[language] || language],
+-        provideCompletionItems: (model, position) => isValidLocationForEmmetAbbreviation(model, position, syntax, language)
+-            ? doComplete(monaco, model, position, syntax, DEFAULT_CONFIG)
+-            : undefined,
++        provideCompletionItems: (model, position) => doComplete(monaco, model, position, syntax, DEFAULT_CONFIG)
+     }));
+     return () => {
+         providers.forEach((provider) => provider.dispose());

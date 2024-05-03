@@ -20,6 +20,7 @@
     "@shikijs/monaco": "^1.4.0",
     "@taiyuuki/utils": "^0.5.2",
     "@tauri-apps/api": ">=2.0.0-beta.11",
+    "@tauri-apps/plugin-dialog": "2.0.0-beta.3",
     "@tauri-apps/plugin-shell": ">=2.0.0-beta.3",
     "dayjs": "^1.11.11",
     "emmet-monaco-es": "5.3.2",

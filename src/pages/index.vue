@@ -151,8 +151,7 @@ function open_file(node: FileNode) {
 function close_file(node: FileNode) {
     tags.remve_tag_by_id(node.id)
     if (node.open) {
-        let first_node = tags.get_tag_by_id(tags.nodes[0].id)
-        first_node && active_node.open(first_node)
+        tags.nodes[0] && active_node.open(tags.nodes[0])
     }
 }
 </script>

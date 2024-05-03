@@ -28,6 +28,7 @@ const themes = [
     'night-owl',
     'nord',
     'one-dark-pro',
+    'one-light',
     'poimandres',
     'red',
     'rose-pine-dawn',
@@ -35,6 +36,7 @@ const themes = [
     'rose-pine',
     'slack-dark',
     'slack-ochin',
+    'snazzy-light',
     'solarized-dark',
     'solarized-light',
     'synthwave-84',
@@ -45,5 +47,5 @@ const themes = [
     'vitesse-light',
 ] as const
 
-export type ShikiTheme = typeof themes[number]
+export type Theme = typeof themes[number]
 export { themes }

@@ -1,35 +1,59 @@
 <script setup lang="ts">
-import { initMonaco } from 'src/editor'
-import { useElementRef } from 'src/composibles/useComp'
-import { getTheme } from 'src/editor/shiki'
 import { shikiToMonaco } from '@shikijs/monaco'
+import { useElementRef } from 'composables/useComp'
+import type { HighlighterCore } from 'shiki/index.mjs'
+import { initMonaco } from '@/editor'
+import { type Language, getLighter } from '@/editor/shiki'
+import { useTheme } from '@/stores/theme'
+import { setOpacity } from '@/utils'
+
+const theme = useTheme()
+
+const props = withDefaults(defineProps<{ 
+    code: string
+    language: Language,
+}>(), { code: '', theme: 'github-dark', language: 'html' })
 
 const editor = useElementRef()
-const theme_type = ref<'light' | 'dark' | undefined>('light')
-
-const vs_theme = computed(() => {
-    return theme_type.value === 'light' ? 'vs' : 'vs-dark'
-})
 
 const monaco = initMonaco()
+
+let hightlighter: HighlighterCore
+theme.$subscribe(async({ events }) => {
+    const is_shiki_change = Array.isArray(events) ? events.length === 0 || events.some(e => e.key === 'shiki') : events.key === 'shiki'
+    if (!is_shiki_change) {
+        return
+    }
+    if (!hightlighter) {
+        hightlighter = await getLighter()
+
+        // @ts-expect-error shikiToMonaco forced import monaco from 'monaco-editor-core', but here is 'monaco-editor'.
+        shikiToMonaco(hightlighter, monaco)
+    }
+    monaco.editor.setTheme(theme.shiki)
+
+    const theme_colors = hightlighter.getTheme(theme.shiki)
+
+    theme.color = theme_colors.fg
+    theme.background = theme_colors.bg
+    theme.dark = theme_colors.type === 'dark'
+
+    theme['list.activeBorder'] = theme_colors.fg
+    theme['list.border'] = setOpacity(theme_colors.fg, 0.5)
+    theme.setColor()
+}, { 
+    immediate: true,
+    detached: false,
+})
 
 onMounted(() => {
 
     monaco.editor.create(editor.value, {
         model: monaco.editor.createModel(
-            '<div></div>',
-            'html',
+            props.code,
+            props.language,
         ),
-
-        theme: vs_theme.value,
-        
-    })
-    
-    getTheme('github-dark', 'html').then(theme => {
-        theme_type.value = theme.type
-
-        // @ts-expect-error shikiToMonaco forced monaco import from 'monaco-editor-core', but here is 'monaco-editor'.
-        shikiToMonaco(theme.hightlighter, monaco)
+        automaticLayout: true,
     })
 })
 </script>

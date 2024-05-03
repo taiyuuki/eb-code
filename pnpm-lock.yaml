@@ -49,6 +49,9 @@ dependencies:
   pinia:
     specifier: ^2.1.7
     version: 2.1.7(typescript@5.3.3)(vue@3.4.25)
+  pinia-plugin-persistedstate:
+    specifier: ^3.2.1
+    version: 3.2.1(pinia@2.1.7)
   quasar:
     specifier: ^2.15.4
     version: 2.15.4
@@ -61,14 +64,23 @@ dependencies:
   vue-router:
     specifier: ^4.3.2
     version: 4.3.2(vue@3.4.25)
+  vuedraggable:
+    specifier: ^4.1.0
+    version: 4.1.0(vue@3.4.25)
 
 devDependencies:
+  '@iconify-json/ic':
+    specifier: ^1.1.17
+    version: 1.1.17
+  '@iconify-json/vscode-icons':
+    specifier: ^1.1.33
+    version: 1.1.33
   '@quasar/app-vite':
     specifier: '>=2.0.0-beta.11'
     version: 2.0.0-beta.11(@types/node@20.12.7)(eslint@9.1.1)(pinia@2.1.7)(quasar@2.15.4)(vue-router@4.3.2)(vue@3.4.25)
   '@taiyuuki/eslint-config':
-    specifier: ^1.4.4
-    version: 1.4.4(@typescript-eslint/parser@7.7.1)(eslint@9.1.1)(typescript@5.3.3)
+    specifier: ^1.4.5
+    version: 1.4.5(@typescript-eslint/parser@7.7.1)(eslint@9.1.1)(typescript@5.3.3)
   '@taiyuuki/unocss-preset':
     specifier: ^0.0.4
     version: 0.0.4
@@ -961,6 +973,18 @@ packages:
     engines: {node: '>=18.18'}
     dev: true
 
+  /@iconify-json/ic@1.1.17:
+    resolution: {integrity: sha512-EvAjZzVESmN36zlyefylePUNaU2BQ3eRKVZ6KQSQ2bG01ppoZaiFZRri74VTyvp5Mlv2yn68ux1fgCoT+etGmA==}
+    dependencies:
+      '@iconify/types': 2.0.0
+    dev: true
+
+  /@iconify-json/vscode-icons@1.1.33:
+    resolution: {integrity: sha512-Aj1SoViQ5dw9hrYc4PHK8/vHpZREUA158jhnyNsD95uhN40mmeLuq+4o9OxiSakgLlac9R5OKpnp8tHTCgMhCA==}
+    dependencies:
+      '@iconify/types': 2.0.0
+    dev: true
+
   /@iconify/types@2.0.0:
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
     dev: true
@@ -1413,8 +1437,8 @@ packages:
       - typescript
     dev: true
 
-  /@taiyuuki/eslint-config@1.4.4(@typescript-eslint/parser@7.7.1)(eslint@9.1.1)(typescript@5.3.3):
-    resolution: {integrity: sha512-6Garl/Ig2FcGPL93WczjuRIGCaQouqvVwP83iUQSLFuGhXEJJ0xUx2Gws1IZjYTvvdxP/XYrd/jrsG/LpeRvdQ==}
+  /@taiyuuki/eslint-config@1.4.5(@typescript-eslint/parser@7.7.1)(eslint@9.1.1)(typescript@5.3.3):
+    resolution: {integrity: sha512-SlBfvjSdzxM8HC/FgGTMOHnTERV/es8kci6YLFMPBJas9JOYmhv7AmXLvcaeSU3DMyaAYVvfvNzyaL82To2Hsg==}
     peerDependencies:
       eslint: '>=8.23.0 || 9'
     dependencies:
@@ -5335,6 +5359,14 @@ packages:
     engines: {node: '>=12'}
     dev: true
 
+  /pinia-plugin-persistedstate@3.2.1(pinia@2.1.7):
+    resolution: {integrity: sha512-MK++8LRUsGF7r45PjBFES82ISnPzyO6IZx3CH5vyPseFLZCk1g2kgx6l/nW8pEBKxxd4do0P6bJw+mUSZIEZUQ==}
+    peerDependencies:
+      pinia: ^2.0.0
+    dependencies:
+      pinia: 2.1.7(typescript@5.3.3)(vue@3.4.25)
+    dev: false
+
   /pinia@2.1.7(typescript@5.3.3)(vue@3.4.25):
     resolution: {integrity: sha512-+C2AHFtcFqjPih0zpYuvof37SFxMQ7OEG2zV9jRI12i9BOy3YQVAHwdKtyyc8pDcDyIc33WCIsZaCFWU7WWxGQ==}
     peerDependencies:
@@ -5863,6 +5895,10 @@ packages:
       astral-regex: 2.0.0
       is-fullwidth-code-point: 3.0.0
     dev: true
+
+  /sortablejs@1.14.0:
+    resolution: {integrity: sha512-pBXvQCs5/33fdN1/39pPL0NZF20LeRbLQ5jtnheIPN9JQAaufGjKdWduZn4U7wCtVuzKhmRkI0DFYHYRbB2H1w==}
+    dev: false
 
   /source-map-js@1.2.0:
     resolution: {integrity: sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==}
@@ -6617,6 +6653,15 @@ packages:
       '@vue/server-renderer': 3.4.25(vue@3.4.25)
       '@vue/shared': 3.4.25
       typescript: 5.3.3
+
+  /vuedraggable@4.1.0(vue@3.4.25):
+    resolution: {integrity: sha512-FU5HCWBmsf20GpP3eudURW3WdWTKIbEIQxh9/8GE806hydR9qZqRRxRE3RjqX7PkuLuMQG/A7n3cfj9rCEchww==}
+    peerDependencies:
+      vue: ^3.0.1
+    dependencies:
+      sortablejs: 1.14.0
+      vue: 3.4.25(typescript@5.3.3)
+    dev: false
 
   /wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}

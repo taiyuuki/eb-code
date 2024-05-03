@@ -12,19 +12,6 @@ export default tyk({
         '**.eslintrc.js',
         '**/src-ssr',
     ],
-    rules: {
-        'vue/multi-word-component-names': ['error', {
-            ignores: [
-                'index',
-                'default',
-                '404',
-                'Home',
-                'About',
-                'Main',
-            ],
-        }],
-        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    },
 }, {
     files: ['quasar.config.ts'],
     rules: { '@stylistic/object-curly-newline': 'off' },

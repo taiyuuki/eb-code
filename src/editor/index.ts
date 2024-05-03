@@ -8,10 +8,8 @@ import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
 import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
 import typescriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 
-emmetHTML(monaco)
-
 function initMonaco() {
-
+    
     self.MonacoEnvironment = {
         getWorker: function(_workerId: string, label: string) {
 
@@ -31,6 +29,7 @@ function initMonaco() {
             }
         },
     }
+    emmetHTML(monaco)
 
     return monaco
 }

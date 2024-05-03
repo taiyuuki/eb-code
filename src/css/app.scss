@@ -1,1 +1,33 @@
 // app global css in SCSS form
+:root {
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+    overflow: hidden;
+}
+
+.scrollbar::-webkit-scrollbar {
+    width: 10px;
+    background-color: var(--eb-bg);
+}
+
+.scrollbar::-webkit-scrollbar-thumb{
+    border-radius: 5px;
+    background-color: var(--eb-fg);
+}
+
+.q-splitter__panel {
+    overflow: inherit;
+}
+
+.text-fg {
+    color: var(--eb-fg);
+}
+
+.bg-bg {
+    color: var(--eb-bg);
+}
+
+body {
+    color: var(--eb-fg);
+    background-color: var(--eb-bg);
+}

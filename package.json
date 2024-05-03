@@ -29,14 +29,18 @@
     "monaco-editor-textmate": "^4.0.0",
     "monaco-textmate": "^3.0.1",
     "pinia": "^2.1.7",
+    "pinia-plugin-persistedstate": "^3.2.1",
     "quasar": "^2.15.4",
     "shiki": "^1.3.0",
     "vue": "^3.4.25",
-    "vue-router": "^4.3.2"
+    "vue-router": "^4.3.2",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@iconify-json/ic": "^1.1.17",
+    "@iconify-json/vscode-icons": "^1.1.33",
     "@quasar/app-vite": ">=2.0.0-beta.11",
-    "@taiyuuki/eslint-config": "^1.4.4",
+    "@taiyuuki/eslint-config": "^1.4.5",
     "@taiyuuki/unocss-preset": "^0.0.4",
     "@tauri-apps/cli": ">=2.0.0-beta.13",
     "@types/node": "^20.12.7",

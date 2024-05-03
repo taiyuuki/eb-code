@@ -15,7 +15,7 @@ interface ViteConf extends UserConfig {
 }
 
 function resolve(dir: string) {
-    join(__dirname, dir)
+    return join(__dirname, dir)
 }
 
 // const isPro = process.env.NODE_ENV === 'production'
@@ -26,18 +26,6 @@ export default configure((/* ctx */) => {
 
         // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
         // preFetch: true,
-
-        alias: {
-            '@': resolve('src'),
-            'src': resolve('src'),
-            'components': resolve('src/components'),
-            'boot': resolve('src/boot'),
-            'layouts': resolve('src/layouts'),
-            'pages': resolve('src/pages'),
-            'router': resolve('src/router'),
-            'stores': resolve('src/stores'),
-            'assets': resolve('src/assets'),
-        },
 
         // app boot file (/src/boot)
         // --> boot files are part of "main.js"
@@ -68,6 +56,18 @@ export default configure((/* ctx */) => {
 
         // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
         build: {
+            alias: {
+                '@': resolve('src'),
+                'src': resolve('src'),
+                'components': resolve('src/components'),
+                'composables': resolve('src/composables'),
+                'boot': resolve('src/boot'),
+                'layouts': resolve('src/layouts'),
+                'pages': resolve('src/pages'),
+                'router': resolve('src/router'),
+                'stores': resolve('src/stores'),
+                'assets': resolve('src/assets'),
+            },
             target: {
                 browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
                 node: 'node20',
@@ -123,6 +123,14 @@ export default configure((/* ctx */) => {
 
                         // 3. tell vite to ignore watching `src-tauri`
                         ignored: ['**/src-tauri/**'],
+                    },
+                },
+
+                viteConf.build.rollupOptions = {
+                    output: {
+                        chunkFileNames: 'js/[name]-[hash].js',
+                        entryFileNames: 'js/[name]-[hash].js',
+                        assetFileNames: '[ext]/[name]-[hash].[ext]',  
                     },
                 }
             },

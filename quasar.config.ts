@@ -8,6 +8,8 @@ import type { RouteRecord } from 'vue-router'
 import type { UserConfig } from 'vite'
 import { configure } from 'quasar/wrappers'
 import { internalIpV4 } from 'internal-ip'
+import nlsPlugin, { Languages, esbuildPluginMonacoEditorNls } from './nls'
+import zh_hans from './nls/zh-hans.json'
 
 interface ViteConf extends UserConfig {
     minify: boolean | 'esbuild'
@@ -130,7 +132,18 @@ export default configure((/* ctx */) => {
                     output: {
                         chunkFileNames: 'js/[name]-[hash].js',
                         entryFileNames: 'js/[name]-[hash].js',
-                        assetFileNames: '[ext]/[name]-[hash].[ext]',  
+                        assetFileNames: '[ext]/[name]-[hash].[ext]',
+                    },
+                }
+
+                viteConf.optimizeDeps = {
+                    esbuildOptions: {
+                        plugins: [
+                            esbuildPluginMonacoEditorNls({
+                                locale: Languages.zh_hans,
+                                localeData: zh_hans.contents,
+                            }),
+                        ],
                     },
                 }
             },
@@ -182,6 +195,10 @@ export default configure((/* ctx */) => {
                     },
                 ],
                 ['unocss/vite', {/** unocss options */ }],
+                nlsPlugin({
+                    locale: Languages.zh_hans,
+                    localeData: zh_hans,
+                }),
             ],
         },
 

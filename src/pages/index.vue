@@ -210,7 +210,7 @@ function close_file(node: FileNode) {
               item-key="id"
               animation="200"
               force-fallback
-              class="flex items-center"
+              class="flex items-center flex-nowrap"
             >
               <template #item="{ element: node }">
                 <TitleTag
@@ -223,7 +223,7 @@ function close_file(node: FileNode) {
           </q-scroll-area>
         </TitleBanner>
         <CodeEditor
-          language="html"
+          language="css"
           code=""
         />
       </template>

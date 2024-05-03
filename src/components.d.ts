@@ -9,12 +9,9 @@ declare module 'vue' {
   export interface GlobalComponents {
     ActivityBar: typeof import('./components/ActivityBar.vue')['default']
     CodeEditor: typeof import('./components/CodeEditor.vue')['default']
-    FileIcon: typeof import('./components/FileIcon.vue')['default']
     FileTree: typeof import('./components/FileTree.vue')['default']
-    MonacoTree: typeof import('./components/monaco-tree/MonacoTree.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TitileBanner: typeof import('./components/TitileBanner.vue')['default']
     TitleBanner: typeof import('./components/TitleBanner.vue')['default']
     TitleTag: typeof import('./components/TitleTag.vue')['default']
   }

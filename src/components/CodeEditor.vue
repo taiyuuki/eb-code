@@ -19,11 +19,7 @@ const editor = useElementRef()
 const monaco = initMonaco()
 
 let hightlighter: HighlighterCore
-theme.$subscribe(async({ events }) => {
-    const is_shiki_change = Array.isArray(events) ? events.length === 0 || events.some(e => e.key === 'shiki') : events.key === 'shiki'
-    if (!is_shiki_change) {
-        return
-    }
+theme.$subscribe(async() => {
     if (!hightlighter) {
         hightlighter = await getLighter()
 

@@ -2,6 +2,7 @@
 import Draggable from 'vuedraggable'
 import type { FileNode } from '@/components/types'
 import { themes } from '@/editor/themes'
+import type { Language } from '@/editor/shiki'
 import { NOT_SUPPORTED_THEMES } from '@/editor/shiki'
 import { useTheme } from '@/stores/theme'
 import { useTags } from '@/stores/tag'
@@ -9,15 +10,17 @@ import { useActivity } from '@/composables/useActivity'
 
 const splitterModel = ref(300)
 const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
-
 const theme = useTheme()
+
+const lang = ref<Language>('html')
+const languages: Language[] = ['html', 'css', 'javascript', 'json']
 
 const options = supported_themes
     .map(t => t.split('-')
         .map(t => t.charAt(0).toUpperCase() + t.slice(1))
         .join(' '))
 
-const model = ref(options[supported_themes.indexOf(theme.shiki)])
+const selected_theme = ref(options[supported_themes.indexOf(theme.shiki)])
 
 function setTheme(t: string) {
     theme.setTheme(supported_themes[options.indexOf(t)])
@@ -159,18 +162,31 @@ function close_file(node: FileNode) {
     class="monaco-component"
     style="min-height: inherit;"
   >
-    <q-select
-      v-model="model"
-      square
-      outlined
-      dense
-      label="主题颜色"
-      popup-content-class="bg-var-eb-bg text-var-eb-fg"
-      color="fg"
-      :options="options"
-      :dark="theme.dark"
-      @update:model-value="setTheme"
-    />
+    <div flex="~">
+      <q-select
+        v-model="selected_theme"
+        square
+        outlined
+        dense
+        label="主题颜色"
+        popup-content-class="bg-var-eb-bg text-var-eb-fg"
+        color="fg"
+        :options="options"
+        :dark="theme.dark"
+        @update:model-value="setTheme"
+      />
+      <q-select
+        v-model="lang"
+        square
+        outlined
+        dense
+        label="语言"
+        popup-content-class="bg-var-eb-bg text-var-eb-fg"
+        color="fg"
+        :options="languages"
+        :dark="theme.dark"
+      />
+    </div>
     <q-splitter
       v-model="splitterModel"
       unit="px"
@@ -223,7 +239,7 @@ function close_file(node: FileNode) {
           </q-scroll-area>
         </TitleBanner>
         <CodeEditor
-          language="css"
+          :language="lang"
           code=""
         />
       </template>

@@ -17,6 +17,14 @@ const props = withDefaults(defineProps<{
 const editor = useElementRef()
 
 const monaco = initMonaco()
+const text_model = monaco.editor.createModel(
+    props.code,
+    props.language,
+)
+
+watch(() => props.language, () => {
+    monaco.editor.setModelLanguage(text_model, props.language)
+})
 
 let hightlighter: HighlighterCore
 theme.$subscribe(async() => {
@@ -45,10 +53,7 @@ theme.$subscribe(async() => {
 onMounted(() => {
 
     monaco.editor.create(editor.value, {
-        model: monaco.editor.createModel(
-            props.code,
-            props.language,
-        ),
+        model: text_model,
         automaticLayout: true,
     })
 })

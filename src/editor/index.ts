@@ -27,6 +27,7 @@ function initMonaco() {
             }
         },
     }
+    
     emmetHTML(monaco)
 
     return monaco

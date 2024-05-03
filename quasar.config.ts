@@ -4,12 +4,12 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
 import { join } from 'node:path'
-import type { RouteRecord } from 'vue-router'
 import type { UserConfig } from 'vite'
 import { configure } from 'quasar/wrappers'
 import { internalIpV4 } from 'internal-ip'
-import nlsPlugin, { Languages, esbuildPluginMonacoEditorNls } from './nls'
+import { Languages, esbuildPluginMonacoEditorNls } from './nls'
 import zh_hans from './nls/zh-hans.json'
+import vite_plugins from './plugins'
 
 interface ViteConf extends UserConfig {
     minify: boolean | 'esbuild'
@@ -150,56 +150,7 @@ export default configure((/* ctx */) => {
 
             // viteVuePluginOptions: {},
       
-            vitePlugins: [
-                ['vite-plugin-pages', {
-                    extensions: ['vue'],
-                    extendRoute(route: RouteRecord) {
-                        if (route.path === '/') {
-                            return route
-                        }
-
-                        return {
-                            ...route,
-                            meta: { auth: true },
-                        }
-                    },
-                }],
-                [
-                    'vite-plugin-vue-layouts',
-                    { defaultLayout: 'MainLayout' },
-                ],
-                [
-                    'unplugin-vue-components/vite',
-                    { dts: 'src/components.d.ts' },
-                ],
-                [
-                    'unplugin-auto-import/vite',
-                    {
-                        imports: [
-                            'vue',
-                            'pinia',
-                            'vue-router',
-                            {
-                                'quasar': [
-                                    'useQuasar',
-                                    'Notify',
-                                    'Dialog',
-                                    'LocalStorage',
-                                    'useMeta',
-                                ],
-                                'axios': ['AxiosInstance', ['default', 'axios']],
-                                'quasar/wrappers': ['boot'],
-                            },
-                        ],
-                        dts: 'src/auto-imports.d.ts',
-                    },
-                ],
-                ['unocss/vite', {/** unocss options */ }],
-                nlsPlugin({
-                    locale: Languages.zh_hans,
-                    localeData: zh_hans,
-                }),
-            ],
+            vitePlugins: vite_plugins,
         },
 
         // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer

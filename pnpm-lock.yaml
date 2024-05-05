@@ -28,6 +28,9 @@ dependencies:
   '@tauri-apps/plugin-dialog':
     specifier: 2.0.0-beta.3
     version: 2.0.0-beta.3
+  '@tauri-apps/plugin-global-shortcut':
+    specifier: 2.0.0-beta.3
+    version: 2.0.0-beta.3
   '@tauri-apps/plugin-shell':
     specifier: '>=2.0.0-beta.3'
     version: 2.0.0-beta.3
@@ -72,9 +75,15 @@ dependencies:
     version: 4.1.0(vue@3.4.26)
 
 devDependencies:
+  '@iconify-json/bx':
+    specifier: ^1.1.10
+    version: 1.1.10
   '@iconify-json/ic':
     specifier: ^1.1.17
     version: 1.1.17
+  '@iconify-json/mdi':
+    specifier: ^1.1.66
+    version: 1.1.66
   '@iconify-json/vscode-icons':
     specifier: ^1.1.33
     version: 1.1.33
@@ -976,8 +985,20 @@ packages:
     engines: {node: '>=18.18'}
     dev: true
 
+  /@iconify-json/bx@1.1.10:
+    resolution: {integrity: sha512-4JzMDYhs/hkU9mO8nNMNKZwHn706oQaD46URyUuD4fP/XAWGf01vg6wKITmQseEHsHDrtKAXjwcumfnTUDi3OQ==}
+    dependencies:
+      '@iconify/types': 2.0.0
+    dev: true
+
   /@iconify-json/ic@1.1.17:
     resolution: {integrity: sha512-EvAjZzVESmN36zlyefylePUNaU2BQ3eRKVZ6KQSQ2bG01ppoZaiFZRri74VTyvp5Mlv2yn68ux1fgCoT+etGmA==}
+    dependencies:
+      '@iconify/types': 2.0.0
+    dev: true
+
+  /@iconify-json/mdi@1.1.66:
+    resolution: {integrity: sha512-7KPF2RVUUWav/hXCM8Ti/smqu3cmgePJpiX9CSkldiL+80+eBRBeKlc4vPOc9jhAItlqIU1vKsbKoPP0JIfgbg==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -1586,6 +1607,12 @@ packages:
 
   /@tauri-apps/plugin-dialog@2.0.0-beta.3:
     resolution: {integrity: sha512-B3KxLjFxCVB3AIYWN/xY9HM6tO7m4u6aQk1t0ZrBToXThowRU9f62527EO0oj0uNlyKlXx20up68NkpdlER0yg==}
+    dependencies:
+      '@tauri-apps/api': 2.0.0-beta.11
+    dev: false
+
+  /@tauri-apps/plugin-global-shortcut@2.0.0-beta.3:
+    resolution: {integrity: sha512-oPb5Ey0OcVjRbfE6l7GiUxSgHDNcGbOLWfk3N/ASGGWiCCvLqCzVsUrCQD+npmbS7Aey94pIXEEvbx4UgmwZKA==}
     dependencies:
       '@tauri-apps/api': 2.0.0-beta.11
     dev: false

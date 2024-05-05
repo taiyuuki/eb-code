@@ -159,6 +159,7 @@ function close_file(node: FileNode) {
 <template>
   <q-page
     class="monaco-component"
+    m="t-40"
     style="min-height: inherit;"
   >
     <div flex="~">

@@ -33,4 +33,19 @@ function initMonaco() {
     return monaco
 }
 
-export { initMonaco }
+function get_scroll_top() {
+    const editor = monaco.editor.getEditors()[0]
+
+    return editor.getScrollTop() || 0
+}
+
+function scroll_top_to(top: number) {
+    const editor = monaco.editor.getEditors()[0]
+    editor.setScrollTop(top)
+}
+
+export {
+    initMonaco,
+    get_scroll_top,
+    scroll_top_to,
+}

@@ -1,4 +1,5 @@
 import type { LanguageRegistration, ThemeRegistrationRaw } from 'shiki/core'
+
 import { getHighlighterCore } from 'shiki/core'
 import getWasmInlined from 'shiki/wasm'
 

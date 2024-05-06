@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import type { FileNode } from './types'
+import { useTags } from '@/stores/tag'
+import { useTheme } from '@/stores/theme'
+import { basename } from '@/utils'
 
-defineProps<{ node: FileNode }>()
-const emit = defineEmits<{ 
-    (e: 'close', node: FileNode): void,
-    (e: 'open', node: FileNode): void }>()
+const props = defineProps<{ node: FileNode }>()
+const emit = defineEmits<{
+    (e: 'open', node: FileNode): void,
+    (e: 'close', node: FileNode): void
+}>()
+const theme = useTheme()
+const tags = useTags()
 
-function close(e: MouseEvent, node: FileNode) {
-    e.stopPropagation()
-    emit('close', node)
-}
+const tag_name = computed(() => {
+    return basename(props.node.name)
+})
 </script>
 
 <template>
@@ -21,6 +26,51 @@ function close(e: MouseEvent, node: FileNode) {
     whitespace-nowrap
     @mousedown="emit('open', node)"
   >
+    <q-menu
+      context-menu
+      :dark="theme.dark"
+      bg="var-eb-bg"
+      text="var-eb-fg"
+    >
+      <q-list>    
+        <q-item
+          v-close-popup
+          clickable
+          @click="emit('close', node)"
+        >
+          <q-item-section>
+            关闭
+          </q-item-section>
+        </q-item>
+        <q-item
+          v-close-popup
+          clickable
+          @click="tags.close_other(node)"
+        >
+          <q-item-section>
+            关闭其他
+          </q-item-section>
+        </q-item>
+        <q-item
+          v-close-popup
+          clickable
+          @click="tags.close_right(node)"
+        >
+          <q-item-section>
+            关闭右侧标签
+          </q-item-section>
+        </q-item>
+        <q-item
+          v-close-popup
+          clickable
+          @click="tags.close_left(node)"
+        >
+          <q-item-section>
+            关闭左侧标签
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </q-menu>
     <div
       :class="node.icon"
       display-inline-block
@@ -28,7 +78,7 @@ function close(e: MouseEvent, node: FileNode) {
       w="20"
       h="20"
     />
-    {{ node.name }}
+    {{ tag_name }}
     <div
       class="i-ic:baseline-cancel close-btn"
       op="50 hover:100"
@@ -37,7 +87,7 @@ function close(e: MouseEvent, node: FileNode) {
       middle
       w="20"
       h="20"
-      @click="close($event, node)"
+      @click="emit('close', node)"
       @mousedown="$event.stopPropagation()"
     />
   </div>

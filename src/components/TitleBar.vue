@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import type { Event } from '@tauri-apps/api/event'
 import { Window } from '@tauri-apps/api/window'
 import { open } from '@tauri-apps/plugin-dialog'
-import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
+import { invoke_open_epub } from '@/invoke'
 import { useTheme } from '@/stores/theme'
+import { useTree } from '@/stores/useTree'
 const appWindow = new Window('main')
 let is_maximized = ref(false)
 
@@ -12,6 +15,7 @@ async function toggle_maximize() {
 }
 
 const theme = useTheme()
+const tree = useTree()
 
 async function open_epub_file() {
     const file = await open({
@@ -24,9 +28,13 @@ async function open_epub_file() {
     })
     const path = file?.path
     if (path) {
-        invoke('open_epub', { path })
+        invoke_open_epub(path)
     }
 }
+
+listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[] }>) => {
+    tree.parsePayload(event.payload)
+})
 </script>
 
 <template>
@@ -40,9 +48,9 @@ async function open_epub_file() {
     >
       <q-menu
         :dark="theme.dark"
-        class="bg-var-eb-bg"
+        bg="var-eb-bg"
+        text="var-eb-fg"
         w="fit"
-        anchor="bottom middle"
       >
         <q-list>
           <q-item

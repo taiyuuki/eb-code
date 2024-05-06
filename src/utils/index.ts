@@ -1,4 +1,4 @@
-export const setOpacity = (color: string, opacity: number) => {
+function setOpacity(color: string, opacity: number) {
     const reg = /^#([\dA-f]{3}|[\dA-f]{6})$/
     if (reg.test(color)) {
         if (color.length === 4) {
@@ -14,3 +14,27 @@ export const setOpacity = (color: string, opacity: number) => {
         return color
     }
 }
+
+function is_text(name: string) {
+    return name.endsWith('.html') 
+        || name.endsWith('.xhtml')
+        || name.endsWith('.css')
+        || name.endsWith('.opf')
+        || name.endsWith('.ncx')
+        || name.endsWith('.xml') 
+        || name.endsWith('.htm')
+        || name.endsWith('.txt')
+        || name.endsWith('.json')
+        || name.endsWith('.js')
+      
+}
+
+function basename(path: string) {
+    return path.split('/').pop()!
+}
+
+function filename(path: string) {
+    return path.split('/').pop()!.split('.')[0]
+}
+
+export { setOpacity, is_text, basename, filename }

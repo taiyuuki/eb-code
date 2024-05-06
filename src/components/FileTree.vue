@@ -3,10 +3,17 @@ import { useActivity } from 'composables/useActivity'
 import Draggable from 'vuedraggable'
 import type { FileNode, TreeProps } from './types'
 import { useTags } from '@/stores/tag'
+import { invoke_get_text } from '@/invoke'
+import { useCode } from '@/stores/code'
+import { is_text } from '@/utils'
+import { useScrollTop } from '@/stores/scroll-top'
+import { get_scroll_top, scroll_top_to } from '@/editor'
 
 const activity_node = useActivity()
-
 const props = withDefaults(defineProps<TreeProps>(), { indent: 10 })
+const code = useCode()
+const scroll_top = useScrollTop()
+
 const next_indent = computed(() => {
     return props.indent + props.indent / props.level
 })
@@ -16,8 +23,25 @@ const line_width = computed(() => {
 const tags = useTags()
 
 function toggle(node: FileNode) {
+    if (activity_node.opened_node) {
+        const line = get_scroll_top()
+        scroll_top.add(activity_node.opened_node.id, line)
+    }
+    
     activity_node.on(node)
     tags.add_tag(node)
+    if (tags.has_code(node.id)) {
+        code.value = tags.codes[node.id].code
+        code.lang = tags.codes[node.id].lang
+        if (scroll_top.has(node.id)) {
+            scroll_top_to(scroll_top.get(node.id))
+        }
+
+        return
+    }
+    if (is_text(node.name)) {
+        invoke_get_text(node.name)
+    }
 }
 </script>
 
@@ -35,7 +59,8 @@ function toggle(node: FileNode) {
           :class="{ selected: node.selected }"
           middle
           p="y-2"
-          text="16"
+          text="14"
+          whitespace-nowrap
           @mousedown="toggle(node)"
         >
           <div
@@ -112,3 +137,4 @@ div.selected:hover {
   border-color: var(--eb-active-border);
 }
 </style>
+@/stores/scroll-top

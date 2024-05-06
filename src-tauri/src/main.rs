@@ -5,7 +5,7 @@ mod open;
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![open::open_epub])
+        .invoke_handler(tauri::generate_handler![open::open_epub, open::get_text])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .run(tauri::generate_context!())

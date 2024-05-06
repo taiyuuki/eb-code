@@ -3,7 +3,7 @@
 
 <template>
   <q-layout>
-    <q-page-container>
+    <q-page-container pst="abs t-40 r-0 l-0">
       <TitleBar />
       <router-view />
     </q-page-container>

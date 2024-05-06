@@ -1,18 +1,30 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
+import type { Event } from '@tauri-apps/api/event'
+import { listen } from '@tauri-apps/api/event'
+import { invoke_get_text } from '@/invoke'
 import type { FileNode } from '@/components/types'
 import { themes } from '@/editor/themes'
 import type { Language } from '@/editor/shiki'
 import { NOT_SUPPORTED_THEMES } from '@/editor/shiki'
 import { useTheme } from '@/stores/theme'
 import { useTags } from '@/stores/tag'
+import { useCode }from '@/stores/code'
+import { useScrollTop } from '@/stores/scroll-top'
 import { useActivity } from '@/composables/useActivity'
+import { useTree } from '@/stores/useTree'
+import { is_text } from '@/utils'
+import { get_scroll_top, scroll_top_to } from '@/editor'
 
 const splitterModel = ref(300)
 const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
 const theme = useTheme()
+const tags = useTags()
+const tree = useTree()
+const code = useCode()
+const scroll_top = useScrollTop()
 
-const lang = ref<Language>('html')
+// const lang = ref<Language>('html')
 const languages: Language[] = ['html', 'css', 'javascript', 'json']
 
 const options = supported_themes
@@ -32,134 +44,62 @@ const thumb_style = {
     borderRadius: '0',
 }
 
-// const tag_nodes = ref<FileNode[]>([])
-const tags = useTags()
-const active_node = useActivity()
-
-// TODO:删除下面这些测试代码
-const files = ref([
-    {
-        id: '1', 
-        name: 'Text', 
-        icon: 'i-vscode-icons:folder-type-view-opened',
-        children: [
-            {
-                id: '1-1',
-                name: '1-1.html',
-                icon: 'i-vscode-icons:file-type-html',
-                children: [
-                    {
-                        id: '1-1-1',
-                        name: '1-1-1.css',
-                        icon: 'i-vscode-icons:file-type-css',
-                        children: [
-                            {
-                                id: '1-1-1-1',
-                                name: '1-1-1-1.html',
-                                icon: 'i-vscode-icons:file-type-html',
-                                children: [
-                                    { id: '1-1-1-1-1', name: 'index.css', icon: 'i-vscode-icons:file-type-css' },
-                                ], 
-                            },
-                            {
-                                id: '1-1-1-2',
-                                name: '1-1-1-2.html',
-                                icon: 'i-vscode-icons:file-type-html',
-                            },
-                        ], 
-                    },
-                ], 
-            },
-            {
-                id: '1-2',
-                name: '1-2.html',
-                icon: 'i-vscode-icons:file-type-html',
-            },
-        ],
-    },
-    {
-        id: '2',
-        name: 'style',
-        icon: 'i-vscode-icons:folder-type-css',
-        children: [
-            { id: '2-1', name: '2-1.css', icon: 'i-vscode-icons:file-type-css' },
-            { id: '2-2', name: '2-2.css', icon: 'i-vscode-icons:file-type-css' },
-        ], 
-    },
-    {
-        id: '3',
-        name: 'fonts',
-        icon: 'i-vscode-icons:folder-type-fonts',
-        children: [
-            { id: '3-1', name: '3-1.ttf', icon: 'i-vscode-icons:file-type-font' },
-            { id: '3-2', name: '22222222222222.ttf', icon: 'i-vscode-icons:file-type-font' },
-        ],
-    },
-    {
-        id: '4',
-        name: 'images',
-        icon: 'i-vscode-icons:folder-type-images',
-        children: [
-            { id: '4-1', name: '4-1.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-2', name: '4-2.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-3', name: '4-3.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-4', name: '4-4.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-5', name: '4-5.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-6', name: '4-6.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-7', name: '4-7.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-8', name: '4-8.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-9', name: '4-9.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-10', name: '4-10.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-11', name: '4-11.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-12', name: '4-12.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-13', name: '4-13.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-14', name: '4-14.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-15', name: '4-15.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-16', name: '4-16.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-17', name: '4-17.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-18', name: '4-18.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-19', name: '4-19.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-20', name: '4-20.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-21', name: '4-21.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-22', name: '4-22.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-23', name: '4-23.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-24', name: '4-24.png', icon: 'i-vscode-icons:file-type-image' },
-            { id: '4-25', name: '4-25.png', icon: 'i-vscode-icons:file-type-image' },
-        ],
-    },
-])
-
-// 给 files 每个节点添加父节点
-const addParent = (file: FileNode) => {
-    if (file.children) {
-        file.children.forEach(child => {
-            child.parent = file
-            addParent(child)
-        })
-    }
-}
-files.value.forEach(node => {
-    addParent(node)
-})
+const activity_node = useActivity()
 
 function open_file(node: FileNode) {
-    active_node.open(node)
-    active_node.activate(node)
-    active_node.select(node)
+    if (activity_node.opened_node === node) {
+        return
+    }
+    if (activity_node.opened_node) {
+        const line = get_scroll_top()
+        scroll_top.add(activity_node.opened_node.id, line)
+    }
+    activity_node.open(node)
+    activity_node.activate(node)
+    activity_node.select(node)
+
+    if (tags.has_code(node.id)) {
+        code.value = tags.codes[node.id].code
+        code.lang = tags.codes[node.id].lang
+        scroll_top_to(scroll_top.get(node.id))
+
+        return
+    }
+
+    if (is_text(node.name)) {
+        invoke_get_text(node.name)
+    }
 }
 
 function close_file(node: FileNode) {
     tags.remve_tag_by_id(node.id)
     if (node.open) {
-        tags.nodes[0] && active_node.open(tags.nodes[0])
+        if (tags.nodes[0]) {
+            activity_node.open(tags.nodes[0])
+            code.value = tags.codes[tags.nodes[0].id].code
+            code.lang = tags.codes[tags.nodes[0].id].lang
+            scroll_top_to(scroll_top.get(tags.nodes[0].id))
+        } else {
+            code.value = ''
+            code.lang = 'html'
+        }
     }
+
 }
+
+listen('get_text', (event: Event<[string, Language, string]>) => {
+    code.value = event.payload[0]
+    code.lang = event.payload[1]
+    const id = event.payload[2]
+    tags.codes[id] = { code: code.value, lang: code.lang }
+    scroll_top_to(scroll_top.get(id))
+})
 </script>
 
 <template>
   <q-page
     class="monaco-component"
-    m="t-40"
+    pst="rel"
     style="min-height: inherit;"
   >
     <div flex="~">
@@ -176,7 +116,7 @@ function close_file(node: FileNode) {
         @update:model-value="setTheme"
       />
       <q-select
-        v-model="lang"
+        v-model="code.lang"
         square
         outlined
         dense
@@ -202,11 +142,11 @@ function close_file(node: FileNode) {
           资源管理器
         </TitleBanner> 
         <q-scroll-area
-          style="height: calc(100vh - 100px);"
+          style="height: calc(100vh - 160px);"
           :thumb-style="thumb_style"
         >
           <FileTree
-            :files="files"
+            :files="tree.nodes"
             :level="1"
           />
         </q-scroll-area>
@@ -239,10 +179,11 @@ function close_file(node: FileNode) {
           </q-scroll-area>
         </TitleBanner>
         <CodeEditor
-          :language="lang"
-          code=""
+          :language="code.lang"
+          :code="code.value"
         />
       </template>
     </q-splitter>
   </q-page>
 </template>
+@/stores/scroll-top

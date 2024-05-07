@@ -22,7 +22,6 @@ pub fn clean_dir(dir: &str) -> io::Result<()> {
 
 #[tauri::command]
 pub fn clean_cache(dir: String, app_handle: tauri::AppHandle) {
-    println!("clean cache: {}", &dir);
     let _ = clean_dir(&dir);
     let _ = app_handle.emit("clean-success", "清理成功");
 }

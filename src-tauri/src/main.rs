@@ -4,9 +4,12 @@
 mod clean;
 mod open;
 mod read;
+mod search;
 mod write;
 
 fn main() {
+    let _ = search::find();
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             open::open_epub,

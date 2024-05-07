@@ -1,22 +1,27 @@
+import { convertFileSrc } from '@tauri-apps/api/core'
 import type { FileNode } from '@/components/types'
 import { get_code, scroll_top_to } from '@/editor'
 import type { Language } from '@/editor/shiki'
-import { invoke_get_text, invoke_write_text } from '@/invoke'
-import { is_text } from '@/utils'
+import { invoke_clean_cache, invoke_get_text, invoke_write_text } from '@/invoke'
+import { is_image, is_text } from '@/utils'
 
 const useStatus = defineStore('status', { 
     state: () => ({ 
         nodes: [] as FileNode[],
         codes: {} as Record<string, { code: string, lang: Language }>,
+        srces: {} as Record<string, string>,
         current: {
             id: '',
             is_dirty: false,
             code: '',
             lang: 'html' as Language,
             is_toogle: false,
+            src: '',
         },
         scroll_tops: {} as Record<string, number>,
         dir: '',
+        base_path: '',
+        show_code: false,
     }),
     actions: {
         has_code(id: string) {
@@ -63,8 +68,25 @@ const useStatus = defineStore('status', {
         set_dir(dir: string) {
             this.dir = dir
         },
+        set_base_path(path: string) {
+            this.base_path = path
+        },
         get_dir() {
             return this.dir
+        },
+        has_src(id: string) {
+            return id in this.srces
+        },
+        set_src(src: string) {
+            this.show_code = false
+            if (this.has_src(src)) {
+                this.current.src = this.srces[src]
+
+                return
+            }
+            const img_src = convertFileSrc(this.base_path + src)
+            this.srces[src] = img_src
+            this.current.src = img_src
         },
         on_change_node(new_node: FileNode, old_node: FileNode | null) {
             this.current.is_toogle = true
@@ -78,21 +100,41 @@ const useStatus = defineStore('status', {
                     invoke_write_text(this.dir, old_node.id, dirty_code)
                 }
             }
-            if (this.has_code(new_node.id)) {
-                this.current.code = this.codes[new_node.id].code
-                this.current.lang = this.codes[new_node.id].lang
-                this.current.id = new_node.id
-                if (this.has_top(new_node.id)) {
-                    scroll_top_to(this.get_top(new_node.id))
+            if (is_text(new_node.id)) {
+                this.show_code = true
+                if (this.has_code(new_node.id)) {
+                    this.current.code = this.codes[new_node.id].code
+                    this.current.lang = this.codes[new_node.id].lang
+                    this.current.id = new_node.id
+                    if (this.has_top(new_node.id)) {
+                        scroll_top_to(this.get_top(new_node.id))
+                    }
+            
+                    return
                 }
-        
-                return
+    
+                if (should_change) {
+                    this.current.id = new_node.id
+                    invoke_get_text(new_node.id, this.dir)
+                }
+            } else if (is_image(new_node.id)) {
+                this.set_src(new_node.id)
             }
-
-            if (should_change) {
-                this.current.id = new_node.id
-                invoke_get_text(new_node.id, this.dir)
-            }
+        },
+        close_epub() {
+            this.show_code = false
+            this.current.code = ''
+            this.current.src = ''
+            this.current.id = ''
+            this.current.lang = 'html'
+            this.nodes = []
+            this.codes = {}
+            this.srces = {}
+            this.scroll_tops = {}
+            this.current.is_dirty = false
+            this.current.is_toogle = false
+            invoke_clean_cache(this.dir)
+            this.dir = ''
         },
     },
 })

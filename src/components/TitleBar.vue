@@ -20,10 +20,11 @@ const tree = useTree()
 const status = useStatus()
 
 async function open_epub_file() {
+    
     const file = await open({
         filters: [
             {
-                name: 'epub',
+                name: '打开EPUB文件',
                 extensions: ['epub'],
             },
         ],
@@ -34,9 +35,13 @@ async function open_epub_file() {
     }
 }
 
-listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[], dir: string }>) => {
+listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[], dir: string, base_path: string }>) => {
+    if (status.dir !== '') {
+        status.close_epub()
+    }
     tree.parsePayload(event.payload)
     status.set_dir(event.payload.dir)
+    status.set_base_path(event.payload.base_path)
 })
 </script>
 

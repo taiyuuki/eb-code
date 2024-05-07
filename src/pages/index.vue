@@ -13,7 +13,7 @@ import { useActivity } from '@/composables/useActivity'
 import { useTree } from '@/stores/useTree'
 import { get_scroll_top, scroll_top_to } from '@/editor'
 import { invoke_clean_cache, invoke_write_text } from '@/invoke'
-import { is_text } from '@/utils'
+import { is_image, is_text } from '@/utils'
 
 const splitterModel = ref(300)
 const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
@@ -62,13 +62,20 @@ function close_file(node: FileNode) {
             invoke_write_text(status.dir, node.id, status.current.code)
         }
         if (status.nodes[0]) {
+            activity_node.open(status.nodes[0])
             if (is_text(status.nodes[0].id)) {
-                activity_node.open(status.nodes[0])
                 status.current.code = status.codes[status.nodes[0].id].code
                 status.current.lang = status.codes[status.nodes[0].id].lang
                 status.current.id = status.nodes[0].id
                 scroll_top_to(status.get_top(status.nodes[0].id))
+                status.show_code = true
+            } else if (is_image(status.nodes[0].id)) {
+                status.set_src(status.nodes[0].id)
             }
+        } else {
+            status.show_code = false
+            status.current.code = ''
+            status.current.src = ''
         }
     }
 
@@ -96,12 +103,14 @@ listen('get_text', (event: Event<[string, Language, string]>) => {
     scroll_top_to(status.get_top(id))
 })
 
+let close_requested = false
 app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
     invoke_clean_cache(status.dir)
+    close_requested = true
 })
 
 listen('clean-success', () => {
-    app_window.destroy()
+    close_requested && app_window.destroy()
 })
 </script>
 
@@ -130,7 +139,7 @@ listen('clean-success', () => {
       unit="px"
       :limits="[300, Infinity]"
       separator-class="bg-var-eb-fg"
-      h="100vh"
+      style="height: calc(100vh - 100px);"
     >
       <template #before>
         <TitleBanner
@@ -140,7 +149,7 @@ listen('clean-success', () => {
           资源管理器
         </TitleBanner> 
         <q-scroll-area
-          style="height: calc(100vh - 160px);"
+          style="height: calc(100vh - 170px);"
           :thumb-style="thumb_style"
         >
           <FileTree
@@ -178,8 +187,13 @@ listen('clean-success', () => {
           </q-scroll-area>
         </TitleBanner>
         <CodeEditor
+          v-show="status.show_code"
           :language="status.current.lang"
           :code="status.current.code"
+        />
+        <ImageViewer
+          v-show="status.current.src !== '' && !status.show_code"
+          :src="status.current.src"
         />
       </template>
     </q-splitter>

@@ -29,6 +29,19 @@ function is_text(name: string) {
       
 }
 
+function is_image(name: string) {
+    return name.endsWith('.png') 
+        || name.endsWith('.jpg') 
+        || name.endsWith('.jpeg') 
+        || name.endsWith('.gif') 
+        || name.endsWith('.svg')
+        || name.endsWith('.ico')
+        || name.endsWith('.webp')
+        || name.endsWith('.avif')
+        || name.endsWith('.tif')
+        || name.endsWith('.tiff')
+}
+
 function basename(path: string) {
     return path.split('/').pop()!
 }
@@ -37,4 +50,4 @@ function filename(path: string) {
     return path.split('/').pop()!.split('.')[0]
 }
 
-export { setOpacity, is_text, basename, filename }
+export { setOpacity, is_text, basename, filename, is_image }

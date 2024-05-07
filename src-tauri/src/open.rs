@@ -1,21 +1,24 @@
-use dirs;
 use epub::archive::EpubArchive;
 use epub::doc::EpubDoc;
+use rand::distributions::{Alphanumeric, Distribution};
 use serde::{Deserialize, Serialize};
-use std::path::{self, Path};
-use std::time;
+use std::path::Path;
 use std::{fs, io::Write};
 use tauri::Manager;
 
+pub mod directory;
+
 #[derive(Serialize, Deserialize, Clone)]
 struct EpubContents {
+    dir: String,
     chapters: Vec<String>,
     pathes: Vec<String>,
 }
 
 impl EpubContents {
-    fn new() -> Self {
+    fn new(dir: &str) -> Self {
         EpubContents {
+            dir: dir.to_string(),
             chapters: Vec::new(),
             pathes: Vec::new(),
         }
@@ -25,7 +28,15 @@ impl EpubContents {
 fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
     let mut epub = EpubDoc::new(path)?;
     let epub_archive = EpubArchive::new(path)?;
-    let mut epub_contents = EpubContents::new();
+
+    let mut rng = rand::thread_rng();
+    let rand_dir: String = Alphanumeric
+        .sample_iter(&mut rng)
+        .take(7)
+        .map(char::from)
+        .collect();
+
+    let mut epub_contents = EpubContents::new(&rand_dir);
 
     let len = epub.spine.len();
     for _ in 1..len {
@@ -39,16 +50,7 @@ fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
     for path in epub_archive.files.iter() {
         match epub.get_resource_by_path(path) {
             Some(resource) => {
-                let output_as_string = format!(
-                    "{}{}.EBCode{}cache{}{}{}{}",
-                    dirs::home_dir().unwrap().to_str().unwrap(),
-                    path::MAIN_SEPARATOR,
-                    path::MAIN_SEPARATOR,
-                    path::MAIN_SEPARATOR,
-                    "ANYNAME",
-                    path::MAIN_SEPARATOR,
-                    path
-                );
+                let output_as_string = directory::format_dir(&rand_dir, path);
                 let output_path = Path::new(&output_as_string);
                 if let Some(output_dir) = output_path.parent() {
                     if !Path::new(&output_dir).exists() {
@@ -75,39 +77,4 @@ pub fn open_epub(path: &str, app_handle: tauri::AppHandle) {
             let _ = app_handle.emit("epub-error", "打开失败");
         }
     };
-}
-
-#[tauri::command]
-pub fn get_text(path: &str, app_handle: tauri::AppHandle) {
-    let dir = format!(
-        "{}{}.EBCode{}cache{}{}{}{}",
-        dirs::home_dir().unwrap().to_str().unwrap(),
-        path::MAIN_SEPARATOR,
-        path::MAIN_SEPARATOR,
-        path::MAIN_SEPARATOR,
-        "ANYNAME",
-        path::MAIN_SEPARATOR,
-        path
-    );
-    let p: &Path = Path::new(&dir);
-    let lang = match p.extension() {
-        Some(ext) => match ext.to_str() {
-            Some("txt") => "txt",
-            Some("html") => "html",
-            Some("xhtml") => "html",
-            Some("opf") => "html",
-            Some("ncx") => "html",
-            Some("xml") => "html",
-            Some("htm") => "html",
-            Some("css") => "css",
-            Some("js") => "js",
-            Some("json") => "json",
-            _ => "txt",
-        },
-        None => "txt",
-    };
-    if p.exists() {
-        let text = fs::read_to_string(p).unwrap();
-        app_handle.emit("get_text", [&text, lang, path]).unwrap();
-    }
 }

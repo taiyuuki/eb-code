@@ -6,6 +6,7 @@ import { listen } from '@tauri-apps/api/event'
 import { invoke_open_epub } from '@/invoke'
 import { useTheme } from '@/stores/theme'
 import { useTree } from '@/stores/useTree'
+import { useStatus } from '@/stores/status'
 const appWindow = new Window('main')
 let is_maximized = ref(false)
 
@@ -16,6 +17,7 @@ async function toggle_maximize() {
 
 const theme = useTheme()
 const tree = useTree()
+const status = useStatus()
 
 async function open_epub_file() {
     const file = await open({
@@ -32,8 +34,9 @@ async function open_epub_file() {
     }
 }
 
-listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[] }>) => {
+listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[], dir: string }>) => {
     tree.parsePayload(event.payload)
+    status.set_dir(event.payload.dir)
 })
 </script>
 
@@ -165,3 +168,4 @@ listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[] }>) =
     opacity: 1;
   }
 </style>
+@/stores/status

@@ -12,6 +12,7 @@ declare module 'vue' {
     FileTree: typeof import('./components/FileTree.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    StatusBar: typeof import('./components/StatusBar.vue')['default']
     TitleBanner: typeof import('./components/TitleBanner.vue')['default']
     TitleBar: typeof import('./components/TitleBar.vue')['default']
     TitleTag: typeof import('./components/TitleTag.vue')['default']

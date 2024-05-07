@@ -1,7 +1,7 @@
 import type { Ref } from 'vue'
 
 function useCompRef<T>(_: T) {
-    return ref() as Ref<typeof _>
+    return ref() as Ref<T>
 }
 
 function useElementRef<T extends HTMLElement>() {

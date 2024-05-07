@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FileNode } from './types'
-import { useTags } from '@/stores/tag'
+import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
 import { basename } from '@/utils'
 
@@ -10,10 +10,10 @@ const emit = defineEmits<{
     (e: 'close', node: FileNode): void
 }>()
 const theme = useTheme()
-const tags = useTags()
+const status = useStatus()
 
 const tag_name = computed(() => {
-    return basename(props.node.name)
+    return basename(props.node.id)
 })
 </script>
 
@@ -45,7 +45,7 @@ const tag_name = computed(() => {
         <q-item
           v-close-popup
           clickable
-          @click="tags.close_other(node)"
+          @click="status.close_other(node)"
         >
           <q-item-section>
             关闭其他
@@ -54,7 +54,7 @@ const tag_name = computed(() => {
         <q-item
           v-close-popup
           clickable
-          @click="tags.close_right(node)"
+          @click="status.close_right(node)"
         >
           <q-item-section>
             关闭右侧标签
@@ -63,7 +63,7 @@ const tag_name = computed(() => {
         <q-item
           v-close-popup
           clickable
-          @click="tags.close_left(node)"
+          @click="status.close_left(node)"
         >
           <q-item-section>
             关闭左侧标签
@@ -102,3 +102,4 @@ div.opened:hover {
   background-color: var(--vscode-toolbar-activeBackground);
 }
 </style>
+@/stores/status

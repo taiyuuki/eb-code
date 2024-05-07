@@ -2,75 +2,75 @@
 import { shikiToMonaco } from '@shikijs/monaco'
 import { useElementRef } from 'composables/useComp'
 import type { HighlighterCore } from 'shiki/index.mjs'
-import { initMonaco } from '@/editor'
-import { type Language, getLighter } from '@/editor/shiki'
+import { create_controller } from '@/editor'
+import { getLighter } from '@/editor/shiki'
 import { useTheme } from '@/stores/theme'
 import { setOpacity } from '@/utils'
+import { useStatus } from '@/stores/status'
+import { invoke_write_text } from '@/invoke'
 
 const theme = useTheme()
-
-const props = withDefaults(defineProps<{ 
-    code: string
-    language: Language,
-}>(), { code: '', theme: 'github-dark', language: 'html' })
-const emit = defineEmits<{
-    (e: 'update:code', code: string): void
-    (e: 'update:language', language: Language): void
-}>()
+const status = useStatus()
 
 const editor = useElementRef()
-const monaco = initMonaco()
-const text_model = monaco.editor.createModel(
-    props.code,
-    props.language,
-)
+const monaco_controller = create_controller()
+let timeout_id = 0
 
-text_model.onDidChangeContent(() => {
-    emit('update:code', text_model.getValue())
+monaco_controller.on_change_code(() => {
+    if (status.current.is_toogle) {
+        status.current.is_toogle = false
+
+        return
+    }
+    if (status.current.lang === 'css') {
+        if (timeout_id) {
+            clearTimeout(timeout_id)
+        }
+        timeout_id = window.setTimeout(() => {
+            const code = monaco_controller.get_code()
+            status.codes[status.current.id].code = code
+            invoke_write_text(status.dir, status.current.id, code)
+        }, 500)
+    } else {
+        status.current.is_dirty = true
+    }
 })
 
-text_model.onDidChangeLanguage(() => {
-    emit('update:language', text_model.getLanguageId() as Language)
+monaco_controller.on_change_lang(() => {
+    status.current.lang = monaco_controller.get_lang()
 })
 
-watch(() => props.code, () => {
-    text_model.setValue(props.code)
+watch(() => status.current.code, () => {
+    monaco_controller.set_code(status.current.code)
 })
 
-watch(() => props.language, () => {
-    monaco.editor.setModelLanguage(text_model, props.language)
+watch(() => status.current.lang, () => {
+    monaco_controller.set_lang(status.current.lang)
 })
 
 let hightlighter: HighlighterCore
-theme.$subscribe(async() => {
+onMounted(async() => {
+
+    const monaco = monaco_controller.create_monaco(editor.value)
     if (!hightlighter) {
         hightlighter = await getLighter()
 
         // @ts-expect-error shikiToMonaco forced import monaco from 'monaco-editor-core', but here is 'monaco-editor'.
         shikiToMonaco(hightlighter, monaco)
     }
-    monaco.editor.setTheme(theme.shiki)
+    watch(() => theme.shiki, () => {
+        monaco.editor.setTheme(theme.shiki)
 
-    const theme_colors = hightlighter.getTheme(theme.shiki)
+        const theme_colors = hightlighter.getTheme(theme.shiki)
 
-    theme.color = theme_colors.fg
-    theme.background = theme_colors.bg
-    theme.dark = theme_colors.type === 'dark'
+        theme.color = theme_colors.fg
+        theme.background = theme_colors.bg
+        theme.dark = theme_colors.type === 'dark'
 
-    theme['list.activeBorder'] = theme_colors.fg
-    theme['list.border'] = setOpacity(theme_colors.fg, 0.3)
-    theme.setColor()
-}, { 
-    immediate: true,
-    detached: false,
-})
-
-onMounted(() => {
-
-    monaco.editor.create(editor.value, {
-        model: text_model,
-        automaticLayout: true,
-    })
+        theme['list.activeBorder'] = theme_colors.fg
+        theme['list.border'] = setOpacity(theme_colors.fg, 0.3)
+        theme.setColor()
+    }, { immediate: true })
 })
 </script>
 

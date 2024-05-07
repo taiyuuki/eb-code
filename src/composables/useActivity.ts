@@ -2,7 +2,7 @@ import type { FileNode } from 'components/types'
 
 const activity_files = {
     selected_node: null as FileNode | null,
-    active_node: null as FileNode | null,
+    expanded_node: null as FileNode | null,
     opened_node: null as FileNode | null,
     toggle_expanded(node: FileNode) {
         if (node.children) {
@@ -27,14 +27,14 @@ const activity_files = {
         this.selected_node = node
     },
     activate(node: FileNode) {
-        if (node === this.active_node) return
-        this.active_node && (this.active_node.active = false)
+        if (node === this.expanded_node) return
+        this.expanded_node && (this.expanded_node.active = false)
         if (node.children && node.expanded) {
             node.active = true
-            this.active_node = node
+            this.expanded_node = node
         } else if (node.parent) {
             node.parent.active = true
-            this.active_node = node.parent
+            this.expanded_node = node.parent
         }
     },
     on(node: FileNode) {

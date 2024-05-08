@@ -2,9 +2,13 @@
 import type { Directive } from 'vue'
 import type { TouchPanValue } from 'quasar'
 import type { HTMLEventManage } from '@/utils/event'
+import { useElementRef } from '@/composables/useComp'
 
 const props = defineProps<{ src: string }>()
 const eventList = [] as HTMLEventManage<any>[]
+
+// const show_controller = ref(false)
+const controller = useElementRef<HTMLDivElement>()
 
 const imagePosition = reactive({
     scale: 1, // 缩放倍数
@@ -46,7 +50,7 @@ const imageStyle = computed(() => {
 
 function resizeOnscroll(e: WheelEvent) {
     e.preventDefault()
-    picResize(-e.deltaY / 400)
+    picResize(-e.deltaY / 1000)
 
     return false
 }
@@ -74,7 +78,7 @@ const vTakeSize: Directive = {
         const container_width = Number.parseFloat(width)
         const container_height = Number.parseFloat(height)
         const radio = container_width / container_height
-       
+
         img.onload = () => {
             const { naturalWidth, naturalHeight } = img
             const img_radio = naturalWidth / naturalHeight
@@ -85,9 +89,35 @@ const vTakeSize: Directive = {
             } else {
                 imagePosition.size = 'height:100%'
             }
-            
+
         }
     },
+}
+
+const mouse_moving = ref(false)
+let mouse_is_down = false
+let timer = 0
+function show_controller() {
+    if (mouse_moving.value) {
+        clearTimeout(timer)
+    } else {
+        mouse_moving.value = true
+    }
+    timer = window.setTimeout(() => {
+        if (!mouse_is_down) {
+            mouse_moving.value = false
+        }
+    }, 1500)
+}
+function mouse_move() {
+    mouse_is_down = false
+    show_controller()
+}
+function mouse_pan(state: 'end' | 'start') {
+    mouse_is_down = state === 'start'
+    if (!mouse_is_down) {
+        show_controller()
+    }
 }
 
 watch(() => props.src, () => {
@@ -102,12 +132,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div 
-    pst="abs inset-0"
-    style="width: 100%; height: calc(100% - 65px);"
-    overflow-hidden
+  <div
+    class="mask"
+    @mousemove="mouse_move"
   >
-    <div
+    <div  
       :style="maskStyle"
       class="image"
       @mousewheel="resizeOnscroll"
@@ -122,24 +151,84 @@ onBeforeUnmount(() => {
         crossorigin="anonymous"
       >
     </div>
+    <div
+      v-show="mouse_moving"
+      ref="controller"
+      class="image-controller"
+    >
+      <q-slider
+        v-model="imagePosition.scale"
+        class="scale-slider"
+        :step="0.1"
+        :min="0.3"
+        :max="5"
+        color="fg"
+        @pan="mouse_pan"
+      />
+      <div
+        class="i-ic:sharp-restart-alt"
+        h="30"
+        w="30"
+        m="l-20"
+        op="80 hover:100"
+        cursor-pointer
+        @click="sizeReset"
+      />
+    </div>
   </div>
 </template>
 
 <style lang="scss">
+.mask {
+    --linear-color: #c2c2c2;
+    width: 100%;
+    height: calc(100% - 65px);
+    overflow: hidden;
+    background-image:
+        linear-gradient(45deg,
+            var(--linear-color) 25%,
+            transparent 0,
+            transparent 75%,
+            var(--linear-color) 0),
+        linear-gradient(45deg,
+            var(--linear-color) 25%,
+            transparent 0,
+            transparent 75%,
+            var(--linear-color) 0);
+    background-position: 0 0, 8px 8px;
+    background-size: 16px 16px;
+    position: absolute;
+
+}
+
 .image {
     position: relative;
     width: 100%;
     height: 100%;
     text-align: center;
+    user-select: none;
 
     img {
-      cursor: grab;
-      -webkit-user-drag: none;
-      object-fit: contain;
+        cursor: grab;
+        -webkit-user-drag: none;
+        object-fit: contain;
 
-      &:active {
-        cursor: grabbing;
-      }
+        &:active {
+            cursor: grabbing;
+        }
     }
-  }
+}
+
+.image-controller {
+    display: flex;
+    width: 200px;
+    position: absolute;
+    bottom: 20px;
+    left: calc(50% - 100px);
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--eb-bg);
+    padding: 0 10px;
+    border-radius: 5px;
+}
 </style>

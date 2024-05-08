@@ -228,7 +228,7 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: space-between;
     background-color: var(--eb-bg);
-    padding: 0 10px;
+    padding: 0 20px;
     border-radius: 5px;
 }
 </style>

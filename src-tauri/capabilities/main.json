@@ -28,6 +28,7 @@
     "global-shortcut:default",
     "global-shortcut:default",
     "dialog:allow-open",
+    "dialog:allow-save",
     "dialog:default"
   ]
 }

@@ -11,6 +11,7 @@ const useStatus = defineStore('status', {
         codes: {} as Record<string, { code: string, lang: Language }>,
         srces: {} as Record<string, string>,
         current: {
+            file_name: 'unnamed',
             id: '',
             is_dirty: false,
             code: '',

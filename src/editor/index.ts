@@ -53,6 +53,7 @@ class MonacoController {
         monaco.editor.create(el, {
             model: MonacoController.text_model,
             automaticLayout: true,
+            cursorSmoothCaretAnimation: 'on',
         })
 
         return monaco
@@ -82,6 +83,12 @@ class MonacoController {
 
     on_change_lang(fn: (e: monaco.editor.IModelLanguageChangedEvent)=> void) {
         MonacoController.text_model.onDidChangeLanguage(e => {
+            fn(e)
+        })
+    }
+
+    on_change_decorations(fn: (e: monaco.editor.IModelDecorationsChangedEvent)=> void) {
+        MonacoController.text_model.onDidChangeDecorations(e => {
             fn(e)
         })
     }

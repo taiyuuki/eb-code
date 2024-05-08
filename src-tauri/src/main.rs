@@ -4,11 +4,12 @@
 mod clean;
 mod open;
 mod read;
-mod search;
+mod save;
+// mod search;
 mod write;
 
 fn main() {
-    let _ = search::find();
+    // let _ = search::find();
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -16,6 +17,7 @@ fn main() {
             read::get_text,
             write::write_text,
             clean::clean_cache,
+            save::save_epub,
         ])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())

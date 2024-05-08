@@ -31,8 +31,8 @@ impl EpubContents {
 }
 
 fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
-    let mut epub = EpubDoc::new(path)?;
     let epub_archive = EpubArchive::new(path)?;
+    let mut epub = EpubDoc::new(path)?;
 
     let mut rng = rand::thread_rng();
     let rand_dir: String = Alphanumeric
@@ -78,7 +78,8 @@ pub fn open_epub(path: &str, app_handle: tauri::AppHandle) {
         Ok(epub_contents) => {
             let _ = app_handle.emit("epub-opened", epub_contents);
         }
-        Err(_) => {
+        Err(e) => {
+            println!("{:?}", e);
             let _ = app_handle.emit("epub-error", "打开失败");
         }
     };

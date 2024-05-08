@@ -43,11 +43,15 @@ function is_image(name: string) {
 }
 
 function basename(path: string) {
-    return path.split('/').pop()!
+    const SEPARATOR = path.includes('\\') ? '\\' : '/'
+
+    return path.split(SEPARATOR).pop()!
 }
 
 function filename(path: string) {
-    return path.split('/').pop()!.split('.')[0]
+    const SEPARATOR = path.includes('\\') ? '\\' : '/'
+
+    return path.split(SEPARATOR).pop()!.split('.')[0]
 }
 
 export { setOpacity, is_text, basename, filename, is_image }

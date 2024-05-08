@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { Event } from '@tauri-apps/api/event'
 import { Window } from '@tauri-apps/api/window'
-import { open } from '@tauri-apps/plugin-dialog'
+import { open, save } from '@tauri-apps/plugin-dialog'
 import { listen } from '@tauri-apps/api/event'
-import { invoke_open_epub } from '@/invoke'
+import { invoke_open_epub, invoke_save_epub } from '@/invoke'
 import { useTheme } from '@/stores/theme'
 import { useTree } from '@/stores/useTree'
 import { useStatus } from '@/stores/status'
+import { filename } from '@/utils'
 const appWindow = new Window('main')
 let is_maximized = ref(false)
 
@@ -32,6 +33,23 @@ async function open_epub_file() {
     const path = file?.path
     if (path) {
         invoke_open_epub(path)
+        status.current.file_name = filename(path)
+    }
+}
+
+async function save_epub_file() {
+    const path = await save({
+        filters: [
+            {
+                name: '保存EPUB文件',
+                extensions: ['epub'],
+            },
+        ],
+        
+    })
+
+    if (path) {
+        invoke_save_epub(status.dir, path)
     }
 }
 
@@ -90,6 +108,7 @@ listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[], dir:
           <q-item
             v-close-popup
             clickable
+            @click="save_epub_file"
           >
             <q-item-section>
               另存为

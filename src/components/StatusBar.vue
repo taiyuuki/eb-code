@@ -13,11 +13,33 @@ const status = useStatus()
     p="x-20"
     flex="~ items-center justify-between"
     select-none
+    w="100%"
     z-2
   >
-    <div>{{ status.current.file_name }}</div>
-    <div v-show="status.show_code">
-      {{ status.current.lang }}
+    <div>{{ status.current.save_path }}</div>
+    <div flex="~">
+      <div
+        v-show="status.is_saving"
+        flex="~ items-center justify-between"
+      >
+        <div
+          middle
+        >
+          保存中 
+        </div>
+        <div
+          h="15"
+          w="15"
+          m="l-5"
+          class="i-line-md:loading-twotone-loop"
+        />
+      </div>
+      <div
+        v-show="status.show_code"
+        m="l-5"
+      >
+        {{ status.current.lang }}
+      </div>
     </div>
   </div>
 </template>

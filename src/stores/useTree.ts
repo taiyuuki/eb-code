@@ -66,19 +66,19 @@ const useTree = defineStore('file_nodes', {
                 expanded: false,
             },
             {
-                id: 'scripts',
-                name: 'Scripts',
+                id: 'fonts',
+                name: 'Fonts',
                 get icon() {
-                    return this.expanded ? 'i-vscode-icons:folder-type-js-opened' : 'i-vscode-icons:folder-type-js'
+                    return this.expanded ? 'i-vscode-icons:folder-type-fonts-opened' : 'i-vscode-icons:folder-type-fonts'
                 },
                 children: [],
                 expanded: false,
             },
             {
-                id: 'fonts',
-                name: 'Fonts',
+                id: 'scripts',
+                name: 'Scripts',
                 get icon() {
-                    return this.expanded ? 'i-vscode-icons:folder-type-fonts-opened' : 'i-vscode-icons:folder-type-fonts'
+                    return this.expanded ? 'i-vscode-icons:folder-type-js-opened' : 'i-vscode-icons:folder-type-js'
                 },
                 children: [],
                 expanded: false,
@@ -111,6 +111,9 @@ const useTree = defineStore('file_nodes', {
                 children: [],
                 expanded: false,
             }]
+        },
+        clean() {
+            this.nodes = []
         },
         add_html(name: string) {
             this.nodes[0].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-html' })

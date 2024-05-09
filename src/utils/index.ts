@@ -43,12 +43,14 @@ function is_image(name: string) {
 }
 
 function basename(path: string) {
+    if (path === '') return ''
     const SEPARATOR = path.includes('\\') ? '\\' : '/'
 
     return path.split(SEPARATOR).pop()!
 }
 
 function filename(path: string) {
+    if (path === '') return ''
     const SEPARATOR = path.includes('\\') ? '\\' : '/'
 
     return path.split(SEPARATOR).pop()!.split('.')[0]

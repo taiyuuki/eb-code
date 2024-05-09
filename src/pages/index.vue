@@ -10,7 +10,6 @@ import { NOT_SUPPORTED_THEMES } from '@/editor/shiki'
 import { useTheme } from '@/stores/theme'
 import { useStatus } from '@/stores/status'
 import { useActivity } from '@/composables/useActivity'
-import { useTree } from '@/stores/useTree'
 import { get_scroll_top, scroll_top_to } from '@/editor'
 import { invoke_clean_cache, invoke_write_text } from '@/invoke'
 import { is_image, is_text } from '@/utils'
@@ -19,7 +18,6 @@ const splitterModel = ref(300)
 const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
 const theme = useTheme()
 const status = useStatus()
-const tree = useTree()
 const app_window = getCurrent()
 
 const options = supported_themes
@@ -134,69 +132,62 @@ listen('clean-success', () => {
         @update:model-value="setTheme"
       />
     </div>
-    <q-splitter
-      v-model="splitterModel"
-      unit="px"
-      :limits="[300, Infinity]"
-      separator-class="bg-var-eb-fg"
-      style="height: calc(100vh - 100px);"
-    >
-      <template #before>
-        <TitleBanner
-          :dark="theme.dark"
-          dense
-        >
-          资源管理器
-        </TitleBanner> 
-        <q-scroll-area
-          style="height: calc(100vh - 170px);"
-          :thumb-style="thumb_style"
-        >
-          <FileTree
-            :files="tree.nodes"
-            :level="1"
-          />
-        </q-scroll-area>
-      </template>
-
-      <template #after>
-        <TitleBanner
-          :dark="theme.dark"
-          dense
-        >
+    <div flex="~">
+      <NaviBar />
+      <q-splitter
+        v-model="splitterModel"
+        unit="px"
+        :limits="[300, Infinity]"
+        separator-class="bg-var-eb-fg"
+        style="height: calc(100vh - 100px);flex:1;"
+      >
+        <template #before>
           <q-scroll-area
-            style="height: 50px;" 
+            style="height: calc(100vh - 170px);"
             :thumb-style="thumb_style"
-            @mousewheel.prevent="scroll_ytx"
           >
-            <draggable
-              :list="status.nodes"
-              item-key="id"
-              animation="200"
-              force-fallback
-              class="flex items-center flex-nowrap"
-            >
-              <template #item="{ element: node }">
-                <TitleTag
-                  :node="node"
-                  @close="close_file"
-                  @open="open_file"
-                />
-              </template>
-            </draggable>
+            <router-view />
           </q-scroll-area>
-        </TitleBanner>
-        <CodeEditor
-          v-show="status.show_code"
-          :language="status.current.lang"
-          :code="status.current.code"
-        />
-        <ImageViewer
-          v-show="status.current.src !== '' && !status.show_code"
-          :src="status.current.src"
-        />
-      </template>
-    </q-splitter>
+        </template>
+  
+        <template #after>
+          <TitleBanner
+            :dark="theme.dark"
+            dense
+          >
+            <q-scroll-area
+              style="height: 50px;" 
+              :thumb-style="thumb_style"
+              @mousewheel.prevent="scroll_ytx"
+            >
+              <draggable
+                :list="status.nodes"
+                item-key="id"
+                animation="200"
+                force-fallback
+                class="flex items-center flex-nowrap"
+              >
+                <template #item="{ element: node }">
+                  <TitleTag
+                    :node="node"
+                    @close="close_file"
+                    @open="open_file"
+                  />
+                </template>
+              </draggable>
+            </q-scroll-area>
+          </TitleBanner>
+          <CodeEditor
+            v-show="status.show_code"
+            :language="status.current.lang"
+            :code="status.current.code"
+          />
+          <ImageViewer
+            v-show="status.current.src !== '' && !status.show_code"
+            :src="status.current.src"
+          />
+        </template>
+      </q-splitter>
+    </div>
   </q-page>
 </template>
-@/stores/status

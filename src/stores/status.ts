@@ -3,7 +3,7 @@ import type { FileNode } from '@/components/types'
 import { get_code, scroll_top_to } from '@/editor'
 import type { Language } from '@/editor/shiki'
 import { invoke_clean_cache, invoke_get_text, invoke_write_text } from '@/invoke'
-import { is_image, is_text } from '@/utils'
+import { filename, is_image, is_text } from '@/utils'
 
 const useStatus = defineStore('status', { 
     state: () => ({ 
@@ -11,7 +11,7 @@ const useStatus = defineStore('status', {
         codes: {} as Record<string, { code: string, lang: Language }>,
         srces: {} as Record<string, string>,
         current: {
-            file_name: 'unnamed',
+            save_path: '',
             id: '',
             is_dirty: false,
             code: '',
@@ -23,7 +23,14 @@ const useStatus = defineStore('status', {
         dir: '',
         base_path: '',
         show_code: false,
+        is_loading: false,
+        is_saving: false,
     }),
+    getters: {
+        file_name(state) {
+            return filename(state.current.save_path)
+        },
+    },
     actions: {
         has_code(id: string) {
             return id in this.codes
@@ -134,6 +141,7 @@ const useStatus = defineStore('status', {
             this.scroll_tops = {}
             this.current.is_dirty = false
             this.current.is_toogle = false
+            this.current.save_path = ''
             invoke_clean_cache(this.dir)
             this.dir = ''
         },

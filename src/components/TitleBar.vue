@@ -3,11 +3,11 @@ import type { Event } from '@tauri-apps/api/event'
 import { Window } from '@tauri-apps/api/window'
 import { open, save } from '@tauri-apps/plugin-dialog'
 import { listen } from '@tauri-apps/api/event'
-import { invoke_open_epub, invoke_save_epub } from '@/invoke'
+import { invoke_clean_cache, invoke_open_epub, invoke_save_epub } from '@/invoke'
 import { useTheme } from '@/stores/theme'
 import { useTree } from '@/stores/useTree'
 import { useStatus } from '@/stores/status'
-import { filename } from '@/utils'
+import { notif_negative, notif_positive } from '@/notif'
 const appWindow = new Window('main')
 let is_maximized = ref(false)
 
@@ -21,6 +21,9 @@ const tree = useTree()
 const status = useStatus()
 
 async function open_epub_file() {
+    if (status.is_loading || status.is_saving) {
+        return
+    }
     
     const file = await open({
         filters: [
@@ -32,12 +35,32 @@ async function open_epub_file() {
     })
     const path = file?.path
     if (path) {
+        status.is_loading = true
         invoke_open_epub(path)
-        status.current.file_name = filename(path)
+        status.current.save_path = path
     }
 }
 
-async function save_epub_file() {
+function save_epub_file() {
+    if (status.is_loading || status.is_saving) {
+        notif_negative('当前文件尚未处理完毕，请稍后再试。')
+
+        return
+    }
+    if (status.current.save_path === '') {
+        save_epub_to()
+    } else {
+        status.is_saving = true
+        invoke_save_epub(status.dir, status.current.save_path)
+    }
+}
+
+async function save_epub_to() {
+    if (status.is_loading || status.is_saving) {
+        notif_negative('当前文件尚未处理完毕，请稍后再试。')
+
+        return
+    }
     const path = await save({
         filters: [
             {
@@ -49,8 +72,16 @@ async function save_epub_file() {
     })
 
     if (path) {
+        status.is_saving = true
+        status.current.save_path = path
         invoke_save_epub(status.dir, path)
     }
+}
+
+function close_epub() {
+    invoke_clean_cache(status.dir)
+    tree.clean()
+    status.close_epub()
 }
 
 listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[], dir: string, base_path: string }>) => {
@@ -60,6 +91,17 @@ listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[], dir:
     tree.parsePayload(event.payload)
     status.set_dir(event.payload.dir)
     status.set_base_path(event.payload.base_path)
+    status.is_loading = false
+})
+
+listen('epub-saved', () => {
+    status.is_saving = false
+    notif_positive('文件已保存')
+})
+
+listen('epub-save-error', () => {
+    status.is_saving = false
+    notif_negative('文件因未知原因保存失败，建议重编辑器后重试。')
 })
 </script>
 
@@ -100,6 +142,7 @@ listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[], dir:
           <q-item
             v-close-popup
             clickable
+            @click="save_epub_file"
           >
             <q-item-section>
               保存
@@ -108,10 +151,19 @@ listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[], dir:
           <q-item
             v-close-popup
             clickable
-            @click="save_epub_file"
+            @click="save_epub_to"
           >
             <q-item-section>
               另存为
+            </q-item-section>
+          </q-item>
+          <q-item
+            v-close-popup
+            clickable
+            @click="close_epub"
+          >
+            <q-item-section>
+              关闭当前文件
             </q-item-section>
           </q-item>
         </q-list>

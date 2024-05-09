@@ -73,8 +73,8 @@ pub fn save_epub(save_options: SaveOptions, app: tauri::AppHandle) {
         Ok(_) => {
             app.emit("epub-saved", &save_options.output_dir).unwrap();
         }
-        Err(e) => {
-            println!("{:?}", e)
-        }
+        Err(_) => app
+            .emit("epub-save-error", &save_options.output_dir)
+            .unwrap(),
     };
 }

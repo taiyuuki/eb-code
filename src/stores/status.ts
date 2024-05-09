@@ -1,30 +1,29 @@
 import { convertFileSrc } from '@tauri-apps/api/core'
 import type { FileNode } from '@/components/types'
-import { get_code, scroll_top_to } from '@/editor'
 import type { Language } from '@/editor/shiki'
-import { invoke_clean_cache, invoke_get_text, invoke_write_text } from '@/invoke'
+import { invoke_clean_cache, invoke_get_text } from '@/invoke'
 import { filename, is_image, is_text } from '@/utils'
 
 const useStatus = defineStore('status', { 
     state: () => ({ 
         nodes: [] as FileNode[],
-        codes: {} as Record<string, { code: string, lang: Language }>,
-        srces: {} as Record<string, string>,
+        images: {} as Record<string, string>,
         current: {
             save_path: '',
             id: '',
             is_dirty: false,
             code: '',
             lang: 'html' as Language,
-            is_toogle: false,
             src: '',
         },
         scroll_tops: {} as Record<string, number>,
         dir: '',
         base_path: '',
         show_code: false,
-        is_loading: false,
+        is_opening: false,
         is_saving: false,
+        is_reading: false,
+        is_toogle: false,
     }),
     getters: {
         file_name(state) {
@@ -32,9 +31,6 @@ const useStatus = defineStore('status', {
         },
     },
     actions: {
-        has_code(id: string) {
-            return id in this.codes
-        },
         add_tag(node: FileNode) {
             if (node.children || this.nodes.find(n => n.id === node.id)) {
                 return
@@ -83,50 +79,31 @@ const useStatus = defineStore('status', {
             return this.dir
         },
         has_src(id: string) {
-            return id in this.srces
+            return id in this.images
         },
         set_src(src: string) {
             this.show_code = false
             if (this.has_src(src)) {
-                this.current.src = this.srces[src]
+                this.current.src = this.images[src]
 
                 return
             }
             const img_src = convertFileSrc(this.base_path + src)
-            this.srces[src] = img_src
+            this.images[src] = img_src
             this.current.src = img_src
         },
-        on_change_node(new_node: FileNode, old_node: FileNode | null) {
-            this.current.is_toogle = true
-            const should_change = is_text(new_node.id)
-
-            if (should_change && this.current.is_dirty) {
-                const dirty_code = get_code()
-                this.current.is_dirty = false
-                if (old_node && this.has_code(old_node.id)) {
-                    this.codes[old_node.id].code = dirty_code
-                    invoke_write_text(this.dir, old_node.id, dirty_code)
-                }
+        on_change_node(node: FileNode) {
+            if (this.is_reading) {
+                return
             }
-            if (is_text(new_node.id)) {
+            this.is_toogle = true
+            if (is_text(node.id)) {
                 this.show_code = true
-                if (this.has_code(new_node.id)) {
-                    this.current.code = this.codes[new_node.id].code
-                    this.current.lang = this.codes[new_node.id].lang
-                    this.current.id = new_node.id
-                    if (this.has_top(new_node.id)) {
-                        scroll_top_to(this.get_top(new_node.id))
-                    }
-            
-                    return
-                }
-    
-                if (should_change) {
-                    this.current.id = new_node.id
-                    invoke_get_text(new_node.id, this.dir)
-                }
-            } else if (is_image(new_node.id)) {
-                this.set_src(new_node.id)
+                this.current.id = node.id
+                invoke_get_text(node.id, this.dir)
+                this.is_reading = true
+            } else if (is_image(node.id)) {
+                this.set_src(node.id)
             }
         },
         close_epub() {
@@ -136,12 +113,10 @@ const useStatus = defineStore('status', {
             this.current.id = ''
             this.current.lang = 'html'
             this.nodes = []
-            this.codes = {}
-            this.srces = {}
+            this.images = {}
             this.scroll_tops = {}
             this.current.is_dirty = false
-            this.current.is_toogle = false
-            this.current.save_path = ''
+            this.is_toogle = false
             invoke_clean_cache(this.dir)
             this.dir = ''
         },

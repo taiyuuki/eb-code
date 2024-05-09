@@ -57,6 +57,7 @@ fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
         if path.ends_with("/") {
             continue;
         }
+
         match epub.get_resource_by_path(path) {
             Some(resource) => {
                 let output_as_string =
@@ -75,7 +76,11 @@ fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
             None => continue,
         }
     }
-    epub_contents.pathes = epub_archive.files;
+    epub_contents.pathes = epub_archive
+        .files
+        .into_iter()
+        .filter(|x| !x.ends_with("/"))
+        .collect();
     Ok(epub_contents)
 }
 

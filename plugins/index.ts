@@ -1,7 +1,7 @@
 import type { RouteRecord } from 'vue-router'
 import type { PluginEntry } from '@quasar/app-vite/types/configuration/build'
-import nlsPlugin, { Languages } from '../nls'
-import zh_hans from '../nls/zh-hans.json'
+import nlsPlugin, { Languages } from './nls'
+import zh_hans from './nls/zh-hans.json'
 
 function is_dev() {
     return process.env.NODE_ENV === 'development'

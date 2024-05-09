@@ -7,8 +7,8 @@ import { join } from 'node:path'
 import type { UserConfig } from 'vite'
 import { configure } from 'quasar/wrappers'
 import { internalIpV4 } from 'internal-ip'
-import { Languages, esbuildPluginMonacoEditorNls } from './nls'
-import zh_hans from './nls/zh-hans.json'
+import { Languages, esbuildPluginMonacoEditorNls } from './plugins/nls'
+import zh_hans from './plugins/nls/zh-hans.json'
 import vite_plugins from './plugins'
 
 interface ViteConf extends UserConfig {

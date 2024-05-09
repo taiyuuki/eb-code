@@ -17,23 +17,19 @@ const monaco_controller = create_controller()
 let timeout_id = 0
 
 monaco_controller.on_change_code(() => {
-    if (status.current.is_toogle) {
-        status.current.is_toogle = false
-
+    if (status.is_toogle) {
         return
-    }
-    if (status.current.lang === 'css') {
-        if (timeout_id) {
-            clearTimeout(timeout_id)
-        }
-        timeout_id = window.setTimeout(() => {
-            const code = monaco_controller.get_code()
-            status.codes[status.current.id].code = code
-            invoke_write_text(status.dir, status.current.id, code)
-        }, 500)
     } else {
         status.current.is_dirty = true
     }
+    if (timeout_id) {
+        clearTimeout(timeout_id)
+    }
+    timeout_id = window.setTimeout(() => {
+        const code = monaco_controller.get_code()
+        invoke_write_text(status.dir, status.current.id, code)
+        status.current.is_dirty = false
+    }, 500)
 })
 
 monaco_controller.on_change_lang(() => {

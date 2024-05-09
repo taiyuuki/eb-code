@@ -21,7 +21,7 @@ const tree = useTree()
 const status = useStatus()
 
 async function open_epub_file() {
-    if (status.is_loading || status.is_saving) {
+    if (status.is_opening || status.is_saving) {
         return
     }
     
@@ -35,14 +35,14 @@ async function open_epub_file() {
     })
     const path = file?.path
     if (path) {
-        status.is_loading = true
+        status.is_opening = true
         invoke_open_epub(path)
         status.current.save_path = path
     }
 }
 
 function save_epub_file() {
-    if (status.is_loading || status.is_saving) {
+    if (status.is_opening || status.is_saving) {
         notif_negative('当前文件尚未处理完毕，请稍后再试。')
 
         return
@@ -56,7 +56,7 @@ function save_epub_file() {
 }
 
 async function save_epub_to() {
-    if (status.is_loading || status.is_saving) {
+    if (status.is_opening || status.is_saving) {
         notif_negative('当前文件尚未处理完毕，请稍后再试。')
 
         return
@@ -91,7 +91,7 @@ listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[], dir:
     tree.parsePayload(event.payload)
     status.set_dir(event.payload.dir)
     status.set_base_path(event.payload.base_path)
-    status.is_loading = false
+    status.is_opening = false
 })
 
 listen('epub-saved', () => {
@@ -157,6 +157,7 @@ listen('epub-save-error', () => {
               另存为
             </q-item-section>
           </q-item>
+          <q-separator :dark="theme.dark" />
           <q-item
             v-close-popup
             clickable

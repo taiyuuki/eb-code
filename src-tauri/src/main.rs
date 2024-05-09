@@ -4,6 +4,7 @@
 mod clean;
 mod open;
 mod read;
+mod remove;
 mod save;
 // mod search;
 mod write;
@@ -18,6 +19,7 @@ fn main() {
             write::write_text,
             clean::clean_cache,
             save::save_epub,
+            remove::remove_file,
         ])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())

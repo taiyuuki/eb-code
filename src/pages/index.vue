@@ -47,7 +47,7 @@ function open_file(node: FileNode) {
         const line = get_scroll_top()
         status.add_top(activity_node.opened_node.id, line)
     }
-    status.on_change_node(node, activity_node.opened_node)
+    status.on_change_node(node)
     activity_node.open(node)
     activity_node.activate(node)
     activity_node.select(node)
@@ -62,8 +62,6 @@ function close_file(node: FileNode) {
         if (status.nodes[0]) {
             activity_node.open(status.nodes[0])
             if (is_text(status.nodes[0].id)) {
-                status.current.code = status.codes[status.nodes[0].id].code
-                status.current.lang = status.codes[status.nodes[0].id].lang
                 status.current.id = status.nodes[0].id
                 scroll_top_to(status.get_top(status.nodes[0].id))
                 status.show_code = true
@@ -97,8 +95,9 @@ listen('get_text', (event: Event<[string, Language, string]>) => {
     status.current.lang = event.payload[1]
     const id = event.payload[2]
     status.current.id = id
-    status.codes[id] = { code: status.current.code, lang: status.current.lang }
     scroll_top_to(status.get_top(id))
+    status.is_reading = false
+    status.is_toogle = false
 })
 
 let close_requested = false
@@ -132,18 +131,21 @@ listen('clean-success', () => {
         @update:model-value="setTheme"
       />
     </div>
-    <div flex="~">
+    <div
+      flex="~"
+      style="height: calc(100vh - 105px);"
+    >
       <NaviBar />
       <q-splitter
         v-model="splitterModel"
         unit="px"
         :limits="[300, Infinity]"
         separator-class="bg-var-eb-fg"
-        style="height: calc(100vh - 100px);flex:1;"
+        flex="1"
       >
         <template #before>
           <q-scroll-area
-            style="height: calc(100vh - 170px);"
+            style="height: calc(100vh - 115px);"
             :thumb-style="thumb_style"
           >
             <router-view />

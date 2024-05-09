@@ -8,6 +8,7 @@ interface FileNode {
     open?: boolean
     children?: FileNode[]
     parent?: FileNode
+    type?: string
 }
 
 interface TreeProps {

@@ -116,28 +116,28 @@ const useTree = defineStore('file_nodes', {
             this.nodes = []
         },
         add_html(name: string) {
-            this.nodes[0].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-html' })
+            this.nodes[0].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-html', type: 'html' })
         },
         add_css(name: string) {
-            this.nodes[1].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-css' })
+            this.nodes[1].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-css', type: 'css' })
         },
         add_image(name: string) {
-            this.nodes[2].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-image' })
+            this.nodes[2].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-image', type: 'image' })
         },
         add_js(name: string) {
             this.nodes[3].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-js' })
         },
         add_font(name: string) {
-            this.nodes[4].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-font' })
+            this.nodes[4].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-font', type: 'font' })
         },
         add_audio(name: string) {
-            this.nodes[5].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-audio' })
+            this.nodes[5].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-audio', type: 'audio' })
         },
         add_video(name: string) {
-            this.nodes[6].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-video' })
+            this.nodes[6].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-video', type: 'video' })
         },
         add_other(name: string) {
-            this.nodes[7].children!.push({ id: name, name, icon: 'i-vscode-icons:default-file' })
+            this.nodes[7].children!.push({ id: name, name, icon: 'i-vscode-icons:default-file', type: 'other' })
         },
         add_parent() {
             function add(node: FileNode) {

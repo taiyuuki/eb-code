@@ -4,9 +4,11 @@ import Draggable from 'vuedraggable'
 import type { FileNode, TreeProps } from './types'
 import { useStatus } from '@/stores/status'
 import { get_scroll_top } from '@/editor'
+import { useTheme } from '@/stores/theme'
 
 const activity_node = useActivity()
 const props = withDefaults(defineProps<TreeProps>(), { indent: 10 })
+const theme = useTheme()
 
 const next_indent = computed(() => {
     return props.indent + props.indent / props.level
@@ -16,7 +18,10 @@ const line_width = computed(() => {
 })
 const status = useStatus()
 
-function toggle(node: FileNode) {
+function toggle(e: MouseEvent, node: FileNode) {
+    if (e.button !== 0) {
+        return
+    }
     if (activity_node.expanded_node) {
         const top = get_scroll_top()
         status.add_top(activity_node.expanded_node.id, top)
@@ -24,7 +29,7 @@ function toggle(node: FileNode) {
     
     activity_node.on(node)
     status.add_tag(node)
-    status.on_change_node(node, activity_node.opened_node)
+    status.on_change_node(node)
 }
 </script>
 
@@ -34,56 +39,105 @@ function toggle(node: FileNode) {
     animation="300"
     force-fallback
     item-key="id"
+    draggable=".draggable"
+    v-bind="{
+      multiDrag: true,
+      selectedClass: 'selected',
+      multiDragKey: 'ctrl',
+      avoidImplicitDeselect: true,
+    }"
   >
     <template #item="{ element: node }">
-      <div>
-        <div
-          hover="cursor-pointer bg-var-vscode-toolbar-hoverBackground"
-          :class="{ selected: node.selected }"
-          middle
-          p="y-2"
-          text="14"
-          whitespace-nowrap
-          @mousedown="toggle(node)"
-        >
+      <q-list>
+        <div :class="{ draggable: node.type === 'html' }">
+          <q-menu
+            context-menu
+            :dark="theme.dark"
+          >
+            <q-list>
+              <q-item
+                v-close-popup
+                clickable
+              >
+                <q-item-section>
+                  删除
+                </q-item-section>
+              </q-item>
+              <q-item
+                v-close-popup
+                clickable
+              >
+                <q-item-section>
+                  重命名
+                </q-item-section>
+              </q-item>
+              <q-item
+                v-close-popup
+                clickable
+              >
+                <q-item-section>
+                  添加副本
+                </q-item-section>
+              </q-item>
+              <q-item
+                v-close-popup
+                clickable
+              >
+                <q-item-section>
+                  添加文件
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
           <div
+            hover="cursor-pointer bg-var-vscode-toolbar-hoverBackground"
+            :class="{ selected: node.selected }"
+            middle
+            p="y-2"
+            text="14"
+            whitespace-nowrap
+            select-none
+            @mousedown="toggle($event, node)"
+          >
+            <div
+              v-if="node.children"
+              :class="node.expanded ? 'i-ic:outline-keyboard-arrow-down' : 'i-ic:outline-keyboard-arrow-right'"
+              display-inline-block
+              middle
+              w="20"
+              h="20"
+              :style="`margin-left: ${indent}px`"
+            />
+            <div
+              v-else
+              display-inline-block
+              w="20"
+              h="20"
+            />
+            <div
+              :class="node.icon"
+              display-inline-block
+              middle
+              w="20"
+              h="20"
+              :style="`margin-left: ${node.children ? 0 : indent}px`"
+            />
+            {{ node.name }}
+          </div>
+          <div 
             v-if="node.children"
-            :class="node.expanded ? 'i-ic:outline-keyboard-arrow-down' : 'i-ic:outline-keyboard-arrow-right'"
-            display-inline-block
-            middle
-            w="20"
-            h="20"
-            :style="`margin-left: ${indent}px`"
-          />
-          <div
-            v-else
-            display-inline-block
-            w="20"
-            h="20"
-          />
-          <div
-            :class="node.icon"
-            display-inline-block
-            middle
-            w="20"
-            h="20"
-            :style="`margin-left: ${node.children ? 0 : indent}px`"
-          />
-          {{ node.name }}
+            v-show="node.expanded"
+            :style="{ textIndent: `${indent}px` }"
+            :class="{ 'folder': true, 'folder-not-active': !node.active, 'folder-active': node.active }"
+          >
+            <FileTree
+              :files="node.children"
+              :indent="next_indent"
+              :level="level + 1"
+            />
+          </div>
         </div>
-        <div 
-          v-if="node.children"
-          v-show="node.expanded"
-          :style="{ textIndent: `${indent}px` }"
-          :class="{ 'folder': true, 'folder-not-active': !node.active, 'folder-active': node.active }"
-        >
-          <FileTree
-            :files="node.children"
-            :indent="next_indent"
-            :level="level + 1"
-          />
-        </div>
-      </div>
+      </q-list>
     </template>
   </draggable>
 </template>

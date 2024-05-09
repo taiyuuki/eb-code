@@ -43,7 +43,7 @@ pub fn save_to(input_dir: &str, output_dir: &str) -> Result<(), Box<dyn std::err
                     .to_str()
                     .map(str::to_owned)
                     .with_context(|| format!("{name:?} Is a Non UTF-8 Path"))?
-                    .replace('\\', "/");
+                    .replace("\\", "/");
                 let compress = match name.to_str().unwrap() {
                     "mimetype" => option_store,
                     _ => option_zip,

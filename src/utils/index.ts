@@ -1,4 +1,4 @@
-function setOpacity(color: string, opacity: number) {
+function set_opacity(color: string, opacity: number) {
     const reg = /^#([\dA-f]{3}|[\dA-f]{6})$/
     if (reg.test(color)) {
         if (color.length === 4) {
@@ -54,4 +54,4 @@ function filename(path: string) {
     return path.split(SEPARATOR).pop()!.split('.')[0]
 }
 
-export { setOpacity, is_text, basename, filename, is_image }
+export { set_opacity, is_text, basename, filename, is_image }

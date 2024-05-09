@@ -1,8 +1,9 @@
+use anyhow::Context;
 use epub::archive::EpubArchive;
 use epub::doc::EpubDoc;
 use rand::distributions::{Alphanumeric, Distribution};
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::path::{self, Path};
 use std::{fs, io::Write};
 use tauri::Manager;
 
@@ -53,16 +54,22 @@ fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
     }
 
     for path in epub_archive.files.iter() {
+        if path.ends_with("/") {
+            continue;
+        }
         match epub.get_resource_by_path(path) {
             Some(resource) => {
-                let output_as_string = directory::format_dir(&rand_dir, path);
+                let output_as_string =
+                    directory::format_dir(&rand_dir, &path.replace("/", path::MAIN_SEPARATOR_STR));
                 let output_path = Path::new(&output_as_string);
                 if let Some(output_dir) = output_path.parent() {
                     if !Path::new(&output_dir).exists() {
-                        fs::create_dir_all(&output_dir).expect(&output_as_string);
+                        fs::create_dir_all(&output_dir)
+                            .with_context(|| format!("创建文件夹失败: {output_dir:?}"))?;
                     }
                 }
-                let mut f = fs::File::create(&output_as_string).expect(&output_as_string);
+                let mut f = fs::File::create(&output_as_string)
+                    .with_context(|| format!("创建文件失败: {output_as_string:?}"))?;
                 f.write_all(&resource)?;
             }
             None => continue,

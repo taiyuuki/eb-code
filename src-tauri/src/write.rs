@@ -20,6 +20,7 @@ pub fn write_to_cache(path: &str, content: &str) -> Result<(), Box<dyn std::erro
 #[tauri::command]
 pub fn write_text(text_contents: TextContents, app_handle: tauri::AppHandle) {
     let dir = directory::format_dir(&text_contents.dir, &text_contents.path);
+
     match write_to_cache(&dir, &text_contents.content) {
         Ok(_) => {
             let _ = app_handle.emit("write-success", "写入成功");

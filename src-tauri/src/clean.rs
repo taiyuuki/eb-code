@@ -1,18 +1,12 @@
-use dirs;
+use crate::open::directory;
+use anyhow::Context;
 use std::fs;
 use std::io;
 use std::path;
 use tauri::Manager;
 
 pub fn clean_dir(dir: &str) -> io::Result<()> {
-    let cache_dir: String = format!(
-        "{}{}.EBCode{}cache{}{}",
-        dirs::home_dir().unwrap().to_str().unwrap(),
-        path::MAIN_SEPARATOR,
-        path::MAIN_SEPARATOR,
-        path::MAIN_SEPARATOR,
-        dir,
-    );
+    let cache_dir: String = directory::format_dir(dir, "");
     let cache_dir = path::Path::new(&cache_dir);
     if cache_dir.exists() {
         fs::remove_dir_all(cache_dir)?;
@@ -22,6 +16,6 @@ pub fn clean_dir(dir: &str) -> io::Result<()> {
 
 #[tauri::command]
 pub fn clean_cache(dir: String, app_handle: tauri::AppHandle) {
-    let _ = clean_dir(&dir);
+    let _ = clean_dir(&dir).with_context(|| format!("缓存清理失败: {dir:?}"));
     let _ = app_handle.emit("clean-success", "清理成功");
 }

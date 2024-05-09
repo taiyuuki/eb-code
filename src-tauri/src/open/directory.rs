@@ -1,10 +1,16 @@
+use std::path;
+
 use dirs;
 
 pub fn format_dir(dir: &str, path: &str) -> String {
     format!(
-        "{}/.EBCode/cache/{}/{}",
+        "{}{}.EBCode{}cache{}{}{}{}",
         dirs::home_dir().unwrap().to_str().unwrap(),
+        path::MAIN_SEPARATOR,
+        path::MAIN_SEPARATOR,
+        path::MAIN_SEPARATOR,
         dir,
-        path
+        path::MAIN_SEPARATOR,
+        path,
     )
 }

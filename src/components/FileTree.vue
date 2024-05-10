@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import { useActivity } from 'composables/useActivity'
 import Draggable from 'vuedraggable'
 import type { FileNode, TreeProps } from './types'
 import { useStatus } from '@/stores/status'
-import { get_scroll_top } from '@/editor'
 import { useTheme } from '@/stores/theme'
 
-const activity_node = useActivity()
 const props = withDefaults(defineProps<TreeProps>(), { indent: 10 })
 const theme = useTheme()
 
@@ -22,14 +19,9 @@ function toggle(e: MouseEvent, node: FileNode) {
     if (e.button !== 0) {
         return
     }
-    if (activity_node.expanded_node) {
-        const top = get_scroll_top()
-        status.add_top(activity_node.expanded_node.id, top)
-    }
     
-    activity_node.on(node)
-    status.add_tag(node)
-    status.on_change_node(node)
+    status.add_tab(node)
+    status.open(node)
 }
 </script>
 

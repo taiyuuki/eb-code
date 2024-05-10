@@ -1,10 +1,21 @@
 // @unocss-include
+import { useStatus } from './status'
 import type { FileNode } from '@/components/types'
+import store from '@/stores'
+import { invoke_get_text } from '@/invoke'
+import { domToObj, xmlToDom } from '@/utils/xml'
+
+const status = useStatus(store)
 
 const useTree = defineStore('file_nodes', {
-    state: () => ({ nodes: [] as FileNode[] }),
+    state: () => ({ 
+        nodes: [] as FileNode[],
+        root_id: '',
+        opf_document: null as Document | null,
+        metadata: {} as Record<string, any>,
+    }),
     actions: {
-        parsePayload(payload: { chapters: string[], pathes: string[] }) {
+        parse_epub(payload: { chapters: string[], pathes: string[], container: string }) {
             this.init()
 
             payload.chapters.forEach(name => {
@@ -16,7 +27,10 @@ const useTree = defineStore('file_nodes', {
 
             payload.pathes.forEach(file => {
                 if (file.endsWith('.html') || file.endsWith('.htm') || file.endsWith('.xhtml')) {
-                    return
+                    if (this.nodes[0].children!.find(n => n.id === file)) {
+                        return
+                    }
+                    this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-html', type: 'navigation' })
                 } else if (file.endsWith('.js')) {
                     this.add_js(file)
                 } else if (file.endsWith('.css')) {
@@ -29,13 +43,36 @@ const useTree = defineStore('file_nodes', {
                     this.add_font(file)
                 } else if (file.endsWith('.opf') || file.endsWith('.ncx')) {
                     this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-text' })
-                } else if (file === 'mimetype') {
+                } else if (file === 'mimetype' || file === 'META-INF/container.xml') {
                     return
                 } else {
                     this.add_other(file)
                 }
             })
             this.add_parent()
+            const dom_parser = new DOMParser()
+            const xml = dom_parser.parseFromString(payload.container, 'text/xml')
+            const rootfile = xml.getElementsByTagName('rootfile')[0]
+            this.root_id = rootfile.getAttribute('full-path') || ''
+            if (this.root_id !== '') {
+                invoke_get_text(this.root_id, status.dir).then(payload => {
+                    this.opf_document = xmlToDom(payload[0])
+                    this.parse_opf()
+                })
+            }
+        },
+        parse_opf() {
+            if (this.opf_document) {
+                const package_node = this.opf_document.querySelector('package')
+                const metadata_node = this.opf_document.querySelector('metadata')
+                status.epub_version = package_node?.getAttribute('version') || '2.0'
+                if (metadata_node) {
+                    const children = Array.from(metadata_node.children)
+                    children.filter(node => node.nodeName.startsWith('meta') || node.nodeName.startsWith('dc')).forEach(node => {
+                        status.metadata.push(domToObj(node))
+                    })
+                }
+            }
         },
         init() {
             this.nodes = [{
@@ -46,6 +83,7 @@ const useTree = defineStore('file_nodes', {
                 },
                 children: [],
                 expanded: false,
+                type: 'folder',
             },
             {
                 id: 'styles',
@@ -55,6 +93,7 @@ const useTree = defineStore('file_nodes', {
                 },
                 children: [],
                 expanded: false,
+                type: 'folder',
             },
             {
                 id: 'images',
@@ -64,6 +103,7 @@ const useTree = defineStore('file_nodes', {
                 },
                 children: [],
                 expanded: false,
+                type: 'folder',
             },
             {
                 id: 'fonts',
@@ -73,6 +113,7 @@ const useTree = defineStore('file_nodes', {
                 },
                 children: [],
                 expanded: false,
+                type: 'folder',
             },
             {
                 id: 'scripts',
@@ -82,6 +123,7 @@ const useTree = defineStore('file_nodes', {
                 },
                 children: [],
                 expanded: false,
+                type: 'folder',
             },
             {
                 id: 'audio',
@@ -91,6 +133,7 @@ const useTree = defineStore('file_nodes', {
                 },
                 children: [],
                 expanded: false,
+                type: 'folder',
             },
             {
                 id: 'video',
@@ -100,6 +143,7 @@ const useTree = defineStore('file_nodes', {
                 },
                 children: [],
                 expanded: false,
+                type: 'folder',
             },
         
             {
@@ -110,6 +154,7 @@ const useTree = defineStore('file_nodes', {
                 },
                 children: [],
                 expanded: false,
+                type: 'folder',
             }]
         },
         clean() {
@@ -124,11 +169,11 @@ const useTree = defineStore('file_nodes', {
         add_image(name: string) {
             this.nodes[2].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-image', type: 'image' })
         },
-        add_js(name: string) {
-            this.nodes[3].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-js' })
-        },
         add_font(name: string) {
-            this.nodes[4].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-font', type: 'font' })
+            this.nodes[3].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-font', type: 'font' })
+        },
+        add_js(name: string) {
+            this.nodes[4].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-js', type: 'js' })
         },
         add_audio(name: string) {
             this.nodes[5].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-audio', type: 'audio' })

@@ -9,6 +9,7 @@ const activity_files = {
             node.expanded = !node.expanded
         }
     },
+
     open(node: FileNode) {
         if (this.opened_node === node) return
         this.opened_node && (this.opened_node.open = false)
@@ -37,6 +38,7 @@ const activity_files = {
             this.expanded_node = node.parent
         }
     },
+
     on(node: FileNode) {
         this.toggle_expanded(node)
         this.activate(node)

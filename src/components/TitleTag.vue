@@ -13,8 +13,18 @@ const theme = useTheme()
 const status = useStatus()
 
 const tag_name = computed(() => {
-    return basename(props.node.id)
+    return basename(props.node.name)
 })
+
+function open(e: MouseEvent) {
+    if (e.button !== 0) return
+    emit('open', props.node)
+}
+
+function close(e: MouseEvent, node: FileNode) {
+    if (e.button !== 0) return
+    emit('close', node)
+}
 </script>
 
 <template>
@@ -24,7 +34,7 @@ const tag_name = computed(() => {
     h="100%"
     p="15"
     whitespace-nowrap
-    @mousedown="emit('open', node)"
+    @mousedown="open($event)"
   >
     <q-menu
       context-menu
@@ -87,7 +97,7 @@ const tag_name = computed(() => {
       middle
       w="20"
       h="20"
-      @click="emit('close', node)"
+      @click="close($event, node)"
       @mousedown="$event.stopPropagation()"
     />
   </div>

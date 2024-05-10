@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import type { Event } from '@tauri-apps/api/event'
 import { Window } from '@tauri-apps/api/window'
 import { open, save } from '@tauri-apps/plugin-dialog'
-import { listen } from '@tauri-apps/api/event'
 import { invoke_clean_cache, invoke_open_epub, invoke_save_epub } from '@/invoke'
 import { useTheme } from '@/stores/theme'
 import { useTree } from '@/stores/useTree'
-import { useStatus } from '@/stores/status'
+import { DISPLAY, useStatus } from '@/stores/status'
 import { notif_negative, notif_positive } from '@/notif'
+import { useActivity } from '@/composables/useActivity'
 const appWindow = new Window('main')
 let is_maximized = ref(false)
 
@@ -19,6 +18,7 @@ async function toggle_maximize() {
 const theme = useTheme()
 const tree = useTree()
 const status = useStatus()
+const activity_nodes = useActivity()
 
 async function open_epub_file() {
     if (status.is_opening || status.is_saving) {
@@ -35,23 +35,37 @@ async function open_epub_file() {
     })
     const path = file?.path
     if (path) {
+        const payload = await invoke_open_epub(path)
+        if (status.dir !== '') {
+            status.close_epub()
+        }
         status.is_opening = true
-        invoke_open_epub(path)
         status.current.save_path = path
+        status.set_dir(payload.dir)
+        status.set_base_path(payload.base_path)
+        status.is_opening = false
+        tree.parse_epub(payload)
     }
 }
 
-function save_epub_file() {
-    if (status.is_opening || status.is_saving) {
-        notif_negative('当前文件尚未处理完毕，请稍后再试。')
-
-        return
-    }
+async function save_epub() {
     if (status.current.save_path === '') {
         save_epub_to()
+    } else if (status.is_opening || status.is_saving) {
+        notif_negative('当前文件尚未处理完毕，请稍后再试。')
+  
+        return
     } else {
         status.is_saving = true
-        invoke_save_epub(status.dir, status.current.save_path)
+        try{
+            await invoke_save_epub(status.dir, status.current.save_path)
+        } catch(_e) {
+            notif_negative('保存失败！缓存文件被删除了。')
+            
+            return
+        }
+        status.is_saving = false
+        notif_positive('文件已保存')
     }
 }
 
@@ -74,35 +88,38 @@ async function save_epub_to() {
     if (path) {
         status.is_saving = true
         status.current.save_path = path
-        invoke_save_epub(status.dir, path)
+        try {
+            await invoke_save_epub(status.dir, path)
+        } catch(_e) {
+            notif_negative('保存失败！缓存文件被删除了。')
+
+            return 
+        }
+        status.is_saving = false
+        notif_positive('文件已保存')
     }
 }
 
 function close_epub() {
-    invoke_clean_cache(status.dir)
     tree.clean()
+    invoke_clean_cache(status.dir)
     status.close_epub()
 }
 
-listen('epub-opened', (event: Event<{ chapters: string[], pathes: string[], dir: string, base_path: string }>) => {
-    if (status.dir !== '') {
-        status.close_epub()
+function edit_metadata() {
+    let node = status.tabs.find(n => n.id === 'metadata')
+    if (!node) {
+        node = reactive({
+            id: 'metadata',
+            name: '元数据编辑',
+            icon: 'i-vscode-icons:file-type-maya',
+            type: 'metadata',
+        })
+        status.tabs.push(node)
     }
-    tree.parsePayload(event.payload)
-    status.set_dir(event.payload.dir)
-    status.set_base_path(event.payload.base_path)
-    status.is_opening = false
-})
-
-listen('epub-saved', () => {
-    status.is_saving = false
-    notif_positive('文件已保存')
-})
-
-listen('epub-save-error', () => {
-    status.is_saving = false
-    notif_negative('文件因未知原因保存失败，建议重编辑器后重试。')
-})
+    activity_nodes.on(node)
+    status.display = DISPLAY.METADATA
+}
 </script>
 
 <template>
@@ -142,7 +159,7 @@ listen('epub-save-error', () => {
           <q-item
             v-close-popup
             clickable
-            @click="save_epub_file"
+            @click="save_epub"
           >
             <q-item-section>
               保存
@@ -165,6 +182,29 @@ listen('epub-save-error', () => {
           >
             <q-item-section>
               关闭当前文件
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <q-btn
+      label="编辑"
+      unelevated
+    >
+      <q-menu
+        :dark="theme.dark"
+        bg="var-eb-bg"
+        text="var-eb-fg"
+        w="fit"
+      >
+        <q-list>
+          <q-item
+            v-close-popup
+            clickable
+            @click="edit_metadata"
+          >
+            <q-item-section>
+              编辑元数据
             </q-item-section>
           </q-item>
         </q-list>

@@ -17,6 +17,7 @@ struct EpubContents {
     chapters: Vec<String>,
     pathes: Vec<String>,
     base_path: String,
+    container: String,
 }
 
 impl EpubContents {
@@ -27,7 +28,12 @@ impl EpubContents {
             chapters: Vec::new(),
             pathes: Vec::new(),
             base_path: format_dir(dir, path),
+            container: String::new(),
         }
+    }
+
+    fn set_container(&mut self, container: String) {
+        self.container = container;
     }
 }
 
@@ -45,7 +51,7 @@ fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
     let mut epub_contents = EpubContents::new(&rand_dir);
 
     let len = epub.spine.len();
-    for _ in 1..len {
+    for _ in 0..len {
         let path = epub.get_current_path();
         if let Some(p) = path {
             epub_contents.chapters.push(p.to_str().unwrap().to_string());
@@ -60,6 +66,9 @@ fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
 
         match epub.get_resource_by_path(path) {
             Some(resource) => {
+                if path.eq("META-INF/container.xml") {
+                    epub_contents.set_container(String::from_utf8_lossy(&resource).to_string());
+                }
                 let output_as_string =
                     directory::format_dir(&rand_dir, &path.replace("/", path::MAIN_SEPARATOR_STR));
                 let output_path = Path::new(&output_as_string);
@@ -81,6 +90,7 @@ fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
         .into_iter()
         .filter(|x| !x.ends_with("/"))
         .collect();
+
     Ok(epub_contents)
 }
 
@@ -90,9 +100,8 @@ pub fn open_epub(path: &str, app_handle: tauri::AppHandle) {
         Ok(epub_contents) => {
             let _ = app_handle.emit("epub-opened", epub_contents);
         }
-        Err(e) => {
-            println!("{:?}", e);
-            let _ = app_handle.emit("epub-error", "打开失败");
+        Err(_e) => {
+            let _ = app_handle.emit("epub-open-error", "打开失败");
         }
     };
 }

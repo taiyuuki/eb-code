@@ -34,12 +34,6 @@ const status = useStatus()
           class="i-line-md:loading-twotone-loop"
         />
       </div>
-      <div
-        v-show="status.show_code"
-        m="l-5"
-      >
-        {{ status.current.lang }}
-      </div>
     </div>
   </div>
 </template>

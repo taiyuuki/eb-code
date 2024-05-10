@@ -8,6 +8,7 @@ import { useTheme } from '@/stores/theme'
 import { set_opacity } from '@/utils'
 import { useStatus } from '@/stores/status'
 import { invoke_write_text } from '@/invoke'
+import { check_xml } from '@/utils/xml'
 
 const theme = useTheme()
 const status = useStatus()
@@ -22,13 +23,20 @@ monaco_controller.on_change_code(() => {
     } else {
         status.current.is_dirty = true
     }
+    
     if (timeout_id) {
         clearTimeout(timeout_id)
     }
     timeout_id = window.setTimeout(() => {
-        const code = monaco_controller.get_code()
-        invoke_write_text(status.dir, status.current.id, code)
         status.current.is_dirty = false
+        const code = monaco_controller.get_code()
+        if (status.current.id.endsWith('.opf')) {
+      
+            if (!check_xml(code)) {
+                return
+            }
+        }
+        invoke_write_text(status.dir, status.current.id, code)
     }, 500)
 })
 

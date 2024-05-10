@@ -14,6 +14,7 @@ declare module 'vue' {
     NaviBar: typeof import('./components/NaviBar.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SetMeta: typeof import('./components/SetMeta.vue')['default']
     StatusBar: typeof import('./components/StatusBar.vue')['default']
     TitleBanner: typeof import('./components/TitleBanner.vue')['default']
     TitleBar: typeof import('./components/TitleBar.vue')['default']

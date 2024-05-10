@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import type { Event } from '@tauri-apps/api/event'
-import { TauriEvent, listen } from '@tauri-apps/api/event'
+import { TauriEvent } from '@tauri-apps/api/event'
 import { getCurrent } from '@tauri-apps/api/window'
 import type { FileNode } from '@/components/types'
 import { themes } from '@/editor/themes'
-import type { Language } from '@/editor/shiki'
 import { NOT_SUPPORTED_THEMES } from '@/editor/shiki'
 import { useTheme } from '@/stores/theme'
-import { useStatus } from '@/stores/status'
-import { useActivity } from '@/composables/useActivity'
-import { get_scroll_top, scroll_top_to } from '@/editor'
-import { invoke_clean_cache, invoke_write_text } from '@/invoke'
-import { is_image, is_text } from '@/utils'
+import { DISPLAY, useStatus } from '@/stores/status'
+import { invoke_clean_cache } from '@/invoke'
 
 const splitterModel = ref(300)
 const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
@@ -37,42 +32,14 @@ const thumb_style = {
     borderRadius: '0',
 }
 
-const activity_node = useActivity()
-
 function open_file(node: FileNode) {
-    if (activity_node.opened_node === node) {
-        return
-    }
-    if (activity_node.opened_node) {
-        const line = get_scroll_top()
-        status.add_top(activity_node.opened_node.id, line)
-    }
-    status.on_change_node(node)
-    activity_node.open(node)
-    activity_node.activate(node)
-    activity_node.select(node)
+    status.open(node)
 }
 
 function close_file(node: FileNode) {
     status.remve_tag_by_id(node.id)
     if (node.open) {
-        if (status.current.is_dirty) {
-            invoke_write_text(status.dir, node.id, status.current.code)
-        }
-        if (status.nodes[0]) {
-            activity_node.open(status.nodes[0])
-            if (is_text(status.nodes[0].id)) {
-                status.current.id = status.nodes[0].id
-                scroll_top_to(status.get_top(status.nodes[0].id))
-                status.show_code = true
-            } else if (is_image(status.nodes[0].id)) {
-                status.set_src(status.nodes[0].id)
-            }
-        } else {
-            status.show_code = false
-            status.current.code = ''
-            status.current.src = ''
-        }
+        status.open_first()
     }
 
 }
@@ -90,24 +57,20 @@ function scroll_ytx(e: WheelEvent) {
     }
 }
 
-listen('get_text', (event: Event<[string, Language, string]>) => {
-    status.current.code = event.payload[0]
-    status.current.lang = event.payload[1]
-    const id = event.payload[2]
-    status.current.id = id
-    scroll_top_to(status.get_top(id))
-    status.is_reading = false
-    status.is_toogle = false
-})
+// listen('get-text', (event: Event<[string, Language, string]>) => {
+//     status.current.code = event.payload[0]
+//     status.current.lang = event.payload[1]
+//     const id = event.payload[2]
+//     status.current.id = id
+//     scroll_top_to(status.get_top(id))
+//     status.is_reading = false
+//     status.is_toogle = false
+// })
 
-let close_requested = false
 app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
-    invoke_clean_cache(status.dir)
-    close_requested = true
-})
-
-listen('clean-success', () => {
-    close_requested && app_window.destroy()
+    invoke_clean_cache(status.dir).then(() => {
+        app_window.destroy()
+    })
 })
 </script>
 
@@ -163,7 +126,7 @@ listen('clean-success', () => {
               @mousewheel.prevent="scroll_ytx"
             >
               <draggable
-                :list="status.nodes"
+                :list="status.tabs"
                 item-key="id"
                 animation="200"
                 force-fallback
@@ -180,14 +143,15 @@ listen('clean-success', () => {
             </q-scroll-area>
           </TitleBanner>
           <CodeEditor
-            v-show="status.show_code"
+            v-show="status.display === DISPLAY.CODE"
             :language="status.current.lang"
             :code="status.current.code"
           />
           <ImageViewer
-            v-show="status.current.src !== '' && !status.show_code"
+            v-show="status.display === DISPLAY.IMAGE"
             :src="status.current.src"
           />
+          <SetMeta v-show="status.display === DISPLAY.METADATA" />
         </template>
       </q-splitter>
     </div>

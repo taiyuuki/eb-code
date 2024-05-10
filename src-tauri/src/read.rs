@@ -41,7 +41,9 @@ pub fn get_text(text_directory: TextDirectory, app_handle: tauri::AppHandle) {
     if p.exists() {
         let text = fs::read_to_string(p).unwrap();
         app_handle
-            .emit("get_text", [&text, lang, &text_directory.path])
+            .emit("get-text", [&text, lang, &text_directory.path])
             .unwrap();
+    } else {
+        app_handle.emit("get-text-error", "获取失败").unwrap();
     }
 }

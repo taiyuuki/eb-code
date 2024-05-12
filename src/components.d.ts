@@ -11,6 +11,7 @@ declare module 'vue' {
     CodeEditor: typeof import('./components/CodeEditor.vue')['default']
     FileTree: typeof import('./components/FileTree.vue')['default']
     ImageViewer: typeof import('./components/ImageViewer.vue')['default']
+    MetaItem: typeof import('./components/MetaItem.vue')['default']
     NaviBar: typeof import('./components/NaviBar.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

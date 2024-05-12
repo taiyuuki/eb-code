@@ -30,6 +30,9 @@ monaco_controller.on_change_code(() => {
     timeout_id = window.setTimeout(() => {
         status.current.is_dirty = false
         const code = monaco_controller.get_code()
+        if (code.trim() === '') {
+            return
+        }
         if (status.current.id.endsWith('.opf')) {
       
             if (!check_xml(code)) {

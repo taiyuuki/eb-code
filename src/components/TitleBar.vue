@@ -3,7 +3,6 @@ import { Window } from '@tauri-apps/api/window'
 import { open, save } from '@tauri-apps/plugin-dialog'
 import { invoke_clean_cache, invoke_open_epub, invoke_save_epub } from '@/invoke'
 import { useTheme } from '@/stores/theme'
-import { useTree } from '@/stores/useTree'
 import { DISPLAY, useStatus } from '@/stores/status'
 import { notif_negative, notif_positive } from '@/notif'
 import { useActivity } from '@/composables/useActivity'
@@ -16,7 +15,6 @@ async function toggle_maximize() {
 }
 
 const theme = useTheme()
-const tree = useTree()
 const status = useStatus()
 const activity_nodes = useActivity()
 
@@ -44,7 +42,7 @@ async function open_epub_file() {
         status.set_dir(payload.dir)
         status.set_base_path(payload.base_path)
         status.is_opening = false
-        tree.parse_epub(payload)
+        status.parse_epub(payload)
     }
 }
 
@@ -101,7 +99,7 @@ async function save_epub_to() {
 }
 
 function close_epub() {
-    tree.clean()
+    status.clean_tree()
     invoke_clean_cache(status.dir)
     status.close_epub()
 }
@@ -118,7 +116,10 @@ function edit_metadata() {
         status.tabs.push(node)
     }
     activity_nodes.on(node)
-    status.display = DISPLAY.METADATA
+    status.metadata = []
+    status.parse_opf().then(() => {
+        status.display = DISPLAY.METADATA
+    })
 }
 </script>
 
@@ -286,3 +287,4 @@ function edit_metadata() {
   }
 </style>
 @/stores/status
+@/stores/tree

@@ -3,6 +3,7 @@ import type { Event } from '@tauri-apps/api/event'
 import { listen } from '@tauri-apps/api/event'
 import type { Language } from '@/editor/shiki'
 
+// 打开EPUB
 const invoke_open_epub = function() {
     type Payload = { 
         chapters: string[], 
@@ -34,6 +35,7 @@ const invoke_open_epub = function() {
     }
 }()
 
+// 保存EPUB
 const invoke_save_epub = function() {
     type Payload = undefined
     let rs: (value: Payload | PromiseLike<Payload>)=> void
@@ -59,6 +61,7 @@ const invoke_save_epub = function() {
     }
 }()
 
+// 获取Text文本
 const invoke_get_text = function() {
     type Payload = [string, Language, string]
     let rs: (value: Payload | PromiseLike<Payload>)=> void
@@ -84,6 +87,7 @@ const invoke_get_text = function() {
     }
 }()
 
+// 写入文本
 const invoke_write_text = function() {
     type Payload = string
     let rs: (value: Payload | PromiseLike<Payload>)=> void
@@ -92,10 +96,10 @@ const invoke_write_text = function() {
 
     return function(dir: string, path: string, content: string) {
         if (!is_listening) {
-            listen('text-saved', (event: Event<Payload>) => {
+            listen('write-success', (event: Event<Payload>) => {
                 rs(event.payload)
             })
-            listen('text-save-error', (event: Event<string>) => {
+            listen('write-error', (event: Event<string>) => {
                 rj(event.payload)
             })
             is_listening = true
@@ -109,6 +113,7 @@ const invoke_write_text = function() {
     }
 }()
 
+// 清除EPUB缓存
 const invoke_clean_cache = function() {
     type Payload = string
     let rs: (value: Payload | PromiseLike<Payload>)=> void

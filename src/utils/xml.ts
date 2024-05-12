@@ -1,5 +1,5 @@
 function xmlToDom(xml: string) {
-    return new DOMParser().parseFromString(xml, 'text/xml')
+    return new DOMParser().parseFromString(xml, 'application/xhtml+xml')
 }
 
 function domToXml(dom: any) {
@@ -16,21 +16,39 @@ function domToObj(dom: Element) {
             obj[name] = value
         }
     }
-    obj.textContents = dom.textContent
+    obj.selected = false
+    obj.textContent = dom.textContent
+    if (obj.id) {
+        obj.r_id = obj.id
+    } else if (obj.property) {
+        if (obj.refines) {
+            obj.r_id = obj.refines + obj.property
+        } else {
+            obj.r_id = obj.property
+        }
+    } else if (obj.textContent?.trim() !== '') {
+        obj.r_id = obj.textContent
+    } else if (obj.content) {
+        obj.r_id = obj.content
+    } else if (obj.name) {
+        obj.r_id = obj.name
+    } 
 
     return obj
 }
 
 function objToDom(obj: Record<string, any>) {
     const dom = document.createElement(obj.tagName)
+    const ignores = ['tagName', 'textContent', 'r_id', 'children', 'selected', 'xmlns']
     for (const attr in obj) {
-        if (attr !== 'tagName') {
-            dom.setAttribute(attr, obj[attr])
+        if (ignores.includes(attr)) {
+            continue
         }
+        dom.setAttribute(attr, obj[attr])
     }
 
-    if (obj.textContents) {
-        dom.textContent = obj.textContents
+    if (obj.textContent) {
+        dom.textContent = obj.textContent
     }
 
     return dom

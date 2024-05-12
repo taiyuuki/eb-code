@@ -166,5 +166,3 @@ div.selected:hover {
   border-color: var(--eb-active-border);
 }
 </style>
-@/stores/scroll-top
-@/stores/status

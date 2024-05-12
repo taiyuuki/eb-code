@@ -9,7 +9,7 @@ import { useTheme } from '@/stores/theme'
 import { DISPLAY, useStatus } from '@/stores/status'
 import { invoke_clean_cache } from '@/invoke'
 
-const splitterModel = ref(300)
+const sidebar_width = ref(300)
 const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
 const theme = useTheme()
 const status = useStatus()
@@ -37,7 +37,7 @@ function open_file(node: FileNode) {
 }
 
 function close_file(node: FileNode) {
-    status.remve_tag_by_id(node.id)
+    status.remove_tab_by_id(node.id)
     if (node.open) {
         status.open_first()
     }
@@ -56,16 +56,6 @@ function scroll_ytx(e: WheelEvent) {
         scroll_el.scrollLeft += e.deltaY
     }
 }
-
-// listen('get-text', (event: Event<[string, Language, string]>) => {
-//     status.current.code = event.payload[0]
-//     status.current.lang = event.payload[1]
-//     const id = event.payload[2]
-//     status.current.id = id
-//     scroll_top_to(status.get_top(id))
-//     status.is_reading = false
-//     status.is_toogle = false
-// })
 
 app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
     invoke_clean_cache(status.dir).then(() => {
@@ -100,7 +90,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
     >
       <NaviBar />
       <q-splitter
-        v-model="splitterModel"
+        v-model="sidebar_width"
         unit="px"
         :limits="[300, Infinity]"
         separator-class="bg-var-eb-fg"

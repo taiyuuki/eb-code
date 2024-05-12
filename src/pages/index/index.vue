@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
-import { useTree } from '@/stores/useTree'
 import { vMarquee } from '@/directives/v-marquee'
 
-const tree = useTree()
 const status = useStatus()
 const theme = useTheme()
 </script>
@@ -42,7 +40,7 @@ const theme = useTheme()
     </div>
   </TitleBanner> 
   <FileTree
-    :files="tree.nodes"
+    :files="status.nodes"
     :level="1"
   />
 </template>

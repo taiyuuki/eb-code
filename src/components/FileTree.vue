@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
+import { open } from '@tauri-apps/plugin-dialog'
 import type { FileNode, TreeProps } from './types'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
+import { mimetype } from '@/utils/file'
+import { is_image } from '@/utils/is'
 
 const props = withDefaults(defineProps<TreeProps>(), { indent: 10 })
 const theme = useTheme()
@@ -22,6 +25,90 @@ function toggle(e: MouseEvent, node: FileNode) {
     
     status.add_tab(node)
     status.open(node)
+}
+
+async function add_file() {
+    const files = await open({
+        multiple: true,
+        filters: [{
+            name: '图片',
+            extensions: [
+                'jpg',
+                'png',
+                'svg',
+                'webp',
+                'avif',
+                'gif',
+                'ico',
+                'bmp',
+                'tif',
+                'tiff',
+                'svgz',
+            ],
+        },
+        {
+            name: '字体',
+            extensions: [
+                'ttf',
+                'otf',
+                'woff',
+                'woff2',
+            ],
+        },
+        {
+            name: '样式',
+            extensions: [
+                'css',
+            ],
+        },
+        {
+            name: 'HTML',
+            extensions: [
+                'html',
+                'xhtml',
+                'htm',
+            ],
+        }, 
+        {
+            name: '音频',
+            extensions: [
+                'mp3',
+                'wav',
+                'ogg',
+                'flac',
+                'aac',
+                'wma',
+                'ape',
+            ],
+        },
+        {
+            name: '视频',
+            extensions: [
+                'mp4',
+                'mkv',
+                'webm',
+                'avi',
+                'mov',
+                'wmv',
+            ],
+        },
+        {
+            name: '全部',
+            extensions: ['*'],
+        }],
+    })
+
+    if (files) {
+        for await (const file of files) {
+            const name = file.name!
+            const media_type = mimetype(name)
+            await status.add_file(file.path, name, status.image_path + name, media_type)
+            if (is_image(name)) {
+                status.add_image(status.manifest_path + status.image_path + name)
+            }
+        }
+        status.save_opf()
+    }
 }
 </script>
 
@@ -74,6 +161,7 @@ function toggle(e: MouseEvent, node: FileNode) {
               <q-item
                 v-close-popup
                 clickable
+                @click="add_file"
               >
                 <q-item-section>
                   添加文件

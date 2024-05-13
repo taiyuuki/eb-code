@@ -54,6 +54,10 @@ class MonacoController {
             model: MonacoController.text_model,
             automaticLayout: true,
             cursorSmoothCaretAnimation: 'on',
+            scrollBeyondLastLine: false,
+            bracketPairColorization: { enabled: true },
+            cursorSurroundingLines: 5,
+            fontLigatures: true,
         })
 
         return monaco

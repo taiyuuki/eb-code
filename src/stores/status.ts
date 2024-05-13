@@ -1,19 +1,15 @@
+// @unocss-include
 import { convertFileSrc } from '@tauri-apps/api/core'
 import type { FileNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
-import { invoke_clean_cache, invoke_get_text, invoke_write_text } from '@/invoke'
-import { filename, is_image, is_text } from '@/utils'
+import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_write_text } from '@/invoke'
+import { filename } from '@/utils/file'
+import { is_audio, is_font, is_html, is_image, is_style, is_text } from '@/utils/is'
 import { get_scroll_top, scroll_top_to } from '@/editor'
 import { useActivity } from '@/composables/useActivity'
 import { notif_negative, notif_positive, notif_warning } from '@/notif'
 import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
-
-const DISPLAY = {
-    NONE: 0,
-    CODE: 1,
-    IMAGE: 2,
-    METADATA: 3,
-}
+import { DISPLAY } from '@/static'
 
 const activity_nodes = useActivity()
 
@@ -44,6 +40,16 @@ const useStatus = defineStore('status', {
         epub_version: '2.0', // EPUB版本
         metadata: [] as Record<string, any>[], // EPUB元数据
         cover_src: '',
+        namespaceURI: 'http://www.idpf.org/2007/ops',
+        manifest_path: 'OEBPS/',
+        image_path: 'Images/',
+        text_path: 'Text/',
+        style_path: 'Styles/',
+        font_path: 'Fonts/',
+        script_path: 'Scripts/',
+        audio_path: 'Audios/',
+        video_path: 'Videos/',
+        other_path: 'Others/',
     }),
     getters: {
 
@@ -64,22 +70,23 @@ const useStatus = defineStore('status', {
             })
 
             payload.pathes.forEach(file => {
-                if (file.endsWith('.html') || file.endsWith('.htm') || file.endsWith('.xhtml')) {
+                const name = file.toLowerCase()
+                if (is_html(name)) {
                     if (this.nodes[0].children!.find(n => n.id === file)) {
                         return
                     }
                     this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-html', type: 'navigation' })
-                } else if (file.endsWith('.js')) {
+                } else if (name.endsWith('.js')) {
                     this.add_js(file)
-                } else if (file.endsWith('.css')) {
+                } else if (is_style(name)) {
                     this.add_css(file)
-                } else if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.gif') || file.endsWith('.svg')) {
+                } else if (is_image(name)) {
                     this.add_image(file)
-                } else if (file.endsWith('.mp3') || file.endsWith('.wav') || file.endsWith('.ogg')) {
+                } else if (is_audio(name)) {
                     this.add_audio(file)
-                } else if (file.endsWith('.ttf') || file.endsWith('.otf') || file.endsWith('.woff') || file.endsWith('.woff2')) {
+                } else if (is_font(name)) {
                     this.add_font(file)
-                } else if (file.endsWith('.opf') || file.endsWith('.ncx')) {
+                } else if (name.endsWith('.opf') || name.endsWith('.ncx')) {
                     this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-text' })
                 } else if (file === 'mimetype' || file === 'META-INF/container.xml') {
                     return
@@ -87,73 +94,201 @@ const useStatus = defineStore('status', {
                     this.add_other(file)
                 }
             })
+            
             this.add_parent()
             const dom = xmlToDom(payload.container)
             const rootfile = dom.getElementsByTagName('rootfile')[0]
             this.opf_id = rootfile.getAttribute('full-path') || ''
+            this.manifest_path = `${this.opf_id.substring(0, this.opf_id.lastIndexOf('/'))}/`
+
+            const get_sub_path = (path: string) => {
+                return `${path.replace(this.manifest_path, '').substring(0, path.indexOf('/') + 1)}/`
+            }
+
+            const xhtml = this.nodes[0].children?.[0]?.id
+            const css = this.nodes[1].children?.[0]?.id
+            const img = this.nodes[2].children?.[0]?.id
+            const font = this.nodes[3].children?.[0]?.id
+            const scripts = this.nodes[4].children?.[0]?.id
+            const audio = this.nodes[5].children?.[0]?.id
+            const video = this.nodes[6].children?.[0]?.id
+            if (xhtml) {
+                this.text_path = get_sub_path(xhtml)
+            }
+            if (css) {
+                this.style_path = get_sub_path(css)
+            }
+            if (img) {
+                this.image_path = get_sub_path(img)
+            }
+            if (font) {
+                this.font_path = get_sub_path(font)
+            }
+            if (scripts) {
+                this.script_path = get_sub_path(scripts)
+            }
+            if (audio) {
+                this.audio_path = get_sub_path(audio)
+            }
+            if (video) {
+                this.video_path = get_sub_path(video)
+            }
+
             this.parse_opf()
         },
         async parse_opf() {
             if (this.opf_id !== '') {
                 const payload = await invoke_get_text(this.opf_id, this.dir)
                 this.opf_document = xmlToDom(payload[0])
-                if (this.opf_document) {
-
-                    // epub版本
-                    const package_node = this.opf_document.querySelector('package')
-                    this.epub_version = package_node?.getAttribute('version') || '2.0'
-
-                    // 封面
-                    let cover_node = this.opf_document.querySelector('item[properties="cover-image"]')
-                    if (!cover_node) {
-                        const meta_cover = this.opf_document.querySelector('meta[name="cover"]')
-                        if (meta_cover) {
-                            const cover_id = meta_cover.getAttribute('content')
-                            if (cover_id) {
-                                cover_node = this.opf_document.querySelector(`item[id="${cover_id}"]`)
-                            }
-                        } else {
-                            cover_node = this.opf_document.querySelector('item[id="cover.jpg"]')
-                            if (!cover_node) {
-                                cover_node = this.opf_document.querySelector('item[id="cover.png"]')
-                            }
+                this.parse_namespaceURI()
+                this.parse_version()
+                this.parse_cover()
+                this.parse_metadata()
+            }
+        },
+        parse_namespaceURI() {
+            if (this.opf_document) {
+                this.namespaceURI = this.opf_document.documentElement.namespaceURI ?? this.namespaceURI
+            }
+        },
+        parse_version() {
+            if (this.opf_document) {
+                const package_node = this.opf_document.querySelector('package')
+                this.epub_version = package_node?.getAttribute('version') || '2.0'
+            }
+        },
+        parse_cover() {
+            if (this.opf_document) {
+                let cover_node = this.opf_document.querySelector('item[properties="cover-image"]')
+                if (!cover_node) {
+                    const meta_cover = this.opf_document.querySelector('meta[name="cover"]')
+                    if (meta_cover) {
+                        const cover_id = meta_cover.getAttribute('content')
+                        if (cover_id) {
+                            cover_node = this.opf_document.querySelector(`item[id="${cover_id}"]`)
+                        }
+                    } else {
+                        cover_node = this.opf_document.querySelector('item[id="cover.jpg"]')
+                        if (!cover_node) {
+                            cover_node = this.opf_document.querySelector('item[id="cover.png"]')
                         }
                     }
-                    const cover_href = cover_node?.getAttribute('href')
-                    if (cover_href) {
-                        const path = this.nodes[2].children!.find(n => n.id.endsWith(cover_href))?.id
-                        this.cover_src = path ? convertFileSrc(this.base_path + path) : ''
-                    } else {
-                        this.cover_src = ''
-                    }
-
-                    // 元数据
-                    const metadata_node = this.opf_document.querySelector('metadata')
-                    if (metadata_node) {
-                        const children = Array.from(metadata_node.children)
-                        const temp = {} as Record<string, Record<string, any>>
-                        children.filter(node => node.nodeName.startsWith('dc')).forEach(node => {
-                            const obj = domToObj(node)
-                            this.metadata.push(obj)
-                            const id = node.getAttribute('id')
-                            if (id) {
-                                temp[`#${id}`] = obj
-                            }
-                        })
-                        children.filter(node => node.nodeName.startsWith('meta')).forEach(node => {
-                            const t_id = node.getAttribute('refines')
-                            if (t_id && temp[t_id]) {
-                                if (!temp[t_id].children) {
-                                    temp[t_id].children = []
-                                }
-                                temp[t_id].children.push(domToObj(node))
-                            } else {
-                                this.metadata.push(domToObj(node))
-                            }
-                        })
-                    }
+                }
+                const cover_href = cover_node?.getAttribute('href')
+                if (cover_href) {
+                    const path = this.nodes[2].children!.find(n => n.id.endsWith(cover_href))?.id
+                    this.cover_src = path ? convertFileSrc(this.base_path + path) : ''
+                } else {
+                    this.cover_src = ''
                 }
             }
+        },
+        parse_metadata() {
+            if (this.opf_document) {
+
+                const metadata_node = this.opf_document.querySelector('metadata')
+                if (metadata_node) {
+                    const children = Array.from(metadata_node.children)
+                    const temp = {} as Record<string, Record<string, any>>
+                    children.filter(node => node.nodeName.startsWith('dc')).forEach(node => {
+                        const obj = domToObj(node)
+                        this.metadata.push(obj)
+                        const id = node.getAttribute('id')
+                        if (id) {
+                            temp[`#${id}`] = obj
+                        }
+                    })
+                    children.filter(node => node.nodeName.startsWith('meta')).forEach(node => {
+                        const t_id = node.getAttribute('refines')
+                        if (t_id && temp[t_id]) {
+                            if (!temp[t_id].children) {
+                                temp[t_id].children = []
+                            }
+                            temp[t_id].children.push(domToObj(node))
+                        } else {
+                            this.metadata.push(domToObj(node))
+                        }
+                    })
+                }
+            }
+        },
+        add_meta(tagName: string, value: string) {
+            const count = this.metadata.filter(m => m.tagName === tagName).length
+            const id = tagName.replace('dc:', '') + (count ? count + 1 : '')
+            this.metadata.push({
+                id,
+                tagName: tagName,
+                textContent: value,
+                r_id: id,
+            })
+        },
+        add_meta_child(item: Record<string, any>, property: string, value: string) {
+            item.children = item.children || []
+            const count = item.children.filter((c: any) => c?.property === property).length
+            const id = property.replace('dc:', '') + (count ? count + 1 : '')
+            item.children.push({
+                id,
+                refines: `#${item.id}`,
+                tagName: 'meta',
+                property,
+                textContent: value,
+                r_id: id,
+            })
+        },
+        remove_meta(item: Record<string, any>) {
+            this.metadata = this.metadata.filter(m => m !== item)
+        },
+        save_meta() {
+            if (this.is_writing) {
+                notif_warning('操作过于频繁，请稍后再试。')
+
+                return
+            }
+
+            this.is_writing = true
+            const frag = document.createDocumentFragment()
+            const _n = document.createTextNode('\n')
+            frag.appendChild(_n)
+            this.metadata.forEach(m => {
+                frag.appendChild(objToDom(m, this.namespaceURI))
+                if (m.children) {
+                    m.children.forEach((c: any) => {
+                        frag.appendChild(_n)
+                        frag.appendChild(objToDom(c, this.namespaceURI))
+                    })
+                }
+            })
+            frag.appendChild(document.createTextNode('\n'))
+
+            const meta_el = this.opf_document!.querySelector('metadata')!
+            meta_el.innerHTML = ''
+            meta_el.appendChild(frag)
+            this.save_opf()
+        },
+        remove_meta_child(item: Record<string, Record<string, any>[]>, child: Record<string, any>) {
+            if (!item.children) {
+                return
+            }
+            item.children = item.children.filter(c => c !== child)
+        },
+        async add_file(from: string, id: string, href: string, media_type: string) {
+            const item = document.createElementNS(this.namespaceURI, 'item')
+            item.setAttribute('id', id.replace(/\s/g, '_'))
+            item.setAttribute('href', href)
+            item.setAttribute('media-type', media_type)
+
+            const manifest_node = this.opf_document?.querySelector('manifest')
+            manifest_node?.appendChild(item)
+            manifest_node?.appendChild(document.createTextNode('\n'))
+            invoke_copy_file(from, this.dir, `${this.manifest_path}${href}`)
+        },
+        save_opf() {
+            invoke_write_text(this.dir, this.opf_id, domToXml(this.opf_document!)).then(() => {
+
+                notif_positive('已添加')
+            }, () => {
+                notif_negative('添加失败')
+            })  
         },
         init_tree() {
             this.nodes = [{
@@ -319,38 +454,6 @@ const useStatus = defineStore('status', {
         add_scroll_top(id: string, top: number) {
             this.scroll_tops[id] = top
         },
-        add_meta(tagName: string, value: string) {
-            const count = this.metadata.filter(m => m.tagName === tagName).length
-            const id = tagName.replace('dc:', '') + (count ? count + 1 : '')
-            this.metadata.push({
-                id,
-                tagName: tagName,
-                textContent: value,
-                r_id: id,
-            })
-        },
-        add_meta_child(item: Record<string, any>, property: string, value: string) {
-            item.children = item.children || []
-            const count = item.children.filter((c: any) => c?.property === property).length
-            const id = property.replace('dc:', '') + (count ? count + 1 : '')
-            item.children.push({
-                id,
-                refines: `#${item.id}`,
-                tagName: 'meta',
-                property,
-                textContent: value,
-                r_id: id,
-            })
-        },
-        remove_meta(item: Record<string, any>) {
-            this.metadata = this.metadata.filter(m => m !== item)
-        },
-        remove_meta_child(item: Record<string, Record<string, any>[]>, child: Record<string, any>) {
-            if (!item.children) {
-                return
-            }
-            item.children = item.children.filter(c => c !== child)
-        },
         remove_top(id: string) {
             delete this.scroll_tops[id]
         },
@@ -408,56 +511,22 @@ const useStatus = defineStore('status', {
 
             // 分情况打开标签
             if (is_text(node.id)) {
-                this.display = DISPLAY.CODE
                 this.is_reading = true
                 invoke_get_text(node.id, this.dir).then(payload => {
                     this.set_text(payload[0], payload[1], node.id)
+                    this.display = DISPLAY.CODE
                 }, () => {
                     notif_negative('缓存文件被删除，请重新打开EPUB。')
                 })
             } else if (is_image(node.id)) {
-                this.display = DISPLAY.IMAGE
                 this.set_src(node.id)
+                this.display = DISPLAY.IMAGE
             } else if (node.id === 'metadata') {
                 this.metadata = []
-                this.parse_opf().then(() => {
-                    
-                    this.display = DISPLAY.METADATA
-                })
+                this.parse_cover()
+                this.parse_metadata()
+                this.display = DISPLAY.METADATA
             }
-        },
-        save_opf() {
-            if (this.is_writing) {
-                notif_warning('操作过于频繁，请稍后再试。')
-
-                return
-            }
-
-            this.is_writing = true
-            const frag = document.createDocumentFragment() 
-            this.metadata.forEach(m => {
-                frag.appendChild(document.createTextNode('\n'))
-                frag.appendChild(objToDom(m))
-                if (m.children) {
-                    m.children.forEach((c: any) => {
-                        frag.appendChild(document.createTextNode('\n'))
-                        frag.appendChild(objToDom(c))
-                    })
-                }
-            })
-            frag.appendChild(document.createTextNode('\n'))
-
-            const meta_el = this.opf_document!.querySelector('metadata')!
-            meta_el.innerHTML = ''
-            meta_el.appendChild(frag)
-            const code = domToXml(this.opf_document!)
-            invoke_write_text(this.dir, this.opf_id, code).then(() => {
-                notif_positive('元数据已保存!')
-                this.is_writing = false
-            }, () => {
-                notif_negative('保存失败!')
-                this.is_writing = false
-            })
         },
         close_epub() {
             this.display = DISPLAY.NONE
@@ -478,4 +547,4 @@ const useStatus = defineStore('status', {
     },
 })
 
-export { DISPLAY, useStatus }
+export { useStatus }

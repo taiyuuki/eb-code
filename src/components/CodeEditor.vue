@@ -84,8 +84,7 @@ onMounted(async() => {
 <template>
   <div
     ref="editor"
-    w="100%"
-    h="100%"
+    style="width: 100%; height: calc(100% - 65px);"
     pst="abs inset-0"
   />
 </template>

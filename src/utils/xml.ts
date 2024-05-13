@@ -16,7 +16,6 @@ function domToObj(dom: Element) {
             obj[name] = value
         }
     }
-    obj.selected = false
     obj.textContent = dom.textContent
     if (obj.id) {
         obj.r_id = obj.id
@@ -37,9 +36,9 @@ function domToObj(dom: Element) {
     return obj
 }
 
-function objToDom(obj: Record<string, any>) {
-    const dom = document.createElement(obj.tagName)
-    const ignores = ['tagName', 'textContent', 'r_id', 'children', 'selected', 'xmlns']
+function objToDom(obj: Record<string, any>, namespaceURI: string) {
+    const dom = document.createElementNS(namespaceURI, obj.tagName)
+    const ignores = ['tagName', 'textContent', 'r_id', 'children']
     for (const attr in obj) {
         if (ignores.includes(attr)) {
             continue

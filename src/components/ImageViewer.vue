@@ -6,6 +6,7 @@ import { useElementRef } from '@/composables/useComp'
 
 const props = defineProps<{ src: string }>()
 const eventList = [] as HTMLEventManage<any>[]
+const image_size = reactive({ width: 0, height: 0 })
 
 // const show_controller = ref(false)
 const controller = useElementRef<HTMLDivElement>()
@@ -71,27 +72,27 @@ const sizeReset = () => {
     imagePosition.scale = 1
 }
 
-const vTakeSize: Directive = {
-    mounted(img: HTMLImageElement) {
-        const parent = img.parentElement
-        const { width, height } = getComputedStyle(parent!)
-        const container_width = Number.parseFloat(width)
-        const container_height = Number.parseFloat(height)
-        const radio = container_width / container_height
+const vTakeSize: Directive = (img: HTMLImageElement) => {
+    const parent = img.parentElement
+    const { width, height } = getComputedStyle(parent!)
+    const container_width = Number.parseFloat(width)
+    const container_height = Number.parseFloat(height)
+    const radio = container_width / container_height
 
-        img.onload = () => {
-            const { naturalWidth, naturalHeight } = img
-            const img_radio = naturalWidth / naturalHeight
-            if (naturalHeight < container_height && naturalWidth < container_width) {
-                imagePosition.size = `width:${naturalWidth}px;height:${naturalHeight}px`
-            } else if (img_radio > radio) {
-                imagePosition.size = 'width:100%'
-            } else {
-                imagePosition.size = 'height:100%'
-            }
-
+    img.onload = () => {
+        const { naturalWidth, naturalHeight } = img
+        image_size.width = naturalWidth
+        image_size.height = naturalHeight
+        const img_radio = naturalWidth / naturalHeight
+        if (naturalHeight < container_height && naturalWidth < container_width) {
+            imagePosition.size = `width:${naturalWidth}px;height:${naturalHeight}px`
+        } else if (img_radio > radio) {
+            imagePosition.size = 'width:100%'
+        } else {
+            imagePosition.size = 'height:100%'
         }
-    },
+
+    }
 }
 
 const mouse_moving = ref(false)
@@ -136,6 +137,12 @@ onBeforeUnmount(() => {
     class="mask"
     @mousemove="mouse_move"
   >
+    <div
+      v-show="mouse_moving"
+      class="image-size"
+    >
+      图片尺寸： {{ image_size.width }} * {{ image_size.height }}
+    </div>
     <div  
       :style="maskStyle"
       class="image"
@@ -179,6 +186,16 @@ onBeforeUnmount(() => {
 </template>
 
 <style lang="scss">
+.image-size {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: var(--eb-fg);
+    font-size: 12px;
+    padding: 5px 10px;
+    background-color: var(--eb-bg);
+    z-index: 1;
+}
 .mask {
     --linear-color: #c2c2c2;
     width: 100%;

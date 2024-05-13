@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod clean;
+mod copy;
 mod open;
 mod read;
 mod remove;
@@ -20,6 +21,7 @@ fn main() {
             clean::clean_cache,
             save::save_epub,
             remove::remove_file,
+            copy::copy_file,
         ])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { Window } from '@tauri-apps/api/window'
 import { open, save } from '@tauri-apps/plugin-dialog'
+import { TauriEvent, listen } from '@tauri-apps/api/event'
 import { invoke_clean_cache, invoke_open_epub, invoke_save_epub } from '@/invoke'
 import { useTheme } from '@/stores/theme'
-import { DISPLAY, useStatus } from '@/stores/status'
+import { useStatus } from '@/stores/status'
+import { DISPLAY } from '@/static'
+
 import { notif_negative, notif_positive } from '@/notif'
 import { useActivity } from '@/composables/useActivity'
 const appWindow = new Window('main')
@@ -11,8 +14,11 @@ let is_maximized = ref(false)
 
 async function toggle_maximize() {
     await appWindow.toggleMaximize()
-    is_maximized.value = await appWindow.isMaximized()
 }
+
+listen(TauriEvent.WINDOW_RESIZED, async _ => {
+    is_maximized.value = await appWindow.isMaximized()
+})
 
 const theme = useTheme()
 const status = useStatus()
@@ -33,16 +39,20 @@ async function open_epub_file() {
     })
     const path = file?.path
     if (path) {
-        const payload = await invoke_open_epub(path)
-        if (status.dir !== '') {
-            status.close_epub()
-        }
         status.is_opening = true
-        status.current.save_path = path
-        status.set_dir(payload.dir)
-        status.set_base_path(payload.base_path)
-        status.is_opening = false
-        status.parse_epub(payload)
+        invoke_open_epub(path).then(payload => {
+            if (status.dir !== '') {
+                status.close_epub()
+            }
+            status.current.save_path = path
+            status.set_dir(payload.dir)
+            status.set_base_path(payload.base_path)
+            status.is_opening = false
+            status.parse_epub(payload)
+        }, () => {
+            status.is_opening = false
+            notif_negative('失败！不是有效的EPUB文件。')
+        })
     }
 }
 

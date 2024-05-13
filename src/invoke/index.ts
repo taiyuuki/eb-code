@@ -139,10 +139,37 @@ const invoke_clean_cache = function() {
     }
 }()
 
+// 添加文件 （将文件复制到缓存路径）
+const invoke_copy_file = function() {
+    type Payload = string
+    let rs: (value: Payload | PromiseLike<Payload>)=> void
+    let rj: (reason?: any)=> void
+    let is_listening = false
+
+    return function(from: string, dir: string, path: string) {
+        if (!is_listening) {
+            listen('file-copied', (event: Event<Payload>) => {
+                rs(event.payload)
+            })
+            listen('file-copy-error', (event: Event<string>) => {
+                rj(event.payload)
+            })
+            is_listening = true
+        }   
+
+        return new Promise<Payload>((resolve, reject) => {
+            rs = resolve
+            rj = reject
+            invoke('copy_file', { copyOption: { dir, from, to_id: path } })
+        })
+    }
+}()
+
 export {
     invoke_open_epub,
     invoke_save_epub,
     invoke_get_text,
     invoke_write_text,
-    invoke_clean_cache,
+    invoke_clean_cache, 
+    invoke_copy_file,
 }

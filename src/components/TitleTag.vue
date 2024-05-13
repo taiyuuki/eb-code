@@ -2,7 +2,7 @@
 import type { FileNode } from './types'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
-import { basename } from '@/utils'
+import { basename } from '@/utils/file'
 
 const props = defineProps<{ node: FileNode }>()
 const emit = defineEmits<{
@@ -29,7 +29,7 @@ function close(e: MouseEvent, node: FileNode) {
 
 <template>
   <div
-    hover="cursor-pointer bg-var-eb-file-hover [&>.close-btn]:visible"
+    hover="cursor-pointer bg-var-vscode-toolbar-hoverBackground [&>.close-btn]:visible"
     :class="{ opened: node.open }"
     h="100%"
     p="15"

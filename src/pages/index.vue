@@ -4,9 +4,9 @@ import { TauriEvent } from '@tauri-apps/api/event'
 import { getCurrent } from '@tauri-apps/api/window'
 import type { FileNode } from '@/components/types'
 import { themes } from '@/editor/themes'
-import { NOT_SUPPORTED_THEMES } from '@/editor/shiki'
+import { DISPLAY, NOT_SUPPORTED_THEMES } from '@/static'
 import { useTheme } from '@/stores/theme'
-import { DISPLAY, useStatus } from '@/stores/status'
+import { useStatus } from '@/stores/status'
 import { invoke_clean_cache } from '@/invoke'
 
 const sidebar_width = ref(300)
@@ -28,7 +28,7 @@ function setTheme(t: string) {
 
 const thumb_style = {
     width: '14px',
-    background: 'var(--vscode-scrollbarSlider-activeBackground)',
+    background: 'var(--vscode-scrollbarSlider-hoverBackground)',
     borderRadius: '0',
 }
 
@@ -100,6 +100,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
           <q-scroll-area
             style="height: calc(100vh - 115px);"
             :thumb-style="thumb_style"
+            :dark="theme.dark"
           >
             <router-view />
           </q-scroll-area>

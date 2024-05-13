@@ -17,8 +17,6 @@ const _META_KEY: Record<string, string> = {
     'dc:contributor': '创作者',
     'dc:format': '格式',
     'dc:type': '类型',
-    'dcterms:modified': '修改时间',
-    'dc:identifier': 'ID',
 }
 
 const _META_PROPERTY: Record<string, string> = {
@@ -50,7 +48,7 @@ const theme = useTheme()
 
 const thumb_style = {
     width: '14px',
-    background: 'var(--vscode-scrollbarSlider-activeBackground)',
+    background: 'var(--vscode-scrollbarSlider-hoverBackground)',
     borderRadius: '0',
 }
 
@@ -93,7 +91,7 @@ function add_child(item: Record<string, any>) {
 }
 
 function save_meta() {
-    status.save_opf()
+    status.save_meta()
 }
 </script>
 
@@ -101,9 +99,10 @@ function save_meta() {
   <div h="100%">
     <div
       flex="~ nowrap"
-      p="20"
-      style="height: calc(100% - 100px);"
+      p="l-20"
+      style="height: calc(100% - 150px);"
       class="q-gutter-md"
+      m="0"
     >
       <div
         h="100%"
@@ -122,6 +121,7 @@ function save_meta() {
         <q-scroll-area
           :thumb-style="thumb_style"
           style="height: 100%;"
+          :dark="theme.dark"
         >
           <template
             v-for="item in status.metadata"

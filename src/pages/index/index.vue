@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
-import { vMarquee } from '@/directives/v-marquee'
 
 const status = useStatus()
 const theme = useTheme()
@@ -13,30 +12,10 @@ const theme = useTheme()
     dense
   >
     <div
-      flex="~ justify-between items-center nowrap"
-      w="100%"
-      p="x-20"
+      w="min-50"
+      flex="~ justify-end"
     >
-      <div
-        v-show="status.file_name"
-        v-marquee
-        flex="1"
-        :title="status.file_name"
-      >
-        <div
-          w="100%"
-          hover="w-fit text-clip overflow-inherit"
-          text="bold ellipsis"
-        >
-          {{ status.file_name }}
-        </div>
-      </div>
-      <div
-        w="min-50"
-        flex="~ justify-end"
-      >
-        按钮
-      </div>
+      按钮
     </div>
   </TitleBanner> 
   <FileTree

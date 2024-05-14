@@ -3,6 +3,8 @@ import type { PluginEntry } from '@quasar/app-vite/types/configuration/build'
 import nlsPlugin, { Languages } from './nls'
 import zh_hans from './nls/zh-hans.json'
 
+// import { rollup_plugin_sortablejs } from './sortablejs'
+
 function is_dev() {
     return process.env.NODE_ENV === 'development'
 }
@@ -52,6 +54,7 @@ const vite_plugins: PluginEntry[] = [
         },
     ],
     ['unocss/vite', {/** unocss options */ }],
+    // rollup_plugin_sortablejs(),
 ]
 
 is_dev() || vite_plugins.push(nlsPlugin({

@@ -29,6 +29,7 @@
     "global-shortcut:default",
     "dialog:allow-open",
     "dialog:allow-save",
+    "dialog:allow-ask",
     "dialog:default"
   ]
 }

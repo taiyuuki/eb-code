@@ -10,19 +10,9 @@ import { get_scroll_top, scroll_top_to } from '@/editor'
 import { useActivity } from '@/composables/useActivity'
 import { notif_negative, notif_positive, notif_warning } from '@/notif'
 import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
-import { DISPLAY } from '@/static'
+import { DISPLAY, TREE } from '@/static'
 
 const activity_nodes = useActivity()
-const TREE = {
-    HTML: 0,
-    STYLE: 1,
-    IMAGE: 2,
-    FONT: 3,
-    JS: 4,
-    AUDIO: 5,
-    VIDEO: 6,
-    OTHER: 7,
-}
 
 function tree_index(name: string) {
     if (is_html(name)) {
@@ -49,6 +39,7 @@ const useStatus = defineStore('status', {
         nodes: [] as FileNode[],
         opf_id: '', // opf文件路径，即container.xml里的filepath
         opf_document: null as Document | null,
+        nav_id: '', // 导航文件路径
         tabs: [] as FileNode[], // 打开的标签
         image_srces: {} as Record<string, string>, // 图片src
         current: {
@@ -81,6 +72,7 @@ const useStatus = defineStore('status', {
         audio_path: 'Audios/',
         video_path: 'Videos/',
         other_path: 'Others/',
+        nav_in_spine: false,
     }),
     getters: {
 
@@ -88,9 +80,20 @@ const useStatus = defineStore('status', {
         file_name(state) {
             return filename(state.current.save_path)
         },
+        book_id(state) {
+            return state.metadata.find(m => m.tagName === 'dc:identifier')?.textContent || ''
+        },
+        book_title(state) {
+            return state.metadata.find(m => m.tagName === 'dc:title')?.textContent || ''
+        },
     },
     actions: {
         parse_epub(payload: { chapters: string[], pathes: string[], container: string }) {
+            
+            const dom = xmlToDom(payload.container)
+            const rootfile = dom.getElementsByTagName('rootfile')[0]
+            this.opf_id = rootfile.getAttribute('full-path') || ''
+
             this.init_tree()
 
             payload.chapters.forEach(name => {
@@ -103,10 +106,12 @@ const useStatus = defineStore('status', {
             payload.pathes.forEach(file => {
                 const name = file.toLowerCase()
                 if (is_html(name)) {
-                    if (this.nodes[0].children!.find(n => n.id === file)) {
-                        return
-                    }
-                    this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-html', type: 'navigation' })
+
+                    // if (this.nodes[0].children!.find(n => n.id === file)) {
+                    return
+
+                    // }
+                    // this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-html', type: 'navigation' })
                 } else if (name.endsWith('.js')) {
                     this.add_js(file)
                 } else if (is_style(name)) {
@@ -125,11 +130,8 @@ const useStatus = defineStore('status', {
                     this.add_other(file)
                 }
             })
-            
+
             this.add_parent()
-            const dom = xmlToDom(payload.container)
-            const rootfile = dom.getElementsByTagName('rootfile')[0]
-            this.opf_id = rootfile.getAttribute('full-path') || ''
             this.manifest_path = `${this.opf_id.substring(0, this.opf_id.lastIndexOf('/'))}/`
 
             const get_sub_path = (path: string) => {
@@ -175,6 +177,7 @@ const useStatus = defineStore('status', {
                 this.parse_version()
                 this.parse_cover()
                 this.parse_metadata()
+                this.parse_nav()
             }
         },
         parse_namespaceURI() {
@@ -243,6 +246,31 @@ const useStatus = defineStore('status', {
                 }
             }
         },
+        parse_nav() {
+            if (this.epub_version.startsWith('3')) {
+                const item = this.opf_document?.querySelector('item[properties="nav"]')
+                this.nav_id = item?.getAttribute('href') || ''
+            }
+            if (this.nav_id === '') { // 2.0
+                const id = this.opf_document?.querySelector('spine[toc]')?.getAttribute('toc')
+                const item = this.opf_document?.querySelector(`item[id="${id}"]`)
+                this.nav_id = item?.getAttribute('href') || 'toc.ncx'
+            }
+
+            if (this.nav_id.endsWith('html')) {
+                const file = this.manifest_path + this.nav_id
+                const nav = this.nodes[0].children!.find(n => n.id === file)
+                if (nav) {
+                    nav.type = 'navigation'
+                    nav.icon = 'i-vscode-icons:file-type-pddl-happenings'
+                    this.nav_in_spine = true
+                } else {
+                    this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-pddl-happenings', type: 'navigation' })
+                    this.nav_in_spine = false
+                }
+            }
+            
+        },
         add_meta(tagName: string, value: string) {
             const count = this.metadata.filter(m => m.tagName === tagName).length
             const id = tagName.replace('dc:', '') + (count ? count + 1 : '')
@@ -306,7 +334,7 @@ const useStatus = defineStore('status', {
             // item.children = item.children.filter(c => c !== child)
             arr_remove(item.children, child)
         },
-        async add_file(from: string, id: string, href: string, media_type: string) {
+        add_file(from: string, id: string, href: string, media_type: string) {
             const item = document.createElementNS(this.namespaceURI, 'item')
             item.setAttribute('id', id.replace(/\s/g, '_'))
             item.setAttribute('href', href)
@@ -316,6 +344,17 @@ const useStatus = defineStore('status', {
             manifest_node?.appendChild(item)
             manifest_node?.appendChild(document.createTextNode('\n'))
             invoke_copy_file(from, this.dir, `${this.manifest_path}${href}`)
+        },
+        get_itemref_by_id(id: string) {
+            const manifest_node = this.opf_document?.querySelector('manifest')
+            if (manifest_node) {
+                const item = manifest_node.querySelector(`item[href="${id.replace(this.manifest_path, '')}"]`)
+                if (item) {
+                    const ref_id = item.id
+
+                    return this.opf_document?.querySelector(`itemref[idref="${ref_id}"]`)
+                }
+            }  
         },
         remove_file(node: FileNode) {
             const manifest_node = this.opf_document?.querySelector('manifest')
@@ -638,6 +677,8 @@ const useStatus = defineStore('status', {
             this.is_toogle = false
             this.current.save_path = ''
             this.metadata = []
+            this.nav_id = ''
+            this.nav_in_spine = false
             invoke_clean_cache(this.dir)
             this.dir = ''
         },

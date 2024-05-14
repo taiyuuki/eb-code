@@ -11,7 +11,19 @@ const NOT_SUPPORTED_THEMES = [
     'vesper',
 ]
 
+const TREE = {
+    HTML: 0,
+    STYLE: 1,
+    IMAGE: 2,
+    FONT: 3,
+    JS: 4,
+    AUDIO: 5,
+    VIDEO: 6,
+    OTHER: 7,
+}
+
 export { 
     DISPLAY,
     NOT_SUPPORTED_THEMES, 
+    TREE,
 }

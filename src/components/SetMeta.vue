@@ -17,6 +17,7 @@ const _META_KEY: Record<string, string> = {
     'dc:contributor': '创作者',
     'dc:format': '格式',
     'dc:type': '类型',
+    'dc:identifier': 'ID',
 }
 
 const _META_PROPERTY: Record<string, string> = {

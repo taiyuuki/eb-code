@@ -6,6 +6,7 @@ mod copy;
 mod open;
 mod read;
 mod remove;
+mod rename;
 mod save;
 // mod search;
 mod write;
@@ -22,10 +23,11 @@ fn main() {
             save::save_epub,
             remove::remove_file,
             copy::copy_file,
+            rename::rename_file,
         ])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-    tauri_quasar_lib::run()
+    ebcode_lib::run()
 }

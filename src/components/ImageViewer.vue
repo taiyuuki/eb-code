@@ -3,6 +3,8 @@ import type { Directive } from 'vue'
 import type { TouchPanValue } from 'quasar'
 import type { HTMLEventManage } from '@/utils/event'
 import { useElementRef } from '@/composables/useComp'
+import { useStatus } from '@/stores/status'
+import { DISPLAY } from '@/static'
 
 const props = defineProps<{ src: string }>()
 const eventList = [] as HTMLEventManage<any>[]
@@ -10,6 +12,7 @@ const image_size = reactive({ width: 0, height: 0 })
 
 // const show_controller = ref(false)
 const controller = useElementRef<HTMLDivElement>()
+const status = useStatus()
 
 const imagePosition = reactive({
     scale: 1, // 缩放倍数
@@ -91,7 +94,8 @@ const vTakeSize: Directive = (img: HTMLImageElement) => {
         } else {
             imagePosition.size = 'height:100%'
         }
-
+        
+        status.display = DISPLAY.IMAGE
     }
 }
 

@@ -47,6 +47,17 @@ const activity_files = {
             this.open(node)
         }
     },
+
+    close() {
+        if (this.opened_node) {
+            this.opened_node.open = false
+            this.opened_node = null
+        }
+        if (this.selected_node) {
+            this.selected_node.selected = false
+            this.selected_node = null
+        }
+    },
 }
 
 function useActivity() {

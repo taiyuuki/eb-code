@@ -27,10 +27,10 @@ pub fn copy_file(copy_option: CopyOption, app_handle: tauri::AppHandle) {
 
     match copy(&copy_option.from, &to) {
         Ok(_) => {
-            let _ = app_handle.emit("file-copied", copy_option);
+            app_handle.emit("file-copied", copy_option).unwrap();
         }
         Err(_) => {
-            let _ = app_handle.emit("file-copy-error", "复制失败");
+            app_handle.emit("file-copy-error", "复制失败").unwrap();
         }
     }
 }

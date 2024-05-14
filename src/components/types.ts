@@ -1,7 +1,7 @@
 interface FileNode {
     id: string
     name: string
-    icon: string
+    icon?: string
     active?: boolean
     selected?: boolean
     expanded?: boolean

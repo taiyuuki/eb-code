@@ -76,7 +76,7 @@ onMounted(async() => {
 
         theme['list.activeBorder'] = theme_colors.fg
         theme['list.border'] = set_opacity(theme_colors.fg, 0.3)
-        theme.setColor()
+        theme.set_colors()
     }, { immediate: true })
 })
 </script>

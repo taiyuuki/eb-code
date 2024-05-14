@@ -12,7 +12,7 @@ const useTheme = defineStore('theme', {
     }),
 
     actions: {
-        setColor() {
+        set_colors() {
 
             dom_set_css_var('eb-fg', this.color)
             dom_set_css_var('eb-bg', this.background)
@@ -20,7 +20,7 @@ const useTheme = defineStore('theme', {
             dom_set_css_var('eb-border', this['list.border'])
             dom_set_css_var('eb-active-border', this['list.activeBorder'])
         },
-        setTheme(theme: ShikiTheme) {
+        set_theme(theme: ShikiTheme) {
             this.shiki = theme
         },
     },

@@ -1,167 +1,120 @@
-import { invoke } from '@tauri-apps/api/core'
+import type { InvokeArgs, InvokeOptions } from '@tauri-apps/api/core'
 import type { Event } from '@tauri-apps/api/event'
+import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import type { Language } from '@/editor/shiki'
 
+class InvokeRequest<Payload, Error = string> {
+    resolve: (value: Payload | PromiseLike<Payload>)=> void
+    reject: (reason?: Error)=> void
+
+    constructor(sucess_type: string, error_type: string) {
+        this.resolve = () => {}
+        this.reject = () => {}
+        listen(sucess_type, (event: Event<Payload>) => {
+            this.resolve(event.payload)
+        })
+        listen(error_type, (event: Event<Error>) => {
+            this.reject(event.payload)
+        })
+    }
+
+    invoke(type: string, args?: InvokeArgs, option?: InvokeOptions) {
+        return new Promise<Payload>((resolve, reject) => {
+            this.resolve = resolve
+            this.reject = reject        
+            invoke(type, args, option) 
+        })
+    }
+}
+
 // 打开EPUB
 const invoke_open_epub = function() {
-    type Payload = { 
+    type Payload = {
         chapters: string[], 
         pathes: string[], 
         dir: string,
         base_path: string,
         container: string,
     }
-    let rs: (value: Payload | PromiseLike<Payload>)=> void
-    let rj: (reason?: any)=> void
-    let is_listening = false
+    const ir = new InvokeRequest<Payload>('epub-opened', 'epub-open-error')
 
     return function(path: string) {
-        if (!is_listening) {
-            listen('epub-opened', (event: Event<Payload>) => {
-                rs(event.payload)
-            })
-            listen('epub-open-error', (event: Event<string>) => {
-                rj(event.payload)
-            })
-            is_listening = true
-        }
-
-        return new Promise<Payload>((resolve, reject) => {
-            rs = resolve
-            rj = reject
-            invoke('open_epub', { path })
-        })
+        return ir.invoke('open_epub', { path })
     }
 }()
 
 // 保存EPUB
 const invoke_save_epub = function() {
     type Payload = undefined
-    let rs: (value: Payload | PromiseLike<Payload>)=> void
-    let rj: (reason?: any)=> void
-    let is_listening = false
+    const ir = new InvokeRequest<Payload>('epub-saved', 'epub-save-error')
 
     return function(input_dir: string, output_dir: string) {
-        if (!is_listening) {
-            listen('epub-saved', (event: Event<Payload>) => {
-                rs(event.payload)
-            })
-            listen('epub-save-error', (event: Event<string>) => {
-                rj(event.payload)
-            })
-            is_listening = true
-        }
-        
-        return new Promise<Payload>((resolve, reject) => {
-            rs = resolve
-            rj = reject
-            invoke('save_epub', { saveOptions: { input_dir, output_dir } })
-        })
+        return ir.invoke('save_epub', { saveOptions: { input_dir, output_dir } })
     }
 }()
 
 // 获取Text文本
 const invoke_get_text = function() {
     type Payload = [string, Language, string]
-    let rs: (value: Payload | PromiseLike<Payload>)=> void
-    let rj: (reason?: any)=> void
-    let is_listening = false
+    const ir = new InvokeRequest<Payload>('get-text', 'get-text-error')
 
     return function(path: string, dir: string) {
-        if (!is_listening) {
-            listen('get-text', (event: Event<Payload>) => {
-                rs(event.payload)
-            })
-            listen('get-text-error', (event: Event<string>) => {
-                rj(event.payload)
-            })
-            is_listening = true
-        }
         
-        return new Promise<Payload>((resolve, reject) => {
-            rs = resolve
-            rj = reject
-            invoke('get_text', { textDirectory: { dir, path } })
-        })
+        return ir.invoke('get_text', { textDirectory: { dir, path } })
     }
 }()
 
 // 写入文本
 const invoke_write_text = function() {
     type Payload = string
-    let rs: (value: Payload | PromiseLike<Payload>)=> void
-    let rj: (reason?: any)=> void
-    let is_listening = false
+    const ir = new InvokeRequest<Payload>('write-success', 'write-error')
 
     return function(dir: string, path: string, content: string) {
-        if (!is_listening) {
-            listen('write-success', (event: Event<Payload>) => {
-                rs(event.payload)
-            })
-            listen('write-error', (event: Event<string>) => {
-                rj(event.payload)
-            })
-            is_listening = true
-        }
 
-        return new Promise<Payload>((resolve, reject) => {
-            rs = resolve
-            rj = reject
-            invoke('write_text', { textContents: { dir, path, content } })
-        })
+        return ir.invoke('write_text', { textContents: { dir, path, content } })
     }
 }()
 
 // 清除EPUB缓存
 const invoke_clean_cache = function() {
     type Payload = string
-    let rs: (value: Payload | PromiseLike<Payload>)=> void
-    let rj: (reason?: any)=> void
-    let is_listening = false
+    const ir = new InvokeRequest<Payload>('clean-success', 'clean-error')
 
     return function(dir: string) {
-        if (!is_listening) {
-            listen('clean-success', (event: Event<Payload>) => {
-                rs(event.payload)
-            })
-            listen('clean-error', (event: Event<string>) => {
-                rj(event.payload)
-            })
-            is_listening = true
-        }
-
-        return new Promise<Payload>((resolve, reject) => {
-            rs = resolve
-            rj = reject
-            invoke('clean_cache', { dir })
-        })
+        return ir.invoke('clean_cache', { dir })
     }
 }()
 
 // 添加文件 （将文件复制到缓存路径）
 const invoke_copy_file = function() {
     type Payload = string
-    let rs: (value: Payload | PromiseLike<Payload>)=> void
-    let rj: (reason?: any)=> void
-    let is_listening = false
+    const ir = new InvokeRequest<Payload>('file-copied', 'file-copy-error')
 
-    return function(from: string, dir: string, path: string) {
-        if (!is_listening) {
-            listen('file-copied', (event: Event<Payload>) => {
-                rs(event.payload)
-            })
-            listen('file-copy-error', (event: Event<string>) => {
-                rj(event.payload)
-            })
-            is_listening = true
-        }   
+    return function(from: string, dir: string, id: string) {
+        ir.invoke('copy_file', { copyOption: { dir, from, to_id: id } })
+    }
+}()
 
-        return new Promise<Payload>((resolve, reject) => {
-            rs = resolve
-            rj = reject
-            invoke('copy_file', { copyOption: { dir, from, to_id: path } })
-        })
+// 删除文件
+const invoke_remove_file = function() {
+    type Payload = string
+    const ir = new InvokeRequest<Payload>('remove-success', 'remove-error')
+
+    return function(dir: string, id: string) {
+
+        return ir.invoke('remove_file', { removeOption: { path: dir, id } })
+    }
+}()
+
+// 文件重命名
+const invoke_rename_file = function() {
+    type Payload = string
+    const ir = new InvokeRequest<Payload>('rename-success', 'rename-error')
+
+    return function(dir: string, id: string, new_name: string) {
+
+        return ir.invoke('rename_file', { renameOption: { path: dir, id, new_name } })
     }
 }()
 
@@ -172,4 +125,6 @@ export {
     invoke_write_text,
     invoke_clean_cache, 
     invoke_copy_file,
+    invoke_remove_file,
+    invoke_rename_file,
 }

@@ -1,10 +1,11 @@
 // @unocss-include
 import { convertFileSrc } from '@tauri-apps/api/core'
+import { arr_remove } from '@taiyuuki/utils'
 import type { FileNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
-import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_write_text } from '@/invoke'
-import { filename } from '@/utils/file'
-import { is_audio, is_font, is_html, is_image, is_style, is_text } from '@/utils/is'
+import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_write_text } from '@/invoke'
+import { basename, filename } from '@/utils/file'
+import { is_audio, is_font, is_html, is_image, is_style, is_text, is_video } from '@/utils/is'
 import { get_scroll_top, scroll_top_to } from '@/editor'
 import { useActivity } from '@/composables/useActivity'
 import { notif_negative, notif_positive, notif_warning } from '@/notif'
@@ -12,6 +13,36 @@ import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
 import { DISPLAY } from '@/static'
 
 const activity_nodes = useActivity()
+const TREE = {
+    HTML: 0,
+    STYLE: 1,
+    IMAGE: 2,
+    FONT: 3,
+    JS: 4,
+    AUDIO: 5,
+    VIDEO: 6,
+    OTHER: 7,
+}
+
+function tree_index(name: string) {
+    if (is_html(name)) {
+        return TREE.HTML
+    } else if (is_style(name)) {
+        return TREE.STYLE
+    } else if (is_image(name)) {
+        return TREE.IMAGE
+    } else if (is_font(name)) {
+        return TREE.FONT
+    } else if (name.endsWith('.js')) {
+        return TREE.JS
+    } else if (is_audio(name)) {
+        return TREE.AUDIO
+    } else if (is_video(name)) {
+        return TREE.VIDEO
+    } else {
+        return TREE.OTHER
+    }
+}
 
 const useStatus = defineStore('status', { 
     state: () => ({
@@ -236,7 +267,9 @@ const useStatus = defineStore('status', {
             })
         },
         remove_meta(item: Record<string, any>) {
-            this.metadata = this.metadata.filter(m => m !== item)
+
+            // this.metadata = this.metadata.filter(m => m !== item)
+            arr_remove(this.metadata, item)
         },
         save_meta() {
             if (this.is_writing) {
@@ -269,7 +302,9 @@ const useStatus = defineStore('status', {
             if (!item.children) {
                 return
             }
-            item.children = item.children.filter(c => c !== child)
+
+            // item.children = item.children.filter(c => c !== child)
+            arr_remove(item.children, child)
         },
         async add_file(from: string, id: string, href: string, media_type: string) {
             const item = document.createElementNS(this.namespaceURI, 'item')
@@ -282,12 +317,69 @@ const useStatus = defineStore('status', {
             manifest_node?.appendChild(document.createTextNode('\n'))
             invoke_copy_file(from, this.dir, `${this.manifest_path}${href}`)
         },
-        save_opf() {
-            invoke_write_text(this.dir, this.opf_id, domToXml(this.opf_document!)).then(() => {
+        remove_file(node: FileNode) {
+            const manifest_node = this.opf_document?.querySelector('manifest')
+            const spine_node = this.opf_document?.querySelector('spine')
+            if (manifest_node) {
+                const item = manifest_node.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
+                if (item) {
+                    const id = item.id
+                    manifest_node.removeChild(item)
+                    if (spine_node) {
+                        const itemref = spine_node.querySelector(`itemref[idref="${id}"]`)
+                        if (itemref) {
+                            spine_node.removeChild(itemref)
+                        }
+                    }
+                    this.save_opf()
+                }
+            }
+            const i = tree_index(node.id)
 
-                notif_positive('已添加')
+            arr_remove(this.nodes[i].children ?? [], node)
+
+            arr_remove(this.nodes, node)
+            if (activity_nodes.opened_node === node) {
+                arr_remove(this.tabs, node)
+                this.open_first()
+            }
+            invoke_remove_file(this.dir, node.id).then(() => {
+                notif_positive('完成')
             }, () => {
-                notif_negative('添加失败')
+                notif_negative('发生错误！')
+            })
+        },
+        rename_file(node: FileNode, new_name: string) {
+            const manifest_node = this.opf_document?.querySelector('manifest')
+            if (manifest_node) {
+                const item = manifest_node.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
+                if (item) {
+                    const old_id = item.id
+                    const new_id = basename(new_name).replace(/\s/g, '_')
+                    
+                    item.setAttribute('href', new_name)
+                    item.setAttribute('id', new_id)
+
+                    const spine_node = this.opf_document?.querySelector('spine')
+                    if (spine_node) {
+                        const itemref = spine_node.querySelector(`itemref[idref="${old_id}"]`)
+                        if (itemref) {
+                            itemref.setAttribute('idref', new_id)
+                        }
+                        this.save_opf()
+                    }
+                }
+            }
+        },
+        save_opf() {
+            const code = domToXml(this.opf_document!)
+            invoke_write_text(this.dir, this.opf_id, code).then(() => {
+                if (activity_nodes.opened_node && activity_nodes.opened_node.id.endsWith(this.opf_id)) {
+                    this.current.code = code
+                }
+                notif_positive('完成')
+            }, () => {
+                notif_negative('发生错误！')
             })  
         },
         init_tree() {
@@ -377,28 +469,28 @@ const useStatus = defineStore('status', {
             this.nodes = []
         },
         add_html(name: string) {
-            this.nodes[0].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-html', type: 'html' })
+            this.nodes[TREE.HTML].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-html', type: 'html' })
         },
         add_css(name: string) {
-            this.nodes[1].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-css', type: 'css' })
+            this.nodes[TREE.STYLE].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-css', type: 'css' })
         },
         add_image(name: string) {
-            this.nodes[2].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-image', type: 'image' })
+            this.nodes[TREE.IMAGE].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-image', type: 'image' })
         },
         add_font(name: string) {
-            this.nodes[3].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-font', type: 'font' })
+            this.nodes[TREE.FONT].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-font', type: 'font' })
         },
         add_js(name: string) {
-            this.nodes[4].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-js', type: 'js' })
+            this.nodes[TREE.JS].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-js', type: 'js' })
         },
         add_audio(name: string) {
-            this.nodes[5].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-audio', type: 'audio' })
+            this.nodes[TREE.AUDIO].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-audio', type: 'audio' })
         },
         add_video(name: string) {
-            this.nodes[6].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-video', type: 'video' })
+            this.nodes[TREE.VIDEO].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-video', type: 'video' })
         },
         add_other(name: string) {
-            this.nodes[7].children!.push({ id: name, name, icon: 'i-vscode-icons:default-file', type: 'other' })
+            this.nodes[TREE.OTHER].children!.push({ id: name, name, icon: 'i-vscode-icons:default-file', type: 'other' })
         },
         add_parent() {
             function add(node: FileNode) {
@@ -420,7 +512,11 @@ const useStatus = defineStore('status', {
             this.tabs.push(node)
         },
         remove_tab_by_id(id: string) {
-            this.tabs = this.tabs.filter(t => t.id !== id)
+
+            const i = this.tabs.findIndex(t => t.id === id)
+            if (i !== -1) {
+                this.tabs.splice(i, 1)
+            }
         },
         close_left(node: FileNode) {
             const i = this.tabs.indexOf(node)
@@ -520,7 +616,8 @@ const useStatus = defineStore('status', {
                 })
             } else if (is_image(node.id)) {
                 this.set_src(node.id)
-                this.display = DISPLAY.IMAGE
+
+                // this.display = DISPLAY.IMAGE 移至ImageViewer.vue
             } else if (node.id === 'metadata') {
                 this.metadata = []
                 this.parse_cover()

@@ -14,4 +14,5 @@ function set_opacity(color: string, opacity: number) {
         return color
     }
 }
+
 export { set_opacity }

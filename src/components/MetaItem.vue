@@ -124,7 +124,7 @@ function edit_meta(e: Event, item: Record<string, any>) {
   </div>
 </template>
 
-<style>
+<style scoped>
 .meta-item {
   padding: 5px 10px;
   white-space: nowrap;

@@ -23,10 +23,10 @@ pub fn write_text(text_contents: TextContents, app_handle: tauri::AppHandle) {
 
     match write_to_cache(&dir, &text_contents.content) {
         Ok(_) => {
-            let _ = app_handle.emit("write-success", "写入成功");
+            app_handle.emit("write-success", "写入成功").unwrap();
         }
         Err(_) => {
-            let _ = app_handle.emit("write-error", "写入失败");
+            app_handle.emit("write-error", "写入失败").unwrap();
         }
     }
 }

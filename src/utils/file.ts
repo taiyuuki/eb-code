@@ -15,7 +15,9 @@ function basename(path: string) {
  * @returns 
  */
 function filename(path: string) {
-    return basename(path).substring(0, path.lastIndexOf('.'))
+    const bn = basename(path)
+
+    return bn.substring(0, bn.lastIndexOf('.'))
 }
 
 /**

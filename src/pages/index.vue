@@ -8,12 +8,14 @@ import { DISPLAY, NOT_SUPPORTED_THEMES } from '@/static'
 import { useTheme } from '@/stores/theme'
 import { useStatus } from '@/stores/status'
 import { invoke_clean_cache } from '@/invoke'
+import { useActivity } from '@/composables/useActivity'
 
 const sidebar_width = ref(300)
 const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
 const theme = useTheme()
 const status = useStatus()
 const app_window = getCurrent()
+const activity_node = useActivity()
 
 const options = supported_themes
     .map(t => t.split('-')
@@ -22,8 +24,8 @@ const options = supported_themes
 
 const selected_theme = ref(options[supported_themes.indexOf(theme.shiki)])
 
-function setTheme(t: string) {
-    theme.setTheme(supported_themes[options.indexOf(t)])
+function set_theme(t: string) {
+    theme.set_theme(supported_themes[options.indexOf(t)])
 }
 
 const thumb_style = {
@@ -40,6 +42,9 @@ function close_file(node: FileNode) {
     status.remove_tab_by_id(node.id)
     if (node.open) {
         status.open_first()
+    }
+    if (status.tabs.length === 0) {
+        activity_node.close()
     }
 
 }
@@ -81,7 +86,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
         color="fg"
         :options="options"
         :dark="theme.dark"
-        @update:model-value="setTheme"
+        @update:model-value="set_theme"
       />
     </div>
     <div

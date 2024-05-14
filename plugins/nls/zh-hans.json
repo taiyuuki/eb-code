@@ -7223,7 +7223,7 @@
             "updateExtensionStart": "已启动更新扩展 {0} 到版本 {1}。",
             "updated": "已更新",
             "workbench.extensions.action.clearLanguage": "清除显示语言",
-            "workbench.extensions.action.setColorTheme": "设置颜色主题",
+            "workbench.extensions.action.set_colorsTheme": "设置颜色主题",
             "workbench.extensions.action.setDisplayLanguage": "设置显示语言",
             "workbench.extensions.action.setFileIconTheme": "设置文件图标主题",
             "workbench.extensions.action.setProductIconTheme": "设置产品图标主题",

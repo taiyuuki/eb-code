@@ -3,7 +3,7 @@ import Draggable from 'vuedraggable'
 import { ask, open } from '@tauri-apps/plugin-dialog'
 import { QInput } from 'quasar'
 import { arr_remove } from '@taiyuuki/utils'
-import type { FileNode, TreeProps } from './types'
+import type { FileNode, Moved, TreeProps } from './types'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
 import { basename, filename, mimetype } from '@/utils/file'
@@ -253,18 +253,13 @@ function add_to_spine(node: FileNode) {
         status.nodes[0].children!.unshift(node)
     }
     status.nav_in_spine = !status.nav_in_spine
+    status.add_to_spine()
 }
 
-function on_move(...arg: any) {
-    console.log(arg)
-}
+function change(e: { moved: Moved }) {
+    const { moved } = e
 
-function mouse_pan(...arg: any) {
-    console.log(arg)
-}
-
-function change(...arg: any) {
-    console.log(arg)
+    status.move(moved.oldIndex, moved.newIndex)
 }
 </script>
 
@@ -276,14 +271,12 @@ function change(...arg: any) {
     item-key="id"
     group="type"
     draggable=".draggable"
-    :move="on_move"
     v-bind="{
       multiDrag: true,
       selectedClass: 'selected',
       multiDragKey: 'ctrl',
       avoidImplicitDeselect: true,
     }"
-    @end="mouse_pan"
     @change="change"
   >
     <template #item="{ element: node, index: i }">

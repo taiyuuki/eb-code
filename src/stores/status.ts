@@ -73,6 +73,8 @@ const useStatus = defineStore('status', {
         video_path: 'Videos/',
         other_path: 'Others/',
         nav_in_spine: false,
+        nav_item: null as Element | null | undefined,
+        nav_version: 2 as 2 | 3,
     }),
     getters: {
 
@@ -250,11 +252,14 @@ const useStatus = defineStore('status', {
             if (this.epub_version.startsWith('3')) {
                 const item = this.opf_document?.querySelector('item[properties="nav"]')
                 this.nav_id = item?.getAttribute('href') || ''
+                this.nav_version = 3
             }
             if (this.nav_id === '') { // 2.0
                 const id = this.opf_document?.querySelector('spine[toc]')?.getAttribute('toc')
                 const item = this.opf_document?.querySelector(`item[id="${id}"]`)
+                this.nav_item = item
                 this.nav_id = item?.getAttribute('href') || 'toc.ncx'
+                this.nav_version = 2
             }
 
             if (this.nav_id.endsWith('html')) {
@@ -410,8 +415,44 @@ const useStatus = defineStore('status', {
                 }
             }
         },
+        move(old_i: number, new_i: number) {
+            const spine_node = this.opf_document?.querySelector('spine')
+            const children = spine_node?.children
+            if (children) {
+                const moved_el = children[old_i]!
+                if (new_i === children.length - 1) {
+                    spine_node.appendChild(spine_node.removeChild(moved_el))
+                    spine_node.appendChild(document.createTextNode('\n'))
+                } else {
+                    const target_el = children[new_i < old_i ? new_i : new_i + 1]!
+                    spine_node?.insertBefore(spine_node?.removeChild(moved_el), target_el)
+                    spine_node?.insertBefore(document.createTextNode('\n'), target_el)
+                }
+                
+                this.save_opf()
+            }
+        },
+        add_to_spine() {
+            const spine_node = this.opf_document!.querySelector('spine')
+            if (this.nav_in_spine) {
+                this.nav_item = document.createElementNS(this.namespaceURI, 'itemref')
+                this.nav_item.setAttribute('idref', this.nav_id)
+                this.nav_item.setAttribute('linear', 'no')
+                const children = spine_node?.children
+                if (children?.length) {
+                    spine_node?.insertBefore(this.nav_item, children[0])
+                    spine_node?.insertBefore(document.createTextNode('\n'), children[1])
+                } else {
+                    spine_node?.appendChild(this.nav_item)
+                }
+
+            } else if (this.nav_item) {
+                spine_node?.removeChild(this.nav_item)
+            }
+            this.save_opf()
+        },
         save_opf() {
-            const code = domToXml(this.opf_document!)
+            const code = domToXml(this.opf_document!).replace(/\n\s*\n\s*\n/g, '\n\n')
             invoke_write_text(this.dir, this.opf_id, code).then(() => {
                 if (activity_nodes.opened_node && activity_nodes.opened_node.id.endsWith(this.opf_id)) {
                     this.current.code = code

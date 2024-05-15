@@ -21,4 +21,10 @@ interface TreeEmits {
     (e: 'toggle', file: FileNode): void
 }
 
-export type { FileNode, TreeProps, TreeEmits }
+interface Moved {
+    element: FileNode
+    oldIndex: number
+    newIndex: number
+}
+
+export type { FileNode, TreeProps, TreeEmits, Moved }

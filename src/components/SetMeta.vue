@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { useQuasar } from 'quasar'
 import { object_keys } from '@taiyuuki/utils'
+import { convertFileSrc } from '@tauri-apps/api/core'
+import type { FileNode } from './types'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
+import { TREE } from '@/static'
 
 const _META_KEY: Record<string, string> = {
     'dc:title': '书名',
@@ -18,6 +21,8 @@ const _META_KEY: Record<string, string> = {
     'dc:format': '格式',
     'dc:type': '类型',
     'dc:identifier': 'ID',
+    'dc:description': '描述',
+    'dc:date': '日期',
 }
 
 const _META_PROPERTY: Record<string, string> = {
@@ -43,17 +48,22 @@ const meta_property_items = object_keys(_META_PROPERTY).map(t => {
 })
 
 const $q = useQuasar()
+const cover_src = ref('')
 
 const status = useStatus()
 const theme = useTheme()
 
+const images = computed(() => status.nodes[TREE.IMAGE]?.children)
+
+const selections = ref([...images.value ? images.value.map(_ => false) : []])
+
 const thumb_style = {
     width: '14px',
-    background: 'var(--vscode-scrollbarSlider-hoverBackground)',
+    background: 'var(--vscode-scrollbarSlider-activeBackground)',
     borderRadius: '0',
 }
 
-function prompt() {
+function add_meta() {
     $q.dialog({
         title: '添加元数据',
         options: {
@@ -61,9 +71,9 @@ function prompt() {
             model: [],
             items: meta_items,
         },
-        cancel: true,
-        persistent: true,
         dark: theme.dark,
+        ok: '添加',
+        cancel: '取消',
     }).onOk(data => {
 
         data.forEach((t: string) => {
@@ -72,7 +82,7 @@ function prompt() {
     })
 }
 
-function add_child(item: Record<string, any>) {
+function add_meta_child(item: Record<string, any>) {
     $q.dialog({
         title: '添加元数据属性',
         options: {
@@ -80,9 +90,9 @@ function add_child(item: Record<string, any>) {
             model: [],
             items: meta_property_items,
         },
-        cancel: true,
-        persistent: true,
         dark: theme.dark,
+        ok: '添加',
+        cancel: '取消',
     }).onOk(data => {
 
         data.forEach((t: string) => {
@@ -93,6 +103,23 @@ function add_child(item: Record<string, any>) {
 
 function save_meta() {
     status.save_meta()
+}
+
+const cover_setting = ref(false)
+
+function seletct_cover(img: FileNode, i: number) {
+    if (status.has_src(img.id)) {
+        cover_src.value = status.image_srces[img.id]
+    } else {
+        cover_src.value = convertFileSrc(status.base_path + img.id)
+        status.image_srces[img.id] = cover_src.value
+    }
+    selections.value.fill(false)
+    selections.value[i] = true
+}
+function clean_selections() {
+    cover_src.value = ''
+    selections.value.fill(false)
 }
 </script>
 
@@ -134,7 +161,7 @@ function save_meta() {
               :property="_META_PROPERTY"
               @remove="status.remove_meta(item)"
               @remove-child="status.remove_meta_child"
-              @add-child="add_child"
+              @add-child="add_meta_child"
             />
           </template>
         </q-scroll-area>
@@ -145,15 +172,102 @@ function save_meta() {
       m="auto"
       class="q-gutter-md"
     >
-      <q-btn label="设置封面" /> 
+      <q-btn
+        label="设置封面"
+        @click="cover_setting = true"
+      /> 
       <q-btn
         label="添加元数据"
-        @click="prompt"
+        @click="add_meta"
       />
       <q-btn
         label="保存元数据"
         @click="save_meta"
       />
     </div>
+    <q-dialog
+      v-model="cover_setting"
+      no-backdrop-dismiss
+      no-shake
+      @hide="clean_selections"
+    >
+      <div 
+        bg="var-eb-bg"
+        text="var-eb-fg" 
+        select-none
+        w="70vw"
+      >
+        <q-bar>
+          <div>设置封面</div>
+          <q-space />
+
+          <q-btn
+            v-close-popup
+            dense
+            flat
+            icon="close"
+          />
+        </q-bar>
+        <div
+          flex="~"
+        >
+          <q-scroll-area
+            h="50vh"
+            flex="1"
+            :thumb-style="thumb_style"
+            :dark="theme.dark"
+          >
+            <template
+              v-for="(img, i) in images"
+              :key="img.id"
+            >
+              <div
+                hover="bg-var-vscode-toolbar-hoverBackground"
+                m="y-5"
+                p="x-5"
+                :class="{ selected: selections[i] }"
+                @click="seletct_cover(img, i)"
+              >
+                {{ img.id }}
+              </div>
+            </template>
+          </q-scroll-area>
+          <q-scroll-area
+            w="300"
+            h="50vh"
+            :thumb-style="thumb_style"
+            :dark="theme.dark"
+          >
+            <img
+              v-show="cover_src !== ''"
+              :src="cover_src"
+              w="100%"
+              obj-contain
+              alt="cover"
+            >
+          </q-scroll-area>
+        </div>
+        <div
+          class="q-gutter-md q-mx-sm" 
+          bg="var-eb-bg"
+          text="var-eb-fg"
+          m="auto y-10 "
+          w="fit"
+        >
+          <q-btn label="打开文件" />
+          <q-btn label="确定" />
+          <q-btn
+            label="取消"
+            @click="cover_setting = false"
+          />
+        </div>
+      </div>
+    </q-dialog>
   </div>
 </template>
+
+<style scoped>
+.selected {
+    background: var(--vscode-toolbar-activeBackground);
+}
+</style>

@@ -39,7 +39,8 @@ const useStatus = defineStore('status', {
         nodes: [] as FileNode[],
         opf_id: '', // opf文件路径，即container.xml里的filepath
         opf_document: null as Document | null,
-        nav_id: '', // 导航文件路径
+        nav_href: '', // 导航文件路径
+        nav_id: '', // 导航文件id
         tabs: [] as FileNode[], // 打开的标签
         image_srces: {} as Record<string, string>, // 图片src
         current: {
@@ -195,21 +196,24 @@ const useStatus = defineStore('status', {
         },
         parse_cover() {
             if (this.opf_document) {
-                let cover_node = this.opf_document.querySelector('item[properties="cover-image"]')
+                let cover_node = null
+                const cover_id = this.opf_document
+                    .querySelector('meta[name="cover"]')
+                    ?.getAttribute('content')
+                
+                if (cover_id) {
+                    cover_node = this.opf_document.querySelector(`item[id="${cover_id}"]`)
+                } else {
+                    cover_node = this.opf_document.querySelector('item[properties="cover-image"]')
+                
+                }
                 if (!cover_node) {
-                    const meta_cover = this.opf_document.querySelector('meta[name="cover"]')
-                    if (meta_cover) {
-                        const cover_id = meta_cover.getAttribute('content')
-                        if (cover_id) {
-                            cover_node = this.opf_document.querySelector(`item[id="${cover_id}"]`)
-                        }
-                    } else {
-                        cover_node = this.opf_document.querySelector('item[id="cover.jpg"]')
-                        if (!cover_node) {
-                            cover_node = this.opf_document.querySelector('item[id="cover.png"]')
-                        }
+                    cover_node = this.opf_document.querySelector('item[id="cover.jpg"]')
+                    if (!cover_node) {
+                        cover_node = this.opf_document.querySelector('item[id="cover.png"]')
                     }
                 }
+
                 const cover_href = cover_node?.getAttribute('href')
                 if (cover_href) {
                     const path = this.nodes[2].children!.find(n => n.id.endsWith(cover_href))?.id
@@ -217,6 +221,7 @@ const useStatus = defineStore('status', {
                 } else {
                     this.cover_src = ''
                 }
+                
             }
         },
         parse_metadata() {
@@ -234,6 +239,12 @@ const useStatus = defineStore('status', {
                             temp[`#${id}`] = obj
                         }
                     })
+
+                    if (this.is_toogle) {
+                        this.is_toogle = false
+
+                        return
+                    }
                     children.filter(node => node.nodeName.startsWith('meta')).forEach(node => {
                         const t_id = node.getAttribute('refines')
                         if (t_id && temp[t_id]) {
@@ -251,19 +262,20 @@ const useStatus = defineStore('status', {
         parse_nav() {
             if (this.epub_version.startsWith('3')) {
                 const item = this.opf_document?.querySelector('item[properties="nav"]')
-                this.nav_id = item?.getAttribute('href') || ''
+                this.nav_href = item?.getAttribute('href') || ''
+                this.nav_id = item?.getAttribute('id') || ''
+                this.nav_item = this.opf_document?.querySelector(`itemref[idref="${this.nav_id}"]`)
                 this.nav_version = 3
             }
-            if (this.nav_id === '') { // 2.0
+            if (this.nav_href === '') { // 2.0
                 const id = this.opf_document?.querySelector('spine[toc]')?.getAttribute('toc')
                 const item = this.opf_document?.querySelector(`item[id="${id}"]`)
-                this.nav_item = item
-                this.nav_id = item?.getAttribute('href') || 'toc.ncx'
+                this.nav_href = item?.getAttribute('href') || 'toc.ncx'
                 this.nav_version = 2
             }
 
-            if (this.nav_id.endsWith('html')) {
-                const file = this.manifest_path + this.nav_id
+            if (this.nav_href.endsWith('html')) {
+                const file = this.manifest_path + this.nav_href
                 const nav = this.nodes[0].children!.find(n => n.id === file)
                 if (nav) {
                     nav.type = 'navigation'
@@ -437,7 +449,7 @@ const useStatus = defineStore('status', {
             if (this.nav_in_spine) {
                 this.nav_item = document.createElementNS(this.namespaceURI, 'itemref')
                 this.nav_item.setAttribute('idref', this.nav_id)
-                this.nav_item.setAttribute('linear', 'no')
+                this.nav_item.setAttribute('linear', 'yes')
                 const children = spine_node?.children
                 if (children?.length) {
                     spine_node?.insertBefore(this.nav_item, children[0])
@@ -718,7 +730,7 @@ const useStatus = defineStore('status', {
             this.is_toogle = false
             this.current.save_path = ''
             this.metadata = []
-            this.nav_id = ''
+            this.nav_href = ''
             this.nav_in_spine = false
             invoke_clean_cache(this.dir)
             this.dir = ''

@@ -30,7 +30,7 @@ function set_theme(t: string) {
 
 const thumb_style = {
     width: '14px',
-    background: 'var(--vscode-scrollbarSlider-hoverBackground)',
+    background: 'var(--vscode-scrollbarSlider-activeBackground)',
     borderRadius: '0',
 }
 
@@ -71,7 +71,6 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
 
 <template>
   <q-page
-    class="monaco-component"
     pst="rel"
     style="min-height: inherit;"
   >

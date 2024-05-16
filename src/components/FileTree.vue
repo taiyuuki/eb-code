@@ -413,7 +413,7 @@ div.selected {
 }
 
 div.selected:hover {
-  background-color: var(--vscode-toolbar-hoverBackground);
+  background-color: var(--vscode-toolbar-activeBackground);
 }
 
 .folder {

@@ -127,9 +127,10 @@ function edit_metadata() {
     }
     activity_nodes.on(node)
     status.metadata = []
-    status.parse_opf().then(() => {
-        status.display = DISPLAY.METADATA
-    })
+    status.is_toogle = true
+    status.parse_metadata()
+    status.display = DISPLAY.METADATA
+    status.is_toogle = false
 }
 </script>
 

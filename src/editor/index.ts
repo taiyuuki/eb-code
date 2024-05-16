@@ -58,6 +58,7 @@ class MonacoController {
             bracketPairColorization: { enabled: true },
             cursorSurroundingLines: 5,
             fontLigatures: true,
+            fontSize: 18,
         })
 
         return monaco
@@ -118,10 +119,16 @@ function scroll_top_to(top: number) {
     editor.setScrollTop(top)
 }
 
+function set_font_size(size: number) {
+    const editor = monaco.editor.getEditors()[0]
+    editor.updateOptions({ fontSize: size })
+}
+
 export {
     initMonaco,
     get_scroll_top,
     scroll_top_to,
     create_controller,
     get_code,
+    set_font_size,
 }

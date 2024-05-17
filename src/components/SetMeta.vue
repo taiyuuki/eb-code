@@ -5,6 +5,7 @@ import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
 import { cover_setting } from '@/composables/cover_setting'
 import { thumb_style } from '@/composables/thumb_style'
+import { dirty_meta } from '@/composables/dirty_meta'
 
 const _META_KEY: Record<string, string> = {
     'dc:title': '书名',
@@ -50,6 +51,18 @@ const $q = useQuasar()
 const status = useStatus()
 const theme = useTheme()
 
+onMounted(() => {
+    Object.assign(dirty_meta.value, status.metadata)
+})
+
+onBeforeUnmount(async() => {
+    if (status.meta_is_dirty) {
+        Object.assign(status.metadata, dirty_meta.value)
+        status.save_meta()
+        status.meta_is_dirty = false
+    }
+})
+
 function add_meta() {
     $q.dialog({
         title: '添加元数据',
@@ -88,8 +101,8 @@ function add_meta_child(item: Record<string, any>) {
     })
 }
 
-function save_meta() {
-    status.save_meta()
+function meta_changed() {
+    status.meta_is_dirty || (status.meta_is_dirty = true)
 }
 </script>
 
@@ -122,7 +135,7 @@ function save_meta() {
           :dark="theme.dark"
         >
           <template
-            v-for="item in status.metadata"
+            v-for="item in dirty_meta"
             :key="item.r_id"
           >
             <MetaItem
@@ -132,6 +145,7 @@ function save_meta() {
               @remove="status.remove_meta(item)"
               @remove-child="status.remove_meta_child"
               @add-child="add_meta_child"
+              @updata:item="meta_changed"
             />
           </template>
         </q-scroll-area>
@@ -149,10 +163,6 @@ function save_meta() {
       <q-btn
         label="添加元数据"
         @click="add_meta"
-      />
-      <q-btn
-        label="保存元数据"
-        @click="save_meta"
       />
     </div>
   </div>

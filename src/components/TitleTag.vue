@@ -2,7 +2,7 @@
 import type { FileNode } from './types'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
-import { basename } from '@/utils/file'
+import { basename } from '@/utils/path'
 
 const props = defineProps<{ node: FileNode }>()
 const emit = defineEmits<{
@@ -113,3 +113,4 @@ div.opened:hover {
 }
 </style>
 @/stores/status
+@/utils/path

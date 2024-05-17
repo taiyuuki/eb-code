@@ -9,6 +9,7 @@ import { DISPLAY } from '@/static'
 import { cover_setting } from '@/composables/cover_setting'
 import { notif_negative, notif_positive } from '@/notif'
 import { useActivity } from '@/composables/useActivity'
+import { dirty_meta } from '@/composables/dirty_meta'
 
 const appWindow = new Window('main')
 let is_maximized = ref(false)
@@ -67,6 +68,11 @@ async function save_epub() {
     } else {
         status.is_saving = true
         try{
+            if (status.meta_is_dirty) {
+                Object.assign(status.metadata, dirty_meta.value)
+                await status.save_meta()
+                status.meta_is_dirty = false
+            }
             await invoke_save_epub(status.dir, status.current.save_path)
         } catch(_e) {
             notif_negative('保存失败！缓存文件被删除了。')

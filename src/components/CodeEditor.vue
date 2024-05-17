@@ -20,15 +20,12 @@ let timeout_id = 0
 monaco_controller.on_change_code(() => {
     if (status.is_toogle) {
         return
-    } else {
-        status.current.is_dirty = true
-    }
+    } 
     
     if (timeout_id) {
         clearTimeout(timeout_id)
     }
     timeout_id = window.setTimeout(() => {
-        status.current.is_dirty = false
         const code = monaco_controller.get_code()
         if (code.trim() === '') {
             return

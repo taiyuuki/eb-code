@@ -4,13 +4,14 @@ import { arr_remove } from '@taiyuuki/utils'
 import type { FileNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
 import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_write_text } from '@/invoke'
-import { basename, filename } from '@/utils/file'
+import { basename, filename, relative } from '@/utils/path'
 import { is_audio, is_font, is_html, is_image, is_style, is_text, is_video } from '@/utils/is'
 import { get_scroll_top, scroll_top_to } from '@/editor'
 import { useActivity } from '@/composables/useActivity'
 import { notif_negative, notif_positive, notif_warning } from '@/notif'
 import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
 import { DISPLAY, TREE } from '@/static'
+import { cover_template } from '@/template/xhtml'
 
 const activity_nodes = useActivity()
 
@@ -47,7 +48,6 @@ const useStatus = defineStore('status', {
         current: {
             save_path: '', // epub保存路径
             id: '', // 打开文件的id，例如META-INF/container.xml
-            is_dirty: false, // 当前文件被修改且未保存
             code: '', // 当前文件内容
             lang: 'html' as Language, // 当前打开的文本文件类型
             src: '', // 当前打开的图片src
@@ -63,6 +63,7 @@ const useStatus = defineStore('status', {
         is_toogle: false, // 正在切换文件
         epub_version: '2.0', // EPUB版本
         metadata: [] as Record<string, any>[], // EPUB元数据
+        meta_is_dirty: false,
         cover_src: '',
         namespaceURI: 'http://www.idpf.org/2007/ops',
         manifest_path: 'OEBPS/',
@@ -134,7 +135,9 @@ const useStatus = defineStore('status', {
             this.manifest_path = `${this.opf_id.substring(0, this.opf_id.lastIndexOf('/'))}/`
 
             const get_sub_path = (path: string) => {
-                return `${path.replace(this.manifest_path, '').substring(0, path.indexOf('/') + 1)}/`
+                path = path.replace(this.manifest_path, '')
+
+                return path.substring(0, path.indexOf('/') + 1)
             }
 
             const xhtml = this.nodes[0].children?.[0]?.id
@@ -307,7 +310,7 @@ const useStatus = defineStore('status', {
             // this.metadata = this.metadata.filter(m => m !== item)
             arr_remove(this.metadata, item)
         },
-        save_meta() {
+        async save_meta() {
             if (this.is_writing) {
                 notif_warning('操作过于频繁，请稍后再试。')
 
@@ -319,9 +322,6 @@ const useStatus = defineStore('status', {
             meta_el.innerHTML = ''
             meta_el.appendChild(document.createTextNode('\n'))
 
-            // const frag = document.createDocumentFragment()
-            // const _n = document.createTextNode('\n')
-            // frag.appendChild(_n)
             this.metadata.forEach(m => {
                 meta_el.appendChild(objToDom(m, this.namespaceURI))
                 meta_el.appendChild(document.createTextNode('\n'))
@@ -333,12 +333,7 @@ const useStatus = defineStore('status', {
                 }
             })
             meta_el.appendChild(document.createTextNode('\n'))
-
-            // const meta_el = opf.dom!.querySelector('metadata')!
-            // meta_el.innerHTML = ''
-
-            // meta_el.appendChild(frag)
-            this.save_opf()
+            await this.save_opf()
         },
         remove_meta_child(item: Record<string, Record<string, any>[]>, child: Record<string, any>) {
             if (!item.children) {
@@ -382,13 +377,20 @@ const useStatus = defineStore('status', {
             if (manifest_node) {
                 const item = manifest_node.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
                 if (item) {
-                    const id = item.id
+                    const _$id = item.id
                     manifest_node.removeChild(item)
                     if (spine_node) {
-                        const itemref = spine_node.querySelector(`itemref[idref="${id}"]`)
+                        const itemref = spine_node.querySelector(`itemref[idref="${_$id}"]`)
                         if (itemref) {
                             spine_node.removeChild(itemref)
                         }
+                    }
+
+                    // 如果是封面
+                    const meta_cover = opf.dom?.querySelector('meta[name="cover"]')
+                    if (meta_cover && meta_cover.getAttribute('content') === _$id) {
+                        const meta = opf.dom?.querySelector('metadata')
+                        meta?.removeChild(meta_cover)
                     }
                     this.save_opf()
                 }
@@ -412,7 +414,6 @@ const useStatus = defineStore('status', {
                 notif_negative('发生错误！')
             })
 
-            // TODO:如果删除的是封面，需要同时删除meta以及item的properties
             // TODO:如果删除的是XHTML，需要同时删除书脊
 
         },
@@ -487,6 +488,23 @@ const useStatus = defineStore('status', {
                 const src = convertFileSrc(this.base_path + path)
                 this.cover_src = src
                 this.image_srces[path] = src
+
+            }
+            const img = new Image()
+            img.src = this.cover_src
+            img.onload = () => {
+                const id = `${this.manifest_path + this.text_path}cover.xhtml`
+                const { naturalWidth, naturalHeight } = img
+                const href = relative(id, path)
+                const xhtml = cover_template(naturalWidth, naturalHeight, href)
+                invoke_write_text(this.dir, id, xhtml).then(() => {
+                    this.nodes[TREE.HTML].children?.unshift({
+                        id,
+                        name: id,
+                        icon: 'i-vscode-icons:file-type-html',
+                        parent: this.nodes[TREE.HTML],
+                    })
+                })
             }
             const id = path.replace(this.manifest_path, '')
             const item_cover = opf.dom?.querySelector(`item[href="${id}"`)
@@ -511,21 +529,12 @@ const useStatus = defineStore('status', {
                 }
                 meta_cover.setAttribute('content', content ?? filename(path))
                 this.save_opf()
-
-                // TODO: 添加cover.xhtml文件
+                
             }
         },
-        save_opf() {
+        async save_opf() {
             const code = domToXml(opf.dom!).replace(/\n\s*\n\s*\n/g, '\n\n')
-            invoke_write_text(this.dir, this.opf_id, code).then(() => {
-                if (activity_nodes.opened_node && activity_nodes.opened_node.id.endsWith(this.opf_id)) {
-                    this.current.code = code
-                }
-                notif_positive('完成')
-                this.is_writing = false
-            }, () => {
-                notif_negative('发生错误！')
-            })  
+            await invoke_write_text(this.dir, this.opf_id, code)
         },
         init_tree() {
             this.nodes = [{
@@ -779,7 +788,7 @@ const useStatus = defineStore('status', {
             this.tabs = []
             this.image_srces = {}
             this.scroll_tops = {}
-            this.current.is_dirty = false
+            this.meta_is_dirty = false
             this.is_toogle = false
             this.current.save_path = ''
             this.metadata = []

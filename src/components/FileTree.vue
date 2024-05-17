@@ -6,7 +6,7 @@ import { arr_remove } from '@taiyuuki/utils'
 import type { FileNode, Moved, TreeProps } from './types'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
-import { basename, filename, mimetype } from '@/utils/file'
+import { basename, filename, mimetype } from '@/utils/path'
 import { is_audio, is_font, is_html, is_image, is_style, is_video } from '@/utils/is'
 import { notif_negative, notif_warning } from '@/notif'
 import { invoke_rename_file } from '@/invoke'
@@ -255,6 +255,10 @@ function change(e: { moved: Moved }) {
 
     status.move(moved.oldIndex, moved.newIndex)
 }
+
+function set_cover(node: FileNode) {
+    status.set_cover(node.id)
+}
 </script>
 
 <template>
@@ -328,6 +332,19 @@ function change(e: { moved: Moved }) {
             >
               <q-item-section>
                 添加文件
+              </q-item-section>
+            </q-item>
+
+            <q-separator v-if="node.type === 'image'" />
+
+            <q-item
+              v-if="node.type === 'image'"
+              v-close-popup
+              clickable
+              @click="set_cover(node)"
+            >
+              <q-item-section>
+                设为封面
               </q-item-section>
             </q-item>
           </q-list>
@@ -433,3 +450,4 @@ div.selected:hover {
   border-color: var(--eb-active-border);
 }
 </style>
+@/utils/path

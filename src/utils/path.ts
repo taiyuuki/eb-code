@@ -30,6 +30,40 @@ function extname(path: string) {
 }
 
 /**
+ * 计算目标路径与源路径的相对路径
+ * @param target - 目标路径
+ * @param from - 源路径
+ * @returns 相对路径
+ */
+function relative(target: string, from: string) {
+    const f = target.split('/')
+    f.shift()
+    const t = from.split('/') 
+    t.shift()
+
+    let num = 0
+    for (let i = 0; i < f.length; i++) {
+        if(f[i] === t[i]) {
+            num++
+        } else {
+            break
+        }
+    }
+    f.splice(0, num)
+    t.splice(0, num)
+    let rel_path = ''
+    for (let j = 0; j < t.length - 1; j++) {
+        rel_path += '../'
+    }
+    if (!rel_path) {
+        rel_path += './'
+    }
+    rel_path += f.join('/')
+
+    return rel_path
+}
+
+/**
  * 文件类型
  * @param path 
  * @returns 
@@ -94,4 +128,5 @@ export {
     filename,
     extname,
     mimetype,
+    relative,
 }

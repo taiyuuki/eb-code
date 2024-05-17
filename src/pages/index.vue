@@ -11,7 +11,7 @@ import { useTheme } from '@/stores/theme'
 import { useStatus } from '@/stores/status'
 import { invoke_clean_cache } from '@/invoke'
 import { useActivity } from '@/composables/useActivity'
-import { mimetype } from '@/utils/file'
+import { mimetype } from '@/utils/path'
 import { cover_setting } from '@/composables/cover_setting'
 import { thumb_style } from '@/composables/thumb_style'
 
@@ -199,7 +199,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
             v-show="status.display === DISPLAY.IMAGE"
             :src="status.current.src"
           />
-          <SetMeta v-show="status.display === DISPLAY.METADATA" />
+          <SetMeta v-if="status.display === DISPLAY.METADATA" />
         </template>
       </q-splitter>
     </div>
@@ -289,3 +289,4 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
     </q-dialog>
   </q-page>
 </template>
+@/utils/path

@@ -92,7 +92,7 @@ const invoke_copy_file = function() {
     const ir = new InvokeRequest<Payload>('file-copied', 'file-copy-error')
 
     return function(from: string, dir: string, id: string) {
-        ir.invoke('copy_file', { copyOption: { dir, from, to_id: id } })
+        return ir.invoke('copy_file', { copyOption: { dir, from, to_id: id } })
     }
 }()
 

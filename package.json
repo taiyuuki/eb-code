@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.16.11",
-    "@shikijs/core": "^1.5.1",
-    "@shikijs/monaco": "^1.5.1",
+    "@shikijs/core": "^1.5.2",
+    "@shikijs/monaco": "^1.5.2",
     "@taiyuuki/utils": "^0.5.2",
     "@tauri-apps/api": ">=2.0.0-beta.11",
     "@tauri-apps/plugin-dialog": "2.0.0-beta.3",
@@ -31,11 +31,12 @@
     "monaco-textmate": "^3.0.1",
     "pinia": "^2.1.7",
     "pinia-plugin-persistedstate": "^3.2.1",
-    "quasar": "^2.16.2",
-    "shiki": "^1.5.1",
+    "quasar": "^2.16.4",
+    "shiki": "^1.5.2",
     "vue": "^3.4.27",
     "vue-router": "^4.3.2",
-    "vuedraggable": "^4.1.0"
+    "vuedraggable": "^4.1.0",
+    "xmlserializer": "^0.6.1"
   },
   "devDependencies": {
     "@iconify-json/bx": "^1.1.10",
@@ -47,7 +48,7 @@
     "@taiyuuki/eslint-config": "^1.4.5",
     "@taiyuuki/unocss-preset": "^0.0.4",
     "@tauri-apps/cli": ">=2.0.0-beta.17",
-    "@types/node": "^20.12.11",
+    "@types/node": "^20.12.12",
     "@unocss/preset-attributify": "^0.59.4",
     "@unocss/preset-icons": "^0.59.4",
     "@unocss/preset-uno": "^0.59.4",

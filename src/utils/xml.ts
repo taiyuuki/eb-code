@@ -1,9 +1,11 @@
+import xmlserializer from 'xmlserializer' // 原生XMLSerializer会删除prefix，所以用xmlserializer
+
 function xmlToDom(xml: string) {
     return new DOMParser().parseFromString(xml, 'application/xhtml+xml')
 }
 
-function domToXml(dom: any) {
-    return new XMLSerializer().serializeToString(dom)
+function domToXml(dom: Document) {
+    return xmlserializer.serializeToString(dom)
 }
 
 function domToObj(dom: Element) {
@@ -37,7 +39,8 @@ function domToObj(dom: Element) {
 }
 
 function objToDom(obj: Record<string, any>, namespaceURI: string) {
-    const dom = document.createElementNS(namespaceURI, obj.tagName)
+
+    const dom = document.createElementNS(namespaceURI, obj.tagName, { is: obj.tagName })
     const ignores = ['tagName', 'textContent', 'r_id', 'children']
     for (const attr in obj) {
         if (ignores.includes(attr)) {
@@ -55,7 +58,7 @@ function objToDom(obj: Record<string, any>, namespaceURI: string) {
 
 function check_xml(xml: string) {
     try {
-        const dom = new DOMParser().parseFromString(xml, 'text/xml')
+        const dom = new DOMParser().parseFromString(xml, 'application/xhtml+xml')
         if (dom.getElementsByTagName('parsererror').length > 0) {
             return false
         }

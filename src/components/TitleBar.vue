@@ -6,9 +6,10 @@ import { invoke_clean_cache, invoke_open_epub, invoke_save_epub } from '@/invoke
 import { useTheme } from '@/stores/theme'
 import { useStatus } from '@/stores/status'
 import { DISPLAY } from '@/static'
-
+import { cover_setting } from '@/composables/cover_setting'
 import { notif_negative, notif_positive } from '@/notif'
 import { useActivity } from '@/composables/useActivity'
+
 const appWindow = new Window('main')
 let is_maximized = ref(false)
 
@@ -127,10 +128,8 @@ function edit_metadata() {
     }
     activity_nodes.on(node)
     status.metadata = []
-    status.is_toogle = true
     status.parse_metadata()
     status.display = DISPLAY.METADATA
-    status.is_toogle = false
 }
 </script>
 
@@ -210,6 +209,15 @@ function edit_metadata() {
         w="fit"
       >
         <q-list>
+          <q-item
+            v-close-popup
+            clickable
+            @click="cover_setting = true"
+          >
+            <q-item-section>
+              封面设置
+            </q-item-section>
+          </q-item>
           <q-item
             v-close-popup
             clickable

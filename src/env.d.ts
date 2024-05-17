@@ -7,3 +7,8 @@ declare namespace NodeJS {
     VUE_ROUTER_BASE: string | undefined;
   }
 }
+
+declare module 'xmlserializer' {
+  const xmlserializer: { serializeToString: (dom: Document) => string }
+  export default xmlserializer
+}

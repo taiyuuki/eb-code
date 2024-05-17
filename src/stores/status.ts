@@ -34,11 +34,12 @@ function tree_index(name: string) {
     }
 }
 
+const opf = { dom: null as Document | null }
+
 const useStatus = defineStore('status', { 
     state: () => ({
         nodes: [] as FileNode[],
         opf_id: '', // opf文件路径，即container.xml里的filepath
-        opf_document: null as Document | null,
         nav_href: '', // 导航文件路径
         nav_id: '', // 导航文件id
         tabs: [] as FileNode[], // 打开的标签
@@ -109,12 +110,7 @@ const useStatus = defineStore('status', {
             payload.pathes.forEach(file => {
                 const name = file.toLowerCase()
                 if (is_html(name)) {
-
-                    // if (this.nodes[0].children!.find(n => n.id === file)) {
                     return
-
-                    // }
-                    // this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-html', type: 'navigation' })
                 } else if (name.endsWith('.js')) {
                     this.add_js(file)
                 } else if (is_style(name)) {
@@ -175,7 +171,7 @@ const useStatus = defineStore('status', {
         async parse_opf() {
             if (this.opf_id !== '') {
                 const payload = await invoke_get_text(this.opf_id, this.dir)
-                this.opf_document = xmlToDom(payload[0])
+                opf.dom = xmlToDom(payload[0])
                 this.parse_namespaceURI()
                 this.parse_version()
                 this.parse_cover()
@@ -184,33 +180,33 @@ const useStatus = defineStore('status', {
             }
         },
         parse_namespaceURI() {
-            if (this.opf_document) {
-                this.namespaceURI = this.opf_document.documentElement.namespaceURI ?? this.namespaceURI
+            if (opf.dom) {
+                this.namespaceURI = opf.dom.documentElement.namespaceURI ?? this.namespaceURI
             }
         },
         parse_version() {
-            if (this.opf_document) {
-                const package_node = this.opf_document.querySelector('package')
+            if (opf.dom) {
+                const package_node = opf.dom.querySelector('package')
                 this.epub_version = package_node?.getAttribute('version') || '2.0'
             }
         },
         parse_cover() {
-            if (this.opf_document) {
+            if (opf.dom) {
                 let cover_node = null
-                const cover_id = this.opf_document
+                const cover_id = opf.dom
                     .querySelector('meta[name="cover"]')
                     ?.getAttribute('content')
                 
                 if (cover_id) {
-                    cover_node = this.opf_document.querySelector(`item[id="${cover_id}"]`)
+                    cover_node = opf.dom.querySelector(`item[id="${cover_id}"]`)
                 } else {
-                    cover_node = this.opf_document.querySelector('item[properties="cover-image"]')
+                    cover_node = opf.dom.querySelector('item[properties="cover-image"]')
                 
                 }
                 if (!cover_node) {
-                    cover_node = this.opf_document.querySelector('item[id="cover.jpg"]')
+                    cover_node = opf.dom.querySelector('item[id="cover.jpg"]')
                     if (!cover_node) {
-                        cover_node = this.opf_document.querySelector('item[id="cover.png"]')
+                        cover_node = opf.dom.querySelector('item[id="cover.png"]')
                     }
                 }
 
@@ -225,9 +221,9 @@ const useStatus = defineStore('status', {
             }
         },
         parse_metadata() {
-            if (this.opf_document) {
+            if (opf.dom) {
 
-                const metadata_node = this.opf_document.querySelector('metadata')
+                const metadata_node = opf.dom.querySelector('metadata')
                 if (metadata_node) {
                     const children = Array.from(metadata_node.children)
                     const temp = {} as Record<string, Record<string, any>>
@@ -240,11 +236,6 @@ const useStatus = defineStore('status', {
                         }
                     })
 
-                    if (this.is_toogle) {
-                        this.is_toogle = false
-
-                        return
-                    }
                     children.filter(node => node.nodeName.startsWith('meta')).forEach(node => {
                         const t_id = node.getAttribute('refines')
                         if (t_id && temp[t_id]) {
@@ -261,15 +252,15 @@ const useStatus = defineStore('status', {
         },
         parse_nav() {
             if (this.epub_version.startsWith('3')) {
-                const item = this.opf_document?.querySelector('item[properties="nav"]')
+                const item = opf.dom?.querySelector('item[properties="nav"]')
                 this.nav_href = item?.getAttribute('href') || ''
                 this.nav_id = item?.getAttribute('id') || ''
-                this.nav_item = this.opf_document?.querySelector(`itemref[idref="${this.nav_id}"]`)
+                this.nav_item = opf.dom?.querySelector(`itemref[idref="${this.nav_id}"]`)
                 this.nav_version = 3
             }
             if (this.nav_href === '') { // 2.0
-                const id = this.opf_document?.querySelector('spine[toc]')?.getAttribute('toc')
-                const item = this.opf_document?.querySelector(`item[id="${id}"]`)
+                const id = opf.dom?.querySelector('spine[toc]')?.getAttribute('toc')
+                const item = opf.dom?.querySelector(`item[id="${id}"]`)
                 this.nav_href = item?.getAttribute('href') || 'toc.ncx'
                 this.nav_version = 2
             }
@@ -324,23 +315,29 @@ const useStatus = defineStore('status', {
             }
 
             this.is_writing = true
-            const frag = document.createDocumentFragment()
-            const _n = document.createTextNode('\n')
-            frag.appendChild(_n)
+            const meta_el = opf.dom!.querySelector('metadata')!
+            meta_el.innerHTML = ''
+            meta_el.appendChild(document.createTextNode('\n'))
+
+            // const frag = document.createDocumentFragment()
+            // const _n = document.createTextNode('\n')
+            // frag.appendChild(_n)
             this.metadata.forEach(m => {
-                frag.appendChild(objToDom(m, this.namespaceURI))
+                meta_el.appendChild(objToDom(m, this.namespaceURI))
+                meta_el.appendChild(document.createTextNode('\n'))
                 if (m.children) {
                     m.children.forEach((c: any) => {
-                        frag.appendChild(_n)
-                        frag.appendChild(objToDom(c, this.namespaceURI))
+                        meta_el.appendChild(objToDom(c, this.namespaceURI))
+                        meta_el.appendChild(document.createTextNode('\n'))
                     })
                 }
             })
-            frag.appendChild(document.createTextNode('\n'))
+            meta_el.appendChild(document.createTextNode('\n'))
 
-            const meta_el = this.opf_document!.querySelector('metadata')!
-            meta_el.innerHTML = ''
-            meta_el.appendChild(frag)
+            // const meta_el = opf.dom!.querySelector('metadata')!
+            // meta_el.innerHTML = ''
+
+            // meta_el.appendChild(frag)
             this.save_opf()
         },
         remove_meta_child(item: Record<string, Record<string, any>[]>, child: Record<string, any>) {
@@ -351,31 +348,37 @@ const useStatus = defineStore('status', {
             // item.children = item.children.filter(c => c !== child)
             arr_remove(item.children, child)
         },
-        add_file(from: string, id: string, href: string, media_type: string) {
-            const item = document.createElementNS(this.namespaceURI, 'item')
-            item.setAttribute('id', id.replace(/\s/g, '_'))
-            item.setAttribute('href', href)
-            item.setAttribute('media-type', media_type)
-
-            const manifest_node = this.opf_document?.querySelector('manifest')
-            manifest_node?.appendChild(item)
-            manifest_node?.appendChild(document.createTextNode('\n'))
-            invoke_copy_file(from, this.dir, `${this.manifest_path}${href}`)
+        async add_file(from: string, id: string, href: string, media_type: string, has?: boolean) {
+            if (has) {
+                delete this.image_srces[this.manifest_path + href]
+                
+            } else {
+                const item = document.createElementNS(this.namespaceURI, 'item')
+                item.setAttribute('id', id.replace(/\s/g, '_'))
+                item.setAttribute('href', href)
+                item.setAttribute('media-type', media_type)
+    
+                const manifest_node = opf.dom?.querySelector('manifest')
+                manifest_node?.appendChild(item)
+                manifest_node?.appendChild(document.createTextNode('\n'))
+                this.save_opf()
+            }
+            await invoke_copy_file(from, this.dir, `${this.manifest_path}${href}`)
         },
         get_itemref_by_id(id: string) {
-            const manifest_node = this.opf_document?.querySelector('manifest')
+            const manifest_node = opf.dom?.querySelector('manifest')
             if (manifest_node) {
                 const item = manifest_node.querySelector(`item[href="${id.replace(this.manifest_path, '')}"]`)
                 if (item) {
                     const ref_id = item.id
 
-                    return this.opf_document?.querySelector(`itemref[idref="${ref_id}"]`)
+                    return opf.dom?.querySelector(`itemref[idref="${ref_id}"]`)
                 }
             }  
         },
         remove_file(node: FileNode) {
-            const manifest_node = this.opf_document?.querySelector('manifest')
-            const spine_node = this.opf_document?.querySelector('spine')
+            const manifest_node = opf.dom?.querySelector('manifest')
+            const spine_node = opf.dom?.querySelector('spine')
             if (manifest_node) {
                 const item = manifest_node.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
                 if (item) {
@@ -390,23 +393,31 @@ const useStatus = defineStore('status', {
                     this.save_opf()
                 }
             }
+            if (this.has_src(node.id)) {
+                delete this.image_srces[node.id]
+            }
             const i = tree_index(node.id)
 
             arr_remove(this.nodes[i].children ?? [], node)
-
             arr_remove(this.nodes, node)
             if (activity_nodes.opened_node === node) {
                 arr_remove(this.tabs, node)
                 this.open_first()
             }
             invoke_remove_file(this.dir, node.id).then(() => {
+
+                // TODO: 等功能完善后删除这里的通知
                 notif_positive('完成')
             }, () => {
                 notif_negative('发生错误！')
             })
+
+            // TODO:如果删除的是封面，需要同时删除meta以及item的properties
+            // TODO:如果删除的是XHTML，需要同时删除书脊
+
         },
         rename_file(node: FileNode, new_name: string) {
-            const manifest_node = this.opf_document?.querySelector('manifest')
+            const manifest_node = opf.dom?.querySelector('manifest')
             if (manifest_node) {
                 const item = manifest_node.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
                 if (item) {
@@ -416,7 +427,7 @@ const useStatus = defineStore('status', {
                     item.setAttribute('href', new_name)
                     item.setAttribute('id', new_id)
 
-                    const spine_node = this.opf_document?.querySelector('spine')
+                    const spine_node = opf.dom?.querySelector('spine')
                     if (spine_node) {
                         const itemref = spine_node.querySelector(`itemref[idref="${old_id}"]`)
                         if (itemref) {
@@ -426,9 +437,15 @@ const useStatus = defineStore('status', {
                     }
                 }
             }
+            if (this.has_src(node.id)) {
+                delete this.image_srces[node.id]
+            }
+
+            // TODO: 如果重命名的是封面
+            // TODO: 重命名xtml里的引用
         },
         move(old_i: number, new_i: number) {
-            const spine_node = this.opf_document?.querySelector('spine')
+            const spine_node = opf.dom?.querySelector('spine')
             const children = spine_node?.children
             if (children) {
                 const moved_el = children[old_i]!
@@ -445,7 +462,7 @@ const useStatus = defineStore('status', {
             }
         },
         add_to_spine() {
-            const spine_node = this.opf_document!.querySelector('spine')
+            const spine_node = opf.dom!.querySelector('spine')
             if (this.nav_in_spine) {
                 this.nav_item = document.createElementNS(this.namespaceURI, 'itemref')
                 this.nav_item.setAttribute('idref', this.nav_id)
@@ -463,13 +480,49 @@ const useStatus = defineStore('status', {
             }
             this.save_opf()
         },
+        set_cover(path: string) {
+            if (this.has_src(path)) {
+                this.cover_src = this.image_srces[path]
+            } else {
+                const src = convertFileSrc(this.base_path + path)
+                this.cover_src = src
+                this.image_srces[path] = src
+            }
+            const id = path.replace(this.manifest_path, '')
+            const item_cover = opf.dom?.querySelector(`item[href="${id}"`)
+            if (item_cover) {
+                item_cover.setAttribute('properties', 'cover-image')
+                const content = item_cover.id
+                let meta_cover = opf.dom?.querySelector('meta[name="cover"]')
+                if (meta_cover) {
+                    const old_content = meta_cover.getAttribute('content')
+                    if (old_content) {
+                        const old_item = opf.dom?.querySelector(`item[id="${old_content}"`)
+                        if (old_item) {
+                            old_item.removeAttribute('properties')
+                        }
+                    }
+                } else {
+                    meta_cover = document.createElementNS(this.namespaceURI, 'meta')
+                    meta_cover.setAttribute('name', 'cover')
+                    const meta = opf.dom?.querySelector('metadata')
+                    meta?.appendChild(document.createTextNode('\n'))
+                    meta?.appendChild(meta_cover)
+                }
+                meta_cover.setAttribute('content', content ?? filename(path))
+                this.save_opf()
+
+                // TODO: 添加cover.xhtml文件
+            }
+        },
         save_opf() {
-            const code = domToXml(this.opf_document!).replace(/\n\s*\n\s*\n/g, '\n\n')
+            const code = domToXml(opf.dom!).replace(/\n\s*\n\s*\n/g, '\n\n')
             invoke_write_text(this.dir, this.opf_id, code).then(() => {
                 if (activity_nodes.opened_node && activity_nodes.opened_node.id.endsWith(this.opf_id)) {
                     this.current.code = code
                 }
                 notif_positive('完成')
+                this.is_writing = false
             }, () => {
                 notif_negative('发生错误！')
             })  

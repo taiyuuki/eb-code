@@ -72,14 +72,14 @@ async function add_file(node: FileNode) {
             const name = file.name!
             const _name = name.toLowerCase()
             const media_type = mimetype(name)
+            let has = false
             let asset_path = ''
             if (is_image(_name)) {
                 asset_path = status.image_path
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.IMAGE].children!.find(n => n.name === file)
                 if (node) {
-                    node.id = file
-                    node.name = file
+                    has = true
                 } else {
                     status.add_image(file)
                 }
@@ -88,8 +88,7 @@ async function add_file(node: FileNode) {
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.FONT].children!.find(n => n.name === file)
                 if (node) {
-                    node.id = file
-                    node.name = file
+                    has = true
                 } else {
                     status.add_font(file)
                 }
@@ -98,8 +97,7 @@ async function add_file(node: FileNode) {
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.STYLE].children!.find(n => n.name === file)
                 if (node) {
-                    node.id = file
-                    node.name = file
+                    has = true
                 } else {
                     status.add_css(file)
                 }
@@ -108,8 +106,7 @@ async function add_file(node: FileNode) {
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.HTML].children!.find(n => n.name === file)
                 if (node) {
-                    node.id = file
-                    node.name = file
+                    has = true
                 } else {
                     status.add_html(file)
                 }
@@ -118,8 +115,7 @@ async function add_file(node: FileNode) {
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.AUDIO].children!.find(n => n.name === file)
                 if (node) {
-                    node.id = file
-                    node.name = file
+                    has = true
                 } else {
                     status.add_audio(file)
                 }
@@ -128,8 +124,7 @@ async function add_file(node: FileNode) {
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.VIDEO].children!.find(n => n.name === file)
                 if (node) {
-                    node.id = file
-                    node.name = file
+                    has = true
                 } else {
                     status.add_video(file)
                 }
@@ -138,13 +133,12 @@ async function add_file(node: FileNode) {
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.OTHER].children!.find(n => n.name === file)
                 if (node) {
-                    node.id = file
-                    node.name = file
+                    has = true
                 } else {
                     status.add_other(file)
                 }
             }
-            status.add_file(file.path, name, asset_path + name, media_type)
+            status.add_file(file.path, name, asset_path + name, media_type, has)
         }
         status.save_opf()
     }

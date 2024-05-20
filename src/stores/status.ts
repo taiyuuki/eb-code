@@ -8,10 +8,18 @@ import { basename, filename, relative } from '@/utils/path'
 import { is_audio, is_font, is_html, is_image, is_style, is_text, is_video } from '@/utils/is'
 import { get_scroll_top, scroll_top_to } from '@/editor'
 import { useActivity } from '@/composables/useActivity'
-import { notif_negative, notif_positive, notif_warning } from '@/notif'
+import { notif_negative, notif_positive } from '@/notif'
 import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
 import { DISPLAY, TREE } from '@/static'
-import { cover_template } from '@/template/xhtml'
+import { cover_template, xhtml_template } from '@/template/xhtml'
+
+/**
+ * TODO: 统一变量命名
+ * dir: 缓存文件夹名称
+ * id: EPUB内文件路径
+ * $id: manifest中的id
+ * href: EPUB内文件相对opf的路径
+ */
 
 const activity_nodes = useActivity()
 
@@ -93,7 +101,7 @@ const useStatus = defineStore('status', {
         },
     },
     actions: {
-        parse_epub(payload: { chapters: string[], pathes: string[], container: string }) {
+        parse_epub(payload: { chapters: string[], paths: string[], container: string }) {
             
             const dom = xmlToDom(payload.container)
             const rootfile = dom.getElementsByTagName('rootfile')[0]
@@ -102,13 +110,13 @@ const useStatus = defineStore('status', {
             this.init_tree()
 
             payload.chapters.forEach(name => {
-                const file = payload.pathes.find(f => f === name)
+                const file = payload.paths.find(f => f === name)
                 if (file) {
                     this.add_html(file)
                 }
             })
 
-            payload.pathes.forEach(file => {
+            payload.paths.forEach(file => {
                 const name = file.toLowerCase()
                 if (is_html(name)) {
                     return
@@ -122,8 +130,10 @@ const useStatus = defineStore('status', {
                     this.add_audio(file)
                 } else if (is_font(name)) {
                     this.add_font(file)
-                } else if (name.endsWith('.opf') || name.endsWith('.ncx')) {
-                    this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-text' })
+                } else if (name.endsWith('.opf')) {
+                    this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-text', type: 'opf' })
+                } else if (name.endsWith('.ncx')) {
+                    this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-text', type: 'ncx' })
                 } else if (file === 'mimetype' || file === 'META-INF/container.xml') {
                     return
                 } else {
@@ -135,9 +145,9 @@ const useStatus = defineStore('status', {
             this.manifest_path = `${this.opf_id.substring(0, this.opf_id.lastIndexOf('/'))}/`
 
             const get_sub_path = (path: string) => {
-                path = path.replace(this.manifest_path, '')
+                const file_name = basename(path)
 
-                return path.substring(0, path.indexOf('/') + 1)
+                return path.replace(this.manifest_path, '').replace(file_name, '')
             }
 
             const xhtml = this.nodes[0].children?.[0]?.id
@@ -180,6 +190,12 @@ const useStatus = defineStore('status', {
                 this.parse_cover()
                 this.parse_metadata()
                 this.parse_nav()
+            }
+        },
+        async reload_opf() {
+            if (this.opf_id !== '') {
+                const payload = await invoke_get_text(this.opf_id, this.dir)
+                opf.dom = xmlToDom(payload[0])
             }
         },
         parse_namespaceURI() {
@@ -225,7 +241,7 @@ const useStatus = defineStore('status', {
         },
         parse_metadata() {
             if (opf.dom) {
-
+                this.metadata = []
                 const metadata_node = opf.dom.querySelector('metadata')
                 if (metadata_node) {
                     const children = Array.from(metadata_node.children)
@@ -311,19 +327,12 @@ const useStatus = defineStore('status', {
             arr_remove(this.metadata, item)
         },
         async save_meta() {
-            if (this.is_writing) {
-                notif_warning('操作过于频繁，请稍后再试。')
-
-                return
-            }
-
-            this.is_writing = true
             const meta_el = opf.dom!.querySelector('metadata')!
             meta_el.innerHTML = ''
             meta_el.appendChild(document.createTextNode('\n'))
 
             this.metadata.forEach(m => {
-                meta_el.appendChild(objToDom(m, this.namespaceURI))
+                meta_el.appendChild(objToDom(m, meta_el.namespaceURI || this.namespaceURI))
                 meta_el.appendChild(document.createTextNode('\n'))
                 if (m.children) {
                     m.children.forEach((c: any) => {
@@ -414,35 +423,34 @@ const useStatus = defineStore('status', {
                 notif_negative('发生错误！')
             })
 
-            // TODO:如果删除的是XHTML，需要同时删除书脊
-
         },
         rename_file(node: FileNode, new_name: string) {
-            const manifest_node = opf.dom?.querySelector('manifest')
-            if (manifest_node) {
-                const item = manifest_node.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
-                if (item) {
-                    const old_id = item.id
-                    const new_id = basename(new_name).replace(/\s/g, '_')
+            const item = opf.dom?.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
+            if (item) {
+                const old_id = item.id
+                const new_id = basename(new_name).replace(/\s/g, '_')
                     
-                    item.setAttribute('href', new_name)
-                    item.setAttribute('id', new_id)
+                item.setAttribute('href', new_name)
+                item.setAttribute('id', new_id)
 
-                    const spine_node = opf.dom?.querySelector('spine')
-                    if (spine_node) {
-                        const itemref = spine_node.querySelector(`itemref[idref="${old_id}"]`)
-                        if (itemref) {
-                            itemref.setAttribute('idref', new_id)
-                        }
-                        this.save_opf()
-                    }
+                // 重命名书脊
+                const itemref = opf.dom?.querySelector(`itemref[idref="${old_id}"]`)
+                if (itemref) {
+                    itemref.setAttribute('idref', new_id)
                 }
+
+                // 重命名封面
+                const cover_meta = opf.dom?.querySelector(`meta[content="${old_id}"]`)
+                if (cover_meta) {
+                    cover_meta.setAttribute('content', new_id)
+                }
+
+                this.save_opf()
             }
             if (this.has_src(node.id)) {
                 delete this.image_srces[node.id]
             }
 
-            // TODO: 如果重命名的是封面
             // TODO: 重命名xtml里的引用
         },
         move(old_i: number, new_i: number) {
@@ -462,7 +470,7 @@ const useStatus = defineStore('status', {
                 this.save_opf()
             }
         },
-        add_to_spine() {
+        add_nav_to_spine() {
             const spine_node = opf.dom!.querySelector('spine')
             if (this.nav_in_spine) {
                 this.nav_item = document.createElementNS(this.namespaceURI, 'itemref')
@@ -495,46 +503,122 @@ const useStatus = defineStore('status', {
             img.onload = () => {
                 const id = `${this.manifest_path + this.text_path}cover.xhtml`
                 const { naturalWidth, naturalHeight } = img
-                const href = relative(id, path)
+                const href = relative(path, id)
                 const xhtml = cover_template(naturalWidth, naturalHeight, href)
+                const cc = this.nodes[TREE.HTML].children!.find(n => n.id === id)
                 invoke_write_text(this.dir, id, xhtml).then(() => {
-                    this.nodes[TREE.HTML].children?.unshift({
-                        id,
-                        name: id,
-                        icon: 'i-vscode-icons:file-type-html',
-                        parent: this.nodes[TREE.HTML],
-                    })
+                    if (cc) {
+                        if (cc.open) {
+                            this.current.code = xhtml
+                        }
+                    } else {
+                        this.nodes[TREE.HTML].children?.unshift({
+                            id,
+                            name: id,
+                            icon: 'i-vscode-icons:file-type-html',
+                            parent: this.nodes[TREE.HTML],
+                        })
+                    }
+                    this.add_tab(this.nodes[TREE.HTML].children![0])
+                    this.open(this.nodes[TREE.HTML].children![0])
                 })
             }
+
+            const old_items = opf.dom?.querySelectorAll('item[properties="cover-image"]')
+            if (old_items) {
+                old_items.forEach(i => i.removeAttribute('properties'))
+            }
+
             const id = path.replace(this.manifest_path, '')
             const item_cover = opf.dom?.querySelector(`item[href="${id}"`)
             if (item_cover) {
                 item_cover.setAttribute('properties', 'cover-image')
                 const content = item_cover.id
                 let meta_cover = opf.dom?.querySelector('meta[name="cover"]')
-                if (meta_cover) {
-                    const old_content = meta_cover.getAttribute('content')
-                    if (old_content) {
-                        const old_item = opf.dom?.querySelector(`item[id="${old_content}"`)
-                        if (old_item) {
-                            old_item.removeAttribute('properties')
-                        }
-                    }
-                } else {
+                if (!meta_cover) {
+                    
                     meta_cover = document.createElementNS(this.namespaceURI, 'meta')
                     meta_cover.setAttribute('name', 'cover')
                     const meta = opf.dom?.querySelector('metadata')
                     meta?.appendChild(document.createTextNode('\n'))
                     meta?.appendChild(meta_cover)
+                    
                 }
                 meta_cover.setAttribute('content', content ?? filename(path))
                 this.save_opf()
-                
+            }
+        },
+        async new_html(i: number, id: string) {
+            const xhtml = xhtml_template()
+            await invoke_write_text(this.dir, id, xhtml)
+            this.nodes[TREE.HTML].children?.splice(i + 1, 0, {
+                id,
+                name: id,
+                icon: 'i-vscode-icons:file-type-html',
+                type: 'html',
+                parent: this.nodes[TREE.HTML],
+            })
+            this.add_tab(this.nodes[TREE.HTML].children![i + 1])
+            this.open(this.nodes[TREE.HTML].children![i + 1])
+
+            const manifest_node = opf.dom?.querySelector('manifest')
+            const $id = basename(id).replace(/\s/g, '_')
+            if (manifest_node) {
+                const item = document.createElementNS(this.namespaceURI, 'item')
+                manifest_node.appendChild(document.createTextNode('\n'))
+                item.setAttribute('id', $id)
+                item.setAttribute('href', relative(id, this.opf_id))
+                item.setAttribute('media-type', 'application/xhtml+xml')
+                manifest_node.appendChild(item)
+            }
+            const spine_node = opf.dom?.querySelector('spine')
+            if (spine_node) {
+                const itemref = document.createElementNS(this.namespaceURI, 'itemref')
+                itemref.setAttribute('idref', $id)
+                itemref.setAttribute('linear', 'yes')
+                const children = spine_node.children!
+                spine_node.insertBefore(document.createTextNode('\n'), children[i + 1])
+                if (i + 1 < children.length) {
+                    spine_node.insertBefore(itemref, children[i + 1])
+                } else {
+                    spine_node.appendChild(itemref)
+                }
+            }
+            this.save_opf()
+        },
+        async new_css(id: string) {
+            const css = '@charset "UTF-8";\n'
+            await invoke_write_text(this.dir, id, css)
+            this.nodes[TREE.STYLE].children?.push({
+                id: id,
+                name: id,
+                icon: 'i-vscode-icons:file-type-css',
+                type: 'css',
+                parent: this.nodes[TREE.STYLE],
+            })
+            this.add_tab(this.nodes[TREE.STYLE].children!.at(-1)!)
+            this.open(this.nodes[TREE.STYLE].children!.at(-1)!)
+
+            const manifest_node = opf.dom?.querySelector('manifest')
+            if (manifest_node) {
+                const item = document.createElementNS(this.namespaceURI, 'item')
+                manifest_node.appendChild(document.createTextNode('\n'))
+                item.setAttribute('id', basename(id).replace(/\s/g, '_'))
+                item.setAttribute('href', relative(id, this.opf_id))
+                item.setAttribute('media-type', 'text/css')
+                manifest_node.appendChild(item)
+
+                this.save_opf()
             }
         },
         async save_opf() {
             const code = domToXml(opf.dom!).replace(/\n\s*\n\s*\n/g, '\n\n')
+            if (activity_nodes.opened_node?.type === 'opf') {
+                this.is_toogle = true
+                this.current.code = code
+            }
             await invoke_write_text(this.dir, this.opf_id, code)
+            this.is_toogle && (this.is_toogle = false)
         },
         init_tree() {
             this.nodes = [{

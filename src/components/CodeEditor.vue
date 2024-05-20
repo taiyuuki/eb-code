@@ -35,6 +35,9 @@ monaco_controller.on_change_code(() => {
             if (!check_xml(code)) {
                 return
             }
+            status.reload_opf().then(() => {
+                status.parse_metadata()
+            })
         }
         invoke_write_text(status.dir, status.current.id, code)
     }, 500)

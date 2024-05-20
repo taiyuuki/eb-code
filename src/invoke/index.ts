@@ -32,7 +32,7 @@ class InvokeRequest<Payload, Error = string> {
 const invoke_open_epub = function() {
     type Payload = {
         chapters: string[], 
-        pathes: string[], 
+        paths: string[], 
         dir: string,
         base_path: string,
         container: string,

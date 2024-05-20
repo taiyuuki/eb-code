@@ -165,6 +165,14 @@ function show_base_menu(node: FileNode) {
     return !node.id.endsWith('.opf') && !node.id.endsWith('.ncx') && node.type !== 'navigation' && node.type !== 'folder'
 }
 
+function show_new_html(node: FileNode) {
+    return node.type === 'html' || node.id === 'text' || node.type === 'navigation' && status.nav_in_spine
+}
+
+function show_new_css(node: FileNode) {
+    return node.type === 'css' || node.id === 'styles' 
+}
+
 const _rinput = ref()
 let temp_node: FileNode
 let temp_i = -1
@@ -238,7 +246,7 @@ function on_keypress(e: KeyboardEvent) {
     }
 }
 
-function add_to_spine(node: FileNode) {
+function add_nav_to_spine(node: FileNode) {
     if (status.nav_in_spine) {
         status.nodes.push(node)
         arr_remove(status.nodes[0].children!, node)
@@ -247,7 +255,7 @@ function add_to_spine(node: FileNode) {
         status.nodes[0].children!.unshift(node)
     }
     status.nav_in_spine = !status.nav_in_spine
-    status.add_to_spine()
+    status.add_nav_to_spine()
 }
 
 function change(e: { moved: Moved }) {
@@ -258,6 +266,26 @@ function change(e: { moved: Moved }) {
 
 function set_cover(node: FileNode) {
     status.set_cover(node.id)
+}
+
+let hi = 1
+function new_html(i: number) {
+    let html_file_name = `${status.manifest_path}${status.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
+    while (status.nodes[TREE.HTML].children!.some(n => n.id === html_file_name)) {
+        hi++
+        html_file_name = `${status.manifest_path}${status.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
+    }
+    status.new_html(i, html_file_name)
+}
+
+let si = 1
+function new_css() {
+    let style_file_name = `${status.manifest_path}${status.style_path}Style${si.toString().padStart(4, '0')}.css`
+    while (status.nodes[TREE.STYLE].children!.some(n => n.id === style_file_name)) {
+        si++
+        style_file_name = `${status.manifest_path}${status.text_path}Style${si.toString().padStart(4, '0')}.css`
+    }
+    status.new_css(style_file_name)
 }
 </script>
 
@@ -287,6 +315,26 @@ function set_cover(node: FileNode) {
         >
           <q-list>
             <q-item
+              v-if="show_new_html(node)"
+              v-close-popup
+              clickable
+              @click="new_html(i)"
+            >
+              <q-item-section>
+                新建空白文档
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="show_new_css(node)"
+              v-close-popup
+              clickable
+              @click="new_css"
+            >
+              <q-item-section>
+                新建空白样式
+              </q-item-section>
+            </q-item>
+            <q-item
               v-if="show_base_menu(node)"
               v-close-popup
               clickable
@@ -310,7 +358,7 @@ function set_cover(node: FileNode) {
               v-if="node.type === 'navigation' && node.id.endsWith('html')"
               v-close-popup
               clickable
-              @click="add_to_spine(node)"
+              @click="add_nav_to_spine(node)"
             >
               <q-item-section>
                 {{ status.nav_in_spine ? '移出书脊' : '添加到书脊' }}

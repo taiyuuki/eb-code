@@ -15,7 +15,7 @@ pub mod directory;
 struct EpubContents {
     dir: String,
     chapters: Vec<String>,
-    pathes: Vec<String>,
+    paths: Vec<String>,
     base_path: String,
     container: String,
 }
@@ -26,7 +26,7 @@ impl EpubContents {
         EpubContents {
             dir: dir.to_string(),
             chapters: Vec::new(),
-            pathes: Vec::new(),
+            paths: Vec::new(),
             base_path: format_dir(dir, path),
             container: String::new(),
         }
@@ -85,7 +85,7 @@ fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
             None => continue,
         }
     }
-    epub_contents.pathes = epub_archive
+    epub_contents.paths = epub_archive
         .files
         .into_iter()
         .filter(|x| !x.ends_with("/"))

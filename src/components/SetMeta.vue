@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuasar } from 'quasar'
-import { object_keys } from '@taiyuuki/utils'
+import { arr_remove, object_keys } from '@taiyuuki/utils'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
 import { cover_setting } from '@/composables/cover_setting'
@@ -57,7 +57,9 @@ onMounted(() => {
 
 onBeforeUnmount(async() => {
     if (status.meta_is_dirty) {
-        Object.assign(status.metadata, dirty_meta.value)
+        status.$patch({ metadata: dirty_meta.value })
+
+        // Object.assign(status.metadata, dirty_meta.value)
         status.save_meta()
         status.meta_is_dirty = false
     }
@@ -101,6 +103,20 @@ function add_meta_child(item: Record<string, any>) {
     })
 }
 
+function remove_meta_item(item: Record<string, any>) {
+    arr_remove(dirty_meta.value, item)
+    status.$patch({ metadata: dirty_meta.value })
+    status.save_meta()
+}
+
+function remove_meta_child(item: Record<string, Record<string, any>[]>, child: Record<string, any>) {
+    if (item.children) {
+        arr_remove(item.children, child)
+        status.$patch({ metadata: dirty_meta.value })
+        status.save_meta()
+    }
+}
+
 function meta_changed() {
     status.meta_is_dirty || (status.meta_is_dirty = true)
 }
@@ -142,8 +158,8 @@ function meta_changed() {
               :item="item"
               :meta="_META_KEY"
               :property="_META_PROPERTY"
-              @remove="status.remove_meta(item)"
-              @remove-child="status.remove_meta_child"
+              @remove="remove_meta_item"
+              @remove-child="remove_meta_child"
               @add-child="add_meta_child"
               @updata:item="meta_changed"
             />
@@ -167,9 +183,3 @@ function meta_changed() {
     </div>
   </div>
 </template>
-
-<style scoped>
-.selected {
-    background: var(--vscode-toolbar-activeBackground);
-}
-</style>

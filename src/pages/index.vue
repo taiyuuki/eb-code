@@ -273,10 +273,6 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
           w="fit"
         >
           <q-btn
-            label="打开文件"
-            @click="open_cover"
-          />
-          <q-btn
             label="确定"
             @click="set_cover"
           />
@@ -284,9 +280,19 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
             label="取消"
             @click="cover_setting = false"
           />
+          <q-btn
+            m="l-50"
+            label="打开文件"
+            @click="open_cover"
+          />
         </div>
       </div>
     </q-dialog>
   </q-page>
 </template>
-@/utils/path
+
+<style scoped>
+.selected {
+    background: var(--vscode-toolbar-activeBackground);
+}
+</style>

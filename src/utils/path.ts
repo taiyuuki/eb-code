@@ -55,9 +55,10 @@ function relative(target: string, from: string) {
     for (let j = 0; j < t.length - 1; j++) {
         rel_path += '../'
     }
-    if (!rel_path) {
-        rel_path += './'
-    }
+
+    // if (!rel_path) {
+    //     rel_path += './'
+    // }
     rel_path += f.join('/')
 
     return rel_path

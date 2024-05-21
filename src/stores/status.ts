@@ -1,7 +1,7 @@
 // @unocss-include
 import { convertFileSrc } from '@tauri-apps/api/core'
 import { arr_remove } from '@taiyuuki/utils'
-import type { FileNode } from '@/components/types'
+import type { ContentsNode, FileNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
 import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_write_text } from '@/invoke'
 import { basename, filename, relative } from '@/utils/path'
@@ -43,7 +43,16 @@ function tree_index(name: string) {
     }
 }
 
-const opf = { dom: null as Document | null }
+const opf = {
+    dom: null as Document | null,
+    namespaceURI: 'http://www.idpf.org/2007/opf',
+    nav_item: null as Element | null | undefined,
+}
+const contents = {
+    dom: null as Document | null, 
+    tree: [] as ContentsNode[],
+    namespaceURI: 'http://www.daisy.org/z3986/2005/ncx/',
+}
 
 const useStatus = defineStore('status', { 
     state: () => ({
@@ -73,7 +82,6 @@ const useStatus = defineStore('status', {
         metadata: [] as Record<string, any>[], // EPUB元数据
         meta_is_dirty: false,
         cover_src: '',
-        namespaceURI: 'http://www.idpf.org/2007/ops',
         manifest_path: 'OEBPS/',
         image_path: 'Images/',
         text_path: 'Text/',
@@ -86,6 +94,7 @@ const useStatus = defineStore('status', {
         nav_in_spine: false,
         nav_item: null as Element | null | undefined,
         nav_version: 2 as 2 | 3,
+        contents_tree: [] as ContentsNode[],
     }),
     getters: {
 
@@ -190,6 +199,7 @@ const useStatus = defineStore('status', {
                 this.parse_cover()
                 this.parse_metadata()
                 this.parse_nav()
+                this.parse_contents()
             }
         },
         async reload_opf() {
@@ -200,7 +210,7 @@ const useStatus = defineStore('status', {
         },
         parse_namespaceURI() {
             if (opf.dom) {
-                this.namespaceURI = opf.dom.documentElement.namespaceURI ?? this.namespaceURI
+                opf.namespaceURI = opf.dom.documentElement.namespaceURI ?? opf.namespaceURI
             }
         },
         parse_version() {
@@ -274,7 +284,7 @@ const useStatus = defineStore('status', {
                 const item = opf.dom?.querySelector('item[properties="nav"]')
                 this.nav_href = item?.getAttribute('href') || ''
                 this.nav_id = item?.getAttribute('id') || ''
-                this.nav_item = opf.dom?.querySelector(`itemref[idref="${this.nav_id}"]`)
+                opf.nav_item = opf.dom?.querySelector(`itemref[idref="${this.nav_id}"]`)
                 this.nav_version = 3
             }
             if (this.nav_href === '') { // 2.0
@@ -297,6 +307,135 @@ const useStatus = defineStore('status', {
                 }
             }
             
+        },
+        async parse_contents() {
+            const payload = await invoke_get_text(`${this.manifest_path}${this.nav_href}`, this.dir)
+            contents.dom = xmlToDom(payload[0])
+
+            contents.namespaceURI = contents.dom.documentElement.namespaceURI || contents.namespaceURI
+            
+            this.contents_tree = []
+
+            if (this.nav_version === 3) {
+                const ol = contents.dom.querySelector('nav[id="toc"]')?.querySelector('ol')
+                const loop_stack: [Element | null | undefined, ContentsNode[]][] = [[ol, this.contents_tree]]
+                while (loop_stack.length) {
+                    const [ol, tree] = loop_stack.pop()!
+                    const lis = Array.from(ol?.children || []).filter(node => node.nodeName === 'li')
+                    if (lis) {
+                        lis.forEach(li => {
+                            const a = li.querySelector('a')
+                            const title = a?.textContent || ''
+                            const href = a?.getAttribute('href') || './'
+                            tree.push({
+                                title,
+                                id: `${this.manifest_path}${href}`,
+                            })
+
+                            const ol = li.querySelector('ol')
+                            if (ol) {
+                                tree[tree.length - 1].children = []
+                                loop_stack.push([ol, tree[tree.length - 1].children!])
+                            }
+                        })
+                    }
+                }
+            } else {
+                const navMap = contents.dom.querySelector('navMap')
+                const loop_stack: [Element | null, ContentsNode[]][] = [[navMap, this.contents_tree]]
+                while (loop_stack.length) {
+                    const [navMap, tree] = loop_stack.pop()!
+                    const points = Array.from(navMap?.children || []).filter(node => node.nodeName === 'navPoint')
+                    if (points) {
+                        points.forEach(nav => {
+                            const title = nav.querySelector('text')?.textContent || ''
+                            const href = nav.querySelector('content')?.getAttribute('src') || './'
+                            tree.push({
+                                title,
+                                id: `${this.manifest_path}${href}`,
+                                attrs: domToObj(nav),
+                            })
+
+                            const navMap = nav.querySelector('navPoint')
+                            if (navMap) {
+                                tree[tree.length - 1].children = []
+                                loop_stack.push([nav, tree[tree.length - 1].children!])
+                            }
+                        })
+                    }   
+                }
+            }
+        },
+        parse_guide() {
+            
+        },
+        async save_contents() {
+            if (this.nav_version === 3) {
+                const ol = document.createElement('ol')
+                const loop_stack: [HTMLOListElement, ContentsNode[]][] = [[ol, this.contents_tree]]
+                ol.appendChild(document.createTextNode('\n'))
+                while (loop_stack.length) {
+                    const [ol, tree] = loop_stack.pop()!
+                    tree.forEach(node => {
+                        const li = document.createElement('li')
+                        const a = document.createElement('a')
+                        a.textContent = node.title
+                        a.href = node.id.replace(this.manifest_path, '')
+                        li.appendChild(a)
+                        ol.appendChild(li)
+                        ol.appendChild(document.createTextNode('\n'))
+                        if (node.children?.length) {
+                            const ol = document.createElement('ol')
+                            li.appendChild(ol)
+                            loop_stack.push([ol, node.children])
+                        }
+                    })
+                    
+                }
+
+                contents.dom!.querySelector('ol')?.replaceWith(ol)
+            } else {
+                const navMap = document.createElementNS(contents.namespaceURI, 'navMap')
+                navMap.appendChild(document.createTextNode('\n'))
+                const loop_stack: [Element, ContentsNode[], number][] = [[navMap, this.contents_tree, 1]]
+                while (loop_stack.length) {
+                    let [navMap, tree, i] = loop_stack.pop()!
+                    tree.forEach(node => {
+                        const navPoint = document.createElementNS(contents.namespaceURI, 'navPoint')
+                        navPoint.appendChild(document.createTextNode('\n'))
+                        const text = document.createElementNS(contents.namespaceURI, 'text')
+                        text.textContent = node.title
+
+                        navPoint.setAttribute('id', `navPoint-${i}`)
+                        navPoint.setAttribute('playOrder', `${i}`)
+                        
+                        const label = document.createElementNS(contents.namespaceURI, 'navLabel')
+                        label.appendChild(text)
+                        navPoint.appendChild(label)
+
+                        const content = document.createElementNS(contents.namespaceURI, 'content')
+                        content.setAttribute('src', node.id.replace(this.manifest_path, ''))
+
+                        navPoint.appendChild(document.createTextNode('\n'))
+                        navPoint.appendChild(content)
+                        navPoint.appendChild(document.createTextNode('\n'))
+
+                        navMap.appendChild(navPoint)
+                        navMap.appendChild(document.createTextNode('\n'))
+
+                        if (node.children?.length) {
+                            loop_stack.push([navPoint, node.children, i])
+                            i += node.children.length
+                        }
+                        i++
+                    })
+                }
+
+                contents.dom!.querySelector('navMap')?.replaceWith(navMap)
+            }
+
+            const contents_xml = domToXml(contents.dom!)
+            await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
         },
         add_meta(tagName: string, value: string) {
             const count = this.metadata.filter(m => m.tagName === tagName).length
@@ -332,11 +471,11 @@ const useStatus = defineStore('status', {
             meta_el.appendChild(document.createTextNode('\n'))
 
             this.metadata.forEach(m => {
-                meta_el.appendChild(objToDom(m, meta_el.namespaceURI || this.namespaceURI))
+                meta_el.appendChild(objToDom(m, meta_el.namespaceURI || opf.namespaceURI))
                 meta_el.appendChild(document.createTextNode('\n'))
                 if (m.children) {
                     m.children.forEach((c: any) => {
-                        meta_el.appendChild(objToDom(c, this.namespaceURI))
+                        meta_el.appendChild(objToDom(c, opf.namespaceURI))
                         meta_el.appendChild(document.createTextNode('\n'))
                     })
                 }
@@ -357,7 +496,7 @@ const useStatus = defineStore('status', {
                 delete this.image_srces[this.manifest_path + href]
                 
             } else {
-                const item = document.createElementNS(this.namespaceURI, 'item')
+                const item = document.createElementNS(opf.namespaceURI, 'item')
                 item.setAttribute('id', id.replace(/\s/g, '_'))
                 item.setAttribute('href', href)
                 item.setAttribute('media-type', media_type)
@@ -365,6 +504,14 @@ const useStatus = defineStore('status', {
                 const manifest_node = opf.dom?.querySelector('manifest')
                 manifest_node?.appendChild(item)
                 manifest_node?.appendChild(document.createTextNode('\n'))
+                if (is_html(href)) {
+                    const spine_node = opf.dom?.querySelector('spine')
+                    const itemref = document.createElementNS(opf.namespaceURI, 'itemref')
+                    itemref.setAttribute('idref', id.replace(/\s/g, '_'))
+                    itemref.setAttribute('linear', 'yes')
+                    spine_node?.appendChild(itemref)
+                    spine_node?.appendChild(document.createTextNode('\n'))
+                }
                 this.save_opf()
             }
             await invoke_copy_file(from, this.dir, `${this.manifest_path}${href}`)
@@ -473,19 +620,22 @@ const useStatus = defineStore('status', {
         add_nav_to_spine() {
             const spine_node = opf.dom!.querySelector('spine')
             if (this.nav_in_spine) {
-                this.nav_item = document.createElementNS(this.namespaceURI, 'itemref')
-                this.nav_item.setAttribute('idref', this.nav_id)
-                this.nav_item.setAttribute('linear', 'yes')
+                const nav_item = document.createElementNS(opf.namespaceURI, 'itemref')
+                nav_item.setAttribute('idref', this.nav_id)
+                nav_item.setAttribute('linear', 'yes')
                 const children = spine_node?.children
                 if (children?.length) {
-                    spine_node?.insertBefore(this.nav_item, children[0])
+                    spine_node?.insertBefore(nav_item, children[0])
                     spine_node?.insertBefore(document.createTextNode('\n'), children[1])
                 } else {
-                    spine_node?.appendChild(this.nav_item)
+                    spine_node?.appendChild(nav_item)
                 }
 
-            } else if (this.nav_item) {
-                spine_node?.removeChild(this.nav_item)
+            } else {
+                const nav_item = opf.dom!.querySelector(`itemref[idref="${this.nav_id}"]`)
+                if (nav_item) {
+                    spine_node?.removeChild(nav_item)
+                }
             }
             this.save_opf()
         },
@@ -537,7 +687,7 @@ const useStatus = defineStore('status', {
                 let meta_cover = opf.dom?.querySelector('meta[name="cover"]')
                 if (!meta_cover) {
                     
-                    meta_cover = document.createElementNS(this.namespaceURI, 'meta')
+                    meta_cover = document.createElementNS(opf.namespaceURI, 'meta')
                     meta_cover.setAttribute('name', 'cover')
                     const meta = opf.dom?.querySelector('metadata')
                     meta?.appendChild(document.createTextNode('\n'))
@@ -564,7 +714,7 @@ const useStatus = defineStore('status', {
             const manifest_node = opf.dom?.querySelector('manifest')
             const $id = basename(id).replace(/\s/g, '_')
             if (manifest_node) {
-                const item = document.createElementNS(this.namespaceURI, 'item')
+                const item = document.createElementNS(opf.namespaceURI, 'item')
                 manifest_node.appendChild(document.createTextNode('\n'))
                 item.setAttribute('id', $id)
                 item.setAttribute('href', relative(id, this.opf_id))
@@ -573,15 +723,16 @@ const useStatus = defineStore('status', {
             }
             const spine_node = opf.dom?.querySelector('spine')
             if (spine_node) {
-                const itemref = document.createElementNS(this.namespaceURI, 'itemref')
+                const itemref = document.createElementNS(opf.namespaceURI, 'itemref')
                 itemref.setAttribute('idref', $id)
                 itemref.setAttribute('linear', 'yes')
                 const children = spine_node.children!
-                spine_node.insertBefore(document.createTextNode('\n'), children[i + 1])
                 if (i + 1 < children.length) {
                     spine_node.insertBefore(itemref, children[i + 1])
+                    spine_node.insertBefore(document.createTextNode('\n'), children[i + 1])
                 } else {
                     spine_node.appendChild(itemref)
+                    spine_node.appendChild(document.createTextNode('\n'))
                 }
             }
             this.save_opf()
@@ -601,7 +752,7 @@ const useStatus = defineStore('status', {
 
             const manifest_node = opf.dom?.querySelector('manifest')
             if (manifest_node) {
-                const item = document.createElementNS(this.namespaceURI, 'item')
+                const item = document.createElementNS(opf.namespaceURI, 'item')
                 manifest_node.appendChild(document.createTextNode('\n'))
                 item.setAttribute('id', basename(id).replace(/\s/g, '_'))
                 item.setAttribute('href', relative(id, this.opf_id))
@@ -863,6 +1014,14 @@ const useStatus = defineStore('status', {
                 this.display = DISPLAY.METADATA
             }
         },
+        open_by_id(id: string) {
+            
+            const node = this.nodes[TREE.HTML].children!.find(n => n.id === id)
+            if (node) {
+                this.open(node)
+                this.add_tab(node)
+            }
+        },
         close_epub() {
             this.display = DISPLAY.NONE
             this.current.code = ''
@@ -878,6 +1037,7 @@ const useStatus = defineStore('status', {
             this.metadata = []
             this.nav_href = ''
             this.nav_in_spine = false
+            this.contents_tree = []
             invoke_clean_cache(this.dir)
             this.dir = ''
         },

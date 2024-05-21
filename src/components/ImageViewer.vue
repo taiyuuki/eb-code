@@ -9,6 +9,7 @@ import { DISPLAY } from '@/static'
 const props = defineProps<{ src: string }>()
 const eventList = [] as HTMLEventManage<any>[]
 const image_size = reactive({ width: 0, height: 0 })
+const mask_class = ref('mask-transparent')
 
 // const show_controller = ref(false)
 const controller = useElementRef<HTMLDivElement>()
@@ -138,7 +139,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="mask"
+    :class="mask_class"
     @mousemove="mouse_move"
   >
     <div
@@ -185,6 +186,34 @@ onBeforeUnmount(() => {
         cursor-pointer
         @click="sizeReset"
       />
+      <div
+        class="i-radix-icons:transparency-grid"
+        h="30"
+        w="30"
+        m="l-20"
+        bg="var-eb-fg"
+        op="60 hover:100"
+        cursor-pointer
+        @click="mask_class = 'mask-transparent'"
+      />
+      <div
+        class="i-ic:baseline-wb-sunny"
+        h="30"
+        w="30"
+        m="l-20"
+        op="60 hover:100"
+        cursor-pointer
+        @click="mask_class = 'mask-light'"
+      />
+      <div
+        class="i-ic:baseline-nights-stay"
+        h="30"
+        w="30"
+        m="l-20"
+        op="60 hover:100"
+        cursor-pointer
+        @click="mask_class = 'mask-black'"
+      />
     </div>
   </div>
 </template>
@@ -200,7 +229,7 @@ onBeforeUnmount(() => {
     background-color: var(--eb-bg);
     z-index: 1;
 }
-.mask {
+.mask-transparent {
     --linear-color: #c2c2c2;
     width: 100%;
     height: calc(100% - 65px);
@@ -219,7 +248,22 @@ onBeforeUnmount(() => {
     background-position: 0 0, 8px 8px;
     background-size: 16px 16px;
     position: absolute;
+}
 
+.mask-black {
+    width: 100%;
+    height: calc(100% - 65px);
+    overflow: hidden;
+    background-color: #000;
+    position: absolute;
+}
+
+.mask-light {
+    width: 100%;
+    height: calc(100% - 65px);
+    overflow: hidden;
+    background-color: #fff;
+    position: absolute;
 }
 
 .image {
@@ -242,7 +286,7 @@ onBeforeUnmount(() => {
 
 .image-controller {
     display: flex;
-    width: 200px;
+    width: 300px;
     position: absolute;
     bottom: 20px;
     left: calc(50% - 100px);

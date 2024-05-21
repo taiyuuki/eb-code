@@ -12,7 +12,7 @@ import { useActivity } from '@/composables/useActivity'
 import { dirty_meta } from '@/composables/dirty_meta'
 
 const appWindow = new Window('main')
-let is_maximized = ref(false)
+const is_maximized = ref(false)
 
 async function toggle_maximize() {
     await appWindow.toggleMaximize()

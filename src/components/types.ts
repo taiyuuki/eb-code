@@ -27,4 +27,17 @@ interface Moved {
     newIndex: number
 }
 
-export type { FileNode, TreeProps, TreeEmits, Moved }
+interface ContentsNode {
+    id: string
+    title: string
+    attrs?: Record<string, string>
+    children?: ContentsNode[]
+}
+
+export type {
+    FileNode,
+    TreeProps, 
+    TreeEmits, 
+    Moved, 
+    ContentsNode, 
+}

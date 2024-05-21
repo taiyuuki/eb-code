@@ -154,13 +154,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
         flex="1"
       >
         <template #before>
-          <q-scroll-area
-            style="height: calc(100vh - 115px);"
-            :thumb-style="thumb_style"
-            :dark="theme.dark"
-          >
-            <router-view />
-          </q-scroll-area>
+          <router-view />
         </template>
   
         <template #after>

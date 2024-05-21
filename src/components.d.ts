@@ -9,7 +9,6 @@ declare module 'vue' {
   export interface GlobalComponents {
     ActivityBar: typeof import('./components/ActivityBar.vue')['default']
     CodeEditor: typeof import('./components/CodeEditor.vue')['default']
-    ContentsNode: typeof import('./components/ContentsNode.vue')['default']
     ContentsTree: typeof import('./components/ContentsTree.vue')['default']
     FileTree: typeof import('./components/FileTree.vue')['default']
     ImageViewer: typeof import('./components/ImageViewer.vue')['default']

@@ -46,11 +46,9 @@ function tree_index(name: string) {
 const opf = {
     dom: null as Document | null,
     namespaceURI: 'http://www.idpf.org/2007/opf',
-    nav_item: null as Element | null | undefined,
 }
 const contents = {
     dom: null as Document | null, 
-    tree: [] as ContentsNode[],
     namespaceURI: 'http://www.daisy.org/z3986/2005/ncx/',
 }
 
@@ -92,7 +90,6 @@ const useStatus = defineStore('status', {
         video_path: 'Videos/',
         other_path: 'Others/',
         nav_in_spine: false,
-        nav_item: null as Element | null | undefined,
         nav_version: 2 as 2 | 3,
         contents_tree: [] as ContentsNode[],
     }),
@@ -284,7 +281,6 @@ const useStatus = defineStore('status', {
                 const item = opf.dom?.querySelector('item[properties="nav"]')
                 this.nav_href = item?.getAttribute('href') || ''
                 this.nav_id = item?.getAttribute('id') || ''
-                opf.nav_item = opf.dom?.querySelector(`itemref[idref="${this.nav_id}"]`)
                 this.nav_version = 3
             }
             if (this.nav_href === '') { // 2.0

@@ -6,7 +6,8 @@ defineProps<{ contents: ContentsNode[] }>()
 
 const status = useStatus()
 
-function open(node: ContentsNode) {
+function open(e: MouseEvent, node: ContentsNode) {
+    e.stopPropagation()
 
     // TODO: 跳转至id，当前做法是直接删除id
     const i = node.id.lastIndexOf('#')
@@ -22,11 +23,15 @@ function open(node: ContentsNode) {
   <div
     v-for="node in contents"
     :key="node.id"
-    m="l-2em"
-    pointer
-    @click="open(node)"
+    p="l-2em"
   >
-    {{ node.title }}
+    <div 
+      inline-block
+      pointer
+      @click="open($event, node)"
+    >
+      {{ node.title }}
+    </div>
 
     <ContentsTree
       v-if="node.children"

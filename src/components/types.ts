@@ -30,8 +30,11 @@ interface Moved {
 interface ContentsNode {
     id: string
     title: string
+    selected?: boolean
+    expanded?: boolean
     attrs?: Record<string, string>
     children?: ContentsNode[]
+    parent?: ContentsNode
 }
 
 export type {

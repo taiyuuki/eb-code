@@ -1,4 +1,4 @@
-import type { FileNode } from 'components/types'
+import type { ContentsNode, FileNode } from 'components/types'
 
 const activity_files = {
     selected_node: null as FileNode | null,
@@ -60,8 +60,13 @@ const activity_files = {
     },
 }
 
+const activity_contents = { selected_node: null as ContentsNode | null }
+
 function useActivity() {
     return activity_files
 }
 
-export { useActivity }
+export {
+    useActivity,
+    activity_contents,
+}

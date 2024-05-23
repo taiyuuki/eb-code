@@ -314,48 +314,60 @@ const useStatus = defineStore('status', {
 
             if (this.nav_version === 3) {
                 const ol = contents.dom.querySelector('nav[id="toc"]')?.querySelector('ol')
-                const loop_stack: [Element | null | undefined, ContentsNode[]][] = [[ol, this.contents_tree]]
+                const loop_stack: [Element | null | undefined, ContentsNode[], parent: ContentsNode | null][] = [[ol, this.contents_tree, null]]
                 while (loop_stack.length) {
-                    const [ol, tree] = loop_stack.pop()!
+                    const [ol, tree, parent] = loop_stack.pop()!
                     const lis = Array.from(ol?.children || []).filter(node => node.nodeName === 'li')
                     if (lis) {
                         lis.forEach(li => {
                             const a = li.querySelector('a')
                             const title = a?.textContent || ''
                             const href = a?.getAttribute('href') || './'
-                            tree.push({
+                            const branch: ContentsNode = {
                                 title,
                                 id: `${this.manifest_path}${href}`,
-                            })
+                            }
 
+                            if (parent) {
+                                branch.parent = parent
+                            }
+                            
                             const ol = li.querySelector('ol')
+                            tree.push(branch)
+
                             if (ol) {
                                 tree[tree.length - 1].children = []
-                                loop_stack.push([ol, tree[tree.length - 1].children!])
+                                loop_stack.push([ol, tree[tree.length - 1].children!, branch])
+                                branch.expanded = true
                             }
                         })
                     }
                 }
             } else {
                 const navMap = contents.dom.querySelector('navMap')
-                const loop_stack: [Element | null, ContentsNode[]][] = [[navMap, this.contents_tree]]
+                const loop_stack: [Element | null, ContentsNode[], parent: ContentsNode | null][] = [[navMap, this.contents_tree, null]]
                 while (loop_stack.length) {
-                    const [navMap, tree] = loop_stack.pop()!
+                    const [navMap, tree, parent] = loop_stack.pop()!
                     const points = Array.from(navMap?.children || []).filter(node => node.nodeName === 'navPoint')
                     if (points) {
                         points.forEach(nav => {
                             const title = nav.querySelector('text')?.textContent || ''
                             const href = nav.querySelector('content')?.getAttribute('src') || './'
-                            tree.push({
+                            const branch: ContentsNode = {
                                 title,
                                 id: `${this.manifest_path}${href}`,
-                                attrs: domToObj(nav),
-                            })
+                            }
 
+                            if (parent) {
+                                parent.expanded = true
+                                branch.parent = parent
+                            }
+                            tree.push(branch)
+                            
                             const navMap = nav.querySelector('navPoint')
                             if (navMap) {
                                 tree[tree.length - 1].children = []
-                                loop_stack.push([nav, tree[tree.length - 1].children!])
+                                loop_stack.push([nav, tree[tree.length - 1].children!, branch])
                             }
                         })
                     }   

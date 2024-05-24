@@ -174,13 +174,12 @@ onBeforeUnmount(() => {
         :step="0.1"
         :min="0.3"
         :max="5"
-        color="fg"
         @pan="mouse_pan"
       />
       <div
         class="i-ic:sharp-restart-alt"
-        h="30"
-        w="30"
+        h="50"
+        w="50"
         m="l-20"
         op="80 hover:100"
         cursor-pointer
@@ -188,8 +187,8 @@ onBeforeUnmount(() => {
       />
       <div
         class="i-radix-icons:transparency-grid"
-        h="30"
-        w="30"
+        h="50"
+        w="50"
         m="l-20"
         bg="var-eb-fg"
         op="60 hover:100"
@@ -198,8 +197,8 @@ onBeforeUnmount(() => {
       />
       <div
         class="i-ic:baseline-wb-sunny"
-        h="30"
-        w="30"
+        h="50"
+        w="50"
         m="l-20"
         op="60 hover:100"
         cursor-pointer
@@ -207,8 +206,8 @@ onBeforeUnmount(() => {
       />
       <div
         class="i-ic:baseline-nights-stay"
-        h="30"
-        w="30"
+        h="50"
+        w="50"
         m="l-20"
         op="60 hover:100"
         cursor-pointer
@@ -295,5 +294,6 @@ onBeforeUnmount(() => {
     background-color: var(--eb-bg);
     padding: 0 20px;
     border-radius: 5px;
+    color: var(--vscode-progressBar-background);
 }
 </style>

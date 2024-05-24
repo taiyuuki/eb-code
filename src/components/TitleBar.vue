@@ -147,6 +147,7 @@ function edit_metadata() {
     <q-btn
       label="文件"
       unelevated
+      square
     >
       <q-menu
         :dark="theme.dark"
@@ -207,6 +208,7 @@ function edit_metadata() {
     <q-btn
       label="编辑"
       unelevated
+      square
     >
       <q-menu
         :dark="theme.dark"
@@ -239,8 +241,8 @@ function edit_metadata() {
     <div class="titlebar-buttons">
       <div
         id="titlebar-minimize"
-        w="28"
-        h="28"
+        w="36"
+        h="36"
         m="r-15"
         class="titlebar-button i-mdi:window-minimize"
         @click="appWindow.minimize()"
@@ -248,8 +250,8 @@ function edit_metadata() {
       <div
         v-if="is_maximized"
         id="titlebar-maximize"
-        w="28"
-        h="28"
+        w="36"
+        h="36"
         m="r-15"
         class="titlebar-button i-bx:windows"
         @click="toggle_maximize"
@@ -257,16 +259,16 @@ function edit_metadata() {
       <div
         v-else
         id="titlebar-unmaximize"
-        w="28"
-        h="28"
+        w="36"
+        h="36"
         m="r-15"
         class="titlebar-button i-bx:window"
         @click="toggle_maximize"
       />
       <div
         id="titlebar-close"
-        w="28"
-        h="28"
+        w="36"
+        h="36"
         m="r-15"
         class="titlebar-button i-mdi:close-thick"
         @click="appWindow.close()"
@@ -277,8 +279,7 @@ function edit_metadata() {
 
 <style>
 .titlebar {
-    height: 30px;
-    background: var(--eb-bg);
+    background: var(--vscode-toolbar-hoverBackground);
     user-select: none;
     display: flex;
     justify-content: content-between;
@@ -311,5 +312,3 @@ function edit_metadata() {
     opacity: 1;
   }
 </style>
-@/stores/status
-@/stores/tree

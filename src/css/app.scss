@@ -32,3 +32,41 @@ body {
     background-color: var(--eb-bg);
     overflow: hidden!important;
 }
+
+// 覆盖Quasar样式
+.q-btn {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.q-btn:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+.q-scrollarea__thumb, .q-scrollarea--dark .q-scrollarea__thumb {
+    background-color: var(--vscode-scrollbarSlider-background);
+    width: 14px;
+    border-radius: 0;
+}
+
+.q-scrollarea__thumb:hover, .q-scrollarea--dark .q-scrollarea__thumb:hover {
+    background-color: var(--vscode-scrollbarSlider-hoverBackground);
+    opacity: 1;
+}
+
+.q-scrollarea__thumb:active, .q-scrollarea--dark .q-scrollarea__thumb:active {
+    background-color: var(--vscode-scrollbarSlider-activeBackground);
+    opacity: 1;
+}
+
+.q-slider__thumb {
+    color: var(--vscode-progressBar-background);
+}
+
+.q-slider__track {
+    color: var(--vscode-progressBar-background);
+}
+
+.q-bar {
+    background-color: var(--vscode-toolbar-hoverBackground);
+}

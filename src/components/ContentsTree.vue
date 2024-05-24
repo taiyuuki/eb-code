@@ -1,28 +1,24 @@
 <script setup lang="ts">
 import type { ContentsNode } from './types'
-import { useStatus } from '@/stores/status'
-import { activity_contents } from '@/composables/useActivity'
 
-defineProps<{ contents: ContentsNode[] }>()
-
-const status = useStatus()
+defineProps<{ contents: Record<number, ContentsNode> }>()
+const emit = defineEmits<{
+    (e: 'open', node: ContentsNode): void
+}>()
 
 function open(e: MouseEvent, node: ContentsNode) {
     e.stopPropagation()
-    if (activity_contents.selected_node) {
-        activity_contents.selected_node.selected = false
-    }
+    emit('open', node)
+}
 
-    activity_contents.selected_node = node
-    activity_contents.selected_node.selected = true
+function emit_open(node: ContentsNode) {
+    emit('open', node)
+}
 
-    // TODO: 跳转至id，当前做法是直接删除id
-    const i = node.id.lastIndexOf('#')
-    let id = node.id
-    if (i > 0) {
-        id = node.id.substring(0, node.id.indexOf('#'))
+function expand(node: ContentsNode) {
+    if (node.children) {
+        node.expanded = !node.expanded
     }
-    status.open_by_id(id)
 }
 </script>
 
@@ -31,19 +27,20 @@ function open(e: MouseEvent, node: ContentsNode) {
     v-for="node in contents"
     :key="node.id"
     p="l-20"
+    select-none
   >
     <div
       flex="~ justify-start items-center" 
       :class="{ contents: true, selected: node.selected }"
+      @click="expand(node)"
     >
       <div
-        v-if="node.children"
+        v-if="node.children?.length"
         :class="node.expanded ? 'i-ic:outline-keyboard-arrow-down' : 'i-ic:outline-keyboard-arrow-right'"
         middle
         w="20"
         h="20"
         pointer
-        @click="node.expanded = !node.expanded"
       />
       <div
         v-else
@@ -63,11 +60,12 @@ function open(e: MouseEvent, node: ContentsNode) {
     >
       <div
         v-show="node.expanded"
-        border="l-solid var-eb-fg l-2"
+        border="l-solid var-eb-fg l-1"
         m="l-9"
       >
         <ContentsTree
           :contents="node.children"
+          @open="emit_open"
         />
       </div>
     </template>

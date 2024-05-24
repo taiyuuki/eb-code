@@ -4,7 +4,6 @@ import { arr_remove, object_keys } from '@taiyuuki/utils'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
 import { cover_setting } from '@/composables/cover_setting'
-import { thumb_style } from '@/composables/thumb_style'
 import { dirty_meta } from '@/composables/dirty_meta'
 
 const _META_KEY: Record<string, string> = {
@@ -146,9 +145,7 @@ function meta_changed() {
       </div>
       <div flex="2">
         <q-scroll-area
-          :thumb-style="thumb_style"
           style="height: 100%;"
-          :dark="theme.dark"
         >
           <template
             v-for="item in dirty_meta"

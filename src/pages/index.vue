@@ -13,7 +13,6 @@ import { invoke_clean_cache } from '@/invoke'
 import { useActivity } from '@/composables/useActivity'
 import { mimetype } from '@/utils/path'
 import { cover_setting } from '@/composables/cover_setting'
-import { thumb_style } from '@/composables/thumb_style'
 
 const sidebar_width = ref(300)
 const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
@@ -163,8 +162,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
             dense
           >
             <q-scroll-area
-              style="height: 50px;" 
-              :thumb-style="thumb_style"
+              style="height: 50px;"
               @mousewheel.prevent="scroll_ytx"
             >
               <draggable
@@ -201,11 +199,13 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
       v-model="cover_setting"
       no-backdrop-dismiss
       no-shake
+      shadow
       @hide="clean_selections"
     >
       <div 
         bg="var-eb-bg"
         text="var-eb-fg" 
+        style="box-shadow:0 0 2px var(--eb-fg);"
         select-none
         w="80vw"
       >
@@ -226,8 +226,6 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
           <q-scroll-area
             h="50vh"
             flex="1"
-            :thumb-style="thumb_style"
-            :dark="theme.dark"
           >
             <template
               v-for="(img, i) in images"
@@ -247,8 +245,6 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
           <q-scroll-area
             w="300"
             h="50vh"
-            :thumb-style="thumb_style"
-            :dark="theme.dark"
           >
             <img
               v-show="cover_src !== ''"

@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import type { ContentsNode } from './types'
 
-defineProps<{ contents: Record<number, ContentsNode> }>()
+defineProps<{ contents: Record<number, ContentsNode>, edit: boolean }>()
 const emit = defineEmits<{
     (e: 'open', node: ContentsNode): void
+    (e: 'remove', node: ContentsNode): void
+    (e: 'up', node: ContentsNode): void
+    (e: 'down', node: ContentsNode): void
+    (e: 'right', node: ContentsNode): void
+    (e: 'left', node: ContentsNode): void
+    (e: 'contextmenu', node: ContentsNode): void
 }>()
 
 function open(e: MouseEvent, node: ContentsNode) {
@@ -13,6 +19,30 @@ function open(e: MouseEvent, node: ContentsNode) {
 
 function emit_open(node: ContentsNode) {
     emit('open', node)
+}
+
+function emit_remove(node: ContentsNode) {
+    emit('remove', node)
+}
+
+function emit_up(node: ContentsNode) {
+    emit('up', node)
+}
+
+function emit_down(node: ContentsNode) {
+    emit('down', node)
+}
+
+function emit_right(node: ContentsNode) {
+    emit('right', node)
+}
+
+function emit_left(node: ContentsNode) {
+    emit('left', node)
+}
+
+function emit_contextmenu(node: ContentsNode) {
+    emit('contextmenu', node)
 }
 
 function expand(node: ContentsNode) {
@@ -29,6 +59,62 @@ function expand(node: ContentsNode) {
     p="l-20"
     select-none
   >
+    <q-menu 
+      v-if="edit"
+      context-menu
+      bg="var-eb-bg"
+      text="var-eb-fg"
+      w="fit"
+      @show="emit_contextmenu(node)"
+    >
+      <q-list>
+        <q-item
+          v-close-popup
+          clickable
+          @click="emit_remove(node)"
+        >
+          <q-item-section>
+            删除
+          </q-item-section>
+        </q-item>
+        <q-item
+          v-close-popup
+          clickable
+          @click="emit_up(node)"
+        >
+          <q-item-section>
+            上移
+          </q-item-section>
+        </q-item>
+        <q-item
+          v-close-popup
+          clickable
+          @click="emit_down(node)"
+        >
+          <q-item-section>
+            下移
+          </q-item-section>
+        </q-item>
+        <q-item
+          v-close-popup
+          clickable
+          @click="emit_right(node)"
+        >
+          <q-item-section>
+            右移
+          </q-item-section>
+        </q-item>
+        <q-item
+          v-close-popup
+          clickable
+          @click="emit_left(node)"
+        >
+          <q-item-section>
+            左移
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </q-menu>
     <div
       flex="~ justify-start items-center" 
       :class="{ contents: true, selected: node.selected }"
@@ -50,6 +136,7 @@ function expand(node: ContentsNode) {
       <div 
         pointer
         m="l-5"
+        flex="1"
         @click="open($event, node)"
       >
         {{ node.title }}
@@ -65,7 +152,14 @@ function expand(node: ContentsNode) {
       >
         <ContentsTree
           :contents="node.children"
+          :edit="edit"
           @open="emit_open"
+          @remove="emit_remove"
+          @up="emit_up"
+          @down="emit_down"
+          @right="emit_right"
+          @left="emit_left"
+          @contextmenu="emit_contextmenu"
         />
       </div>
     </template>

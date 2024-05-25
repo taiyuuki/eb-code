@@ -248,7 +248,7 @@ const useStatus = defineStore('status', {
         },
         parse_metadata() {
             if (opf.dom) {
-                this.metadata = []
+                this.metadata.length = 0
                 const metadata_node = opf.dom.querySelector('metadata')
                 if (metadata_node) {
                     const children = Array.from(metadata_node.children)
@@ -310,7 +310,7 @@ const useStatus = defineStore('status', {
 
             contents.namespaceURI = contents.dom.documentElement.namespaceURI || contents.namespaceURI
             
-            this.contents_tree = []
+            this.contents_tree.length = 0
 
             if (this.nav_version === 3) {
                 const ol = contents.dom.querySelector('nav[id="toc"]')?.querySelector('ol')
@@ -380,7 +380,8 @@ const useStatus = defineStore('status', {
         async save_contents() {
             if (this.nav_version === 3) {
                 const ol = document.createElement('ol')
-                const loop_stack: [HTMLOListElement, ContentsNode[]][] = [[ol, this.contents_tree]]
+                const loop_stack: [HTMLOListElement, ContentsNode[]][] = []
+
                 ol.appendChild(document.createTextNode('\n'))
                 while (loop_stack.length) {
                     const [ol, tree] = loop_stack.pop()!
@@ -405,38 +406,42 @@ const useStatus = defineStore('status', {
             } else {
                 const navMap = document.createElementNS(contents.namespaceURI, 'navMap')
                 navMap.appendChild(document.createTextNode('\n'))
-                const loop_stack: [Element, ContentsNode[], number][] = [[navMap, this.contents_tree, 1]]
+                const loop_stack: [Element, ContentsNode][] = []
+                for (let i = this.contents_tree.length - 1; i >= 0; i--) {
+                    loop_stack.push([navMap, this.contents_tree[i]])
+                }
+                
+                let index = 1
                 while (loop_stack.length) {
-                    let [navMap, tree, i] = loop_stack.pop()!
-                    tree.forEach(node => {
-                        const navPoint = document.createElementNS(contents.namespaceURI, 'navPoint')
-                        navPoint.appendChild(document.createTextNode('\n'))
-                        const text = document.createElementNS(contents.namespaceURI, 'text')
-                        text.textContent = node.title
+                    const [navMap, node] = loop_stack.pop()!
+                    const navPoint = document.createElementNS(contents.namespaceURI, 'navPoint')
+                    navPoint.appendChild(document.createTextNode('\n'))
+                    const text = document.createElementNS(contents.namespaceURI, 'text')
+                    text.textContent = node.title
 
-                        navPoint.setAttribute('id', `navPoint-${i}`)
-                        navPoint.setAttribute('playOrder', `${i}`)
-                        
-                        const label = document.createElementNS(contents.namespaceURI, 'navLabel')
-                        label.appendChild(text)
-                        navPoint.appendChild(label)
+                    navPoint.setAttribute('id', `navPoint-${index}`)
+                    navPoint.setAttribute('playOrder', `${index}`)
+                    
+                    const label = document.createElementNS(contents.namespaceURI, 'navLabel')
+                    label.appendChild(text)
+                    navPoint.appendChild(label)
 
-                        const content = document.createElementNS(contents.namespaceURI, 'content')
-                        content.setAttribute('src', node.id.replace(this.manifest_path, ''))
+                    const content = document.createElementNS(contents.namespaceURI, 'content')
+                    content.setAttribute('src', node.id.replace(this.manifest_path, ''))
 
-                        navPoint.appendChild(document.createTextNode('\n'))
-                        navPoint.appendChild(content)
-                        navPoint.appendChild(document.createTextNode('\n'))
+                    navPoint.appendChild(document.createTextNode('\n'))
+                    navPoint.appendChild(content)
+                    navPoint.appendChild(document.createTextNode('\n'))
 
-                        navMap.appendChild(navPoint)
-                        navMap.appendChild(document.createTextNode('\n'))
+                    navMap.appendChild(navPoint)
+                    navMap.appendChild(document.createTextNode('\n'))
 
-                        if (node.children?.length) {
-                            loop_stack.push([navPoint, node.children, i])
-                            i += node.children.length
+                    index++
+                    if (node.children?.length) {
+                        for (let i = node.children.length - 1; i >= 0; i--) {
+                            loop_stack.push([navPoint, node.children[i]])
                         }
-                        i++
-                    })
+                    }
                 }
 
                 contents.dom!.querySelector('navMap')?.replaceWith(navMap)
@@ -1016,7 +1021,6 @@ const useStatus = defineStore('status', {
 
                 // this.display = DISPLAY.IMAGE 移至ImageViewer.vue
             } else if (node.id === 'metadata') {
-                this.metadata = []
                 this.parse_cover()
                 this.parse_metadata()
                 this.display = DISPLAY.METADATA
@@ -1036,16 +1040,16 @@ const useStatus = defineStore('status', {
             this.current.src = ''
             this.current.id = ''
             this.current.lang = 'html'
-            this.tabs = []
+            this.tabs.length = 0
             this.image_srces = {}
             this.scroll_tops = {}
             this.meta_is_dirty = false
             this.is_toogle = false
             this.current.save_path = ''
-            this.metadata = []
+            this.metadata.length = 0    
             this.nav_href = ''
             this.nav_in_spine = false
-            this.contents_tree = []
+            this.contents_tree.length = 0
             invoke_clean_cache(this.dir)
             this.dir = ''
         },

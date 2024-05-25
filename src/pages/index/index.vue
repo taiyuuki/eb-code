@@ -7,20 +7,17 @@ const theme = useTheme()
 </script>
 
 <template>
-  <q-scroll-area
-    style="height: calc(100vh - 115px);"
+  <TitleBanner
+    :dark="theme.dark"
+    dense
   >
-    <TitleBanner
-      :dark="theme.dark"
-      dense
-    >
-      <div
-        w="min-50"
-        flex="~ justify-end"
-      >
-        按钮
-      </div>
-    </TitleBanner> 
+    <div text="20 bold">
+      书籍资源管理
+    </div>
+  </TitleBanner>
+  <q-scroll-area
+    style="height: calc(100vh - 170px);"
+  > 
     <FileTree
       :files="status.nodes"
       :level="1"

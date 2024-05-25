@@ -10,6 +10,7 @@ import { cover_setting } from '@/composables/cover_setting'
 import { notif_negative, notif_positive } from '@/notif'
 import { useActivity } from '@/composables/useActivity'
 import { dirty_meta } from '@/composables/dirty_meta'
+import { contents_setting } from '@/composables/contents_setting'
 
 const appWindow = new Window('main')
 const is_maximized = ref(false)
@@ -133,7 +134,7 @@ function edit_metadata() {
         status.tabs.push(node)
     }
     activity_nodes.on(node)
-    status.metadata = []
+    status.metadata.length = 0
     status.parse_metadata()
     status.display = DISPLAY.METADATA
 }
@@ -233,6 +234,15 @@ function edit_metadata() {
           >
             <q-item-section>
               编辑元数据
+            </q-item-section>
+          </q-item>
+          <q-item
+            v-close-popup
+            clickable
+            @click="contents_setting = true"
+          >
+            <q-item-section>
+              编辑目录
             </q-item-section>
           </q-item>
         </q-list>

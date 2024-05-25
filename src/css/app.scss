@@ -70,3 +70,17 @@ body {
 .q-bar {
     background-color: var(--vscode-toolbar-hoverBackground);
 }
+
+.q-field {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+}
+
+.q-field__control {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+}
+
+.q-field--outlined .q-field__control::after {
+    border-color: var(--vscode-input-border);
+}

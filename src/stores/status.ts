@@ -388,10 +388,12 @@ const useStatus = defineStore('status', {
                     const [ol, tree] = loop_stack.pop()!
                     tree.forEach(node => {
                         const li = document.createElement('li')
+                        li.appendChild(document.createTextNode('\n'))
                         const a = document.createElement('a')
                         a.textContent = node.title
                         a.href = node.id.replace(this.manifest_path, '')
                         li.appendChild(a)
+                        li.appendChild(document.createTextNode('\n'))
                         ol.appendChild(li)
                         ol.appendChild(document.createTextNode('\n'))
                         if (node.children?.length) {

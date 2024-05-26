@@ -401,12 +401,12 @@ function insert_after(node?: ContentsNode) {
         p="10"
       >
         <q-btn
-          pst="abs r-10 b-10"
+          pst="abs r-80 b-10"
           label="确定"
           @click="save_node"
         />
         <q-btn
-          pst="abs r-80 b-10"
+          pst="abs r-10 b-10"
           label="取消"
           @click="contents_edit = false"
         />

@@ -212,14 +212,20 @@ function save_node() {
     contents_edit.value = false
 }
 
-function insert_before() {
+function insert_before(node?: ContentsNode) {
+    if (node) {
+        selected_dirty_node = node
+    }
     input_value.name = ''
     input_value.value = ''
     confirm_type.value = 'before'
     contents_edit.value = true
 }
 
-function insert_after() {
+function insert_after(node?: ContentsNode) {
+    if (node) {
+        selected_dirty_node = node
+    }
     input_value.name = ''
     input_value.value = ''
     confirm_type.value = 'after'
@@ -260,11 +266,14 @@ function insert_after() {
           :contents="cloned"
           :edit="true"
           @open="select_contents"
+          @edit="edit_node"
           @remove="contents_remove"
           @up="contents_up"
           @down="contents_down"
           @left="contents_left"
           @right="contents_right"
+          @add_up="insert_before"
+          @add_down="insert_after"
           @contextmenu="select_contents"
         />
       </q-scroll-area>
@@ -306,12 +315,12 @@ function insert_after() {
         <q-btn
           pst="abs l-250 t-20"
           label="上方添加"
-          @click="insert_before"
+          @click="insert_before()"
         />
         <q-btn
           pst="abs l-250 t-70"
           label="下方添加"
-          @click="insert_after"
+          @click="insert_after()"
         />
         <q-btn
           pst="abs r-80 b-10"

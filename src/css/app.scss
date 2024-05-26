@@ -84,3 +84,7 @@ body {
 .q-field--outlined .q-field__control::after {
     border-color: var(--vscode-input-border);
 }
+
+.q-menu {
+    box-shadow: 0 0 2px var(--eb-fg);
+}

@@ -22,8 +22,11 @@ const TREE = {
     OTHER: 7,
 }
 
+const SAVE_DELAY = 800
+
 export { 
     DISPLAY,
     NOT_SUPPORTED_THEMES, 
     TREE,
+    SAVE_DELAY,
 }

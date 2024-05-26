@@ -378,6 +378,7 @@ const useStatus = defineStore('status', {
             
         },
         async save_contents() {
+            let contents_xml = ''
             if (this.nav_version === 3) {
                 const ol = document.createElement('ol')
                 const loop_stack: [HTMLOListElement, ContentsNode[]][] = [[ol, this.contents_tree]]
@@ -402,10 +403,11 @@ const useStatus = defineStore('status', {
                     
                 }
 
-                contents.dom!.querySelector('ol')?.replaceWith(ol)
-
-                const contents_xml = domToXml(contents.dom!)
-                await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
+                contents.dom
+                    ?.querySelector('nav[id="toc"]')
+                    ?.querySelector('ol')
+                    ?.replaceWith(ol)
+                contents_xml = domToXml(contents.dom!)
             } else {
                 const navMap = document.createElementNS(contents.namespaceURI, 'navMap')
                 navMap.appendChild(document.createTextNode('\n'))
@@ -449,9 +451,16 @@ const useStatus = defineStore('status', {
 
                 contents.dom!.querySelector('navMap')?.replaceWith(navMap)
 
-                const contents_xml = domToXml(contents.dom!, 'xml')
-                await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
+                contents_xml = domToXml(contents.dom!, 'xml')
             }
+            
+            if (activity_nodes.opened_node?.type === 'navigation') {
+                this.is_toogle = true
+                this.current.code = contents_xml
+            }
+            
+            await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
+            this.is_toogle && (this.is_toogle = false)
         },
         add_meta(tagName: string, value: string) {
             const count = this.metadata.filter(m => m.tagName === tagName).length

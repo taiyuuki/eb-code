@@ -4,11 +4,14 @@ import type { ContentsNode } from './types'
 defineProps<{ contents: Record<number, ContentsNode>, edit: boolean }>()
 const emit = defineEmits<{
     (e: 'open', node: ContentsNode): void
+    (e: 'edit', node: ContentsNode): void
     (e: 'remove', node: ContentsNode): void
     (e: 'up', node: ContentsNode): void
     (e: 'down', node: ContentsNode): void
     (e: 'right', node: ContentsNode): void
     (e: 'left', node: ContentsNode): void
+    (e: 'add_up', node: ContentsNode): void
+    (e: 'add_down', node: ContentsNode): void
     (e: 'contextmenu', node: ContentsNode): void
 }>()
 
@@ -19,6 +22,10 @@ function open(e: MouseEvent, node: ContentsNode) {
 
 function emit_open(node: ContentsNode) {
     emit('open', node)
+}
+
+function emit_edit(node: ContentsNode) {
+    emit('edit', node)
 }
 
 function emit_remove(node: ContentsNode) {
@@ -39,6 +46,14 @@ function emit_right(node: ContentsNode) {
 
 function emit_left(node: ContentsNode) {
     emit('left', node)
+}
+
+function emit_add_up(node: ContentsNode) {
+    emit('add_up', node)
+}
+
+function emit_add_down(node: ContentsNode) {
+    emit('add_down', node)
 }
 
 function emit_contextmenu(node: ContentsNode) {
@@ -68,6 +83,15 @@ function expand(node: ContentsNode) {
       @show="emit_contextmenu(node)"
     >
       <q-list>
+        <q-item
+          v-close-popup
+          clickable
+          @click="emit_edit(node)"
+        >
+          <q-item-section>
+            编辑
+          </q-item-section>
+        </q-item>
         <q-item
           v-close-popup
           clickable
@@ -113,6 +137,24 @@ function expand(node: ContentsNode) {
             左移
           </q-item-section>
         </q-item>
+        <q-item
+          v-close-popup
+          clickable
+          @click="emit_add_up(node)"
+        >
+          <q-item-section>
+            上方添加
+          </q-item-section>
+        </q-item>
+        <q-item
+          v-close-popup
+          clickable
+          @click="emit_add_down(node)"
+        >
+          <q-item-section>
+            下方添加
+          </q-item-section>
+        </q-item>
       </q-list>
     </q-menu>
     <div
@@ -154,11 +196,14 @@ function expand(node: ContentsNode) {
           :contents="node.children"
           :edit="edit"
           @open="emit_open"
+          @edit="emit_edit"
           @remove="emit_remove"
           @up="emit_up"
           @down="emit_down"
           @right="emit_right"
           @left="emit_left"
+          @add_up="emit_add_up"
+          @add_down="emit_add_down"
           @contextmenu="emit_contextmenu"
         />
       </div>

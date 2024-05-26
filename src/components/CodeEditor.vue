@@ -9,12 +9,15 @@ import { set_opacity } from '@/utils'
 import { useStatus } from '@/stores/status'
 import { invoke_write_text } from '@/invoke'
 import { check_xml } from '@/utils/xml'
+import { useActivity } from '@/composables/useActivity'
+import { SAVE_DELAY } from '@/static'
 
 const theme = useTheme()
 const status = useStatus()
 
 const editor = useElementRef()
 const monaco_controller = create_controller()
+const activity_node = useActivity()
 let timeout_id = 0
 
 monaco_controller.on_change_code(() => {
@@ -25,22 +28,34 @@ monaco_controller.on_change_code(() => {
     if (timeout_id) {
         clearTimeout(timeout_id)
     }
+    
     timeout_id = window.setTimeout(() => {
         const code = monaco_controller.get_code()
+
         if (code.trim() === '') {
             return
         }
+
         if (status.current.id.endsWith('.opf')) {
       
             if (!check_xml(code)) {
                 return
             }
+
             status.reload_opf().then(() => {
                 status.parse_metadata()
             })
         }
+
+        if (activity_node.opened_node?.type === 'navigation') {
+            if (!check_xml(code)) {
+                return
+            }
+            status.parse_contents
+        }
+
         invoke_write_text(status.dir, status.current.id, code)
-    }, 500)
+    }, SAVE_DELAY)
 })
 
 monaco_controller.on_change_lang(() => {

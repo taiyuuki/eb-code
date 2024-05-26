@@ -8,12 +8,10 @@ mod read;
 mod remove;
 mod rename;
 mod save;
-// mod search;
+mod search;
 mod write;
 
 fn main() {
-    // let _ = search::find();
-
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             open::open_epub,
@@ -24,6 +22,7 @@ fn main() {
             remove::remove_file,
             copy::copy_file,
             rename::rename_file,
+            search::find,
         ])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())

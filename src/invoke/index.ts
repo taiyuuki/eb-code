@@ -118,6 +118,22 @@ const invoke_rename_file = function() {
     }
 }()
 
+// 搜索
+const invoke_search = function() {
+    type SearchResult = {
+        lnum: number,
+        line: string,
+    }
+    type Payload = Record<string, SearchResult[]>
+
+    const ir = new InvokeRequest<Payload>('search', 'search-error')
+
+    return function(dir: string, pattern: string, regex: boolean, case_sensitive: boolean) {
+
+        return ir.invoke('find', { searchOption: { dir, pattern, regex, case_sensitive } })
+    }
+}()
+
 export {
     invoke_open_epub,
     invoke_save_epub,
@@ -127,4 +143,5 @@ export {
     invoke_copy_file,
     invoke_remove_file,
     invoke_rename_file,
+    invoke_search,
 }

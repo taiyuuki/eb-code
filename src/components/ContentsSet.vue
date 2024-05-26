@@ -7,14 +7,16 @@ import { activity_contents } from '@/composables/useActivity'
 import { contents_setting } from '@/composables/contents_setting'
 import { useTheme } from '@/stores/theme'
 import { TREE } from '@/static'
+import { notif_warning } from '@/notif'
 
 const status = useStatus()
 const theme = useTheme()
 const { cloned, sync } = useCloned(status.contents_tree, { clone: clone_deep })
 const contents_edit = ref(false)
 let editting_node: ContentsNode | null = null
-
 let selected_dirty_node: ContentsNode | null = null
+const confirm_type = ref<'after' | 'before' | null>(null)
+
 function select_contents(node: ContentsNode) {
     if (selected_dirty_node) {
         selected_dirty_node.selected = false
@@ -134,14 +136,14 @@ function save_contents() {
     contents_setting.value = false
 }
 
-const editing_node = reactive({
+const input_value = reactive({
     name: '',
     value: '',
 })
 
 function init_edit() {
-    editing_node.name = ''
-    editing_node.value = ''
+    input_value.name = ''
+    input_value.value = ''
     selected_index.value = -1
     editting_node = null
 }
@@ -149,8 +151,8 @@ function init_edit() {
 function edit_node(node?: ContentsNode) {
     if (node) {
         selected_index.value = status.nodes[TREE.HTML].children!.findIndex(n => n.id === node.id)
-        editing_node.name = node.title
-        editing_node.value = node.id
+        input_value.name = node.title
+        input_value.value = node.id
         contents_edit.value = true
         editting_node = node
     }
@@ -158,16 +160,70 @@ function edit_node(node?: ContentsNode) {
 
 function select_node(node: FileNode, i: number) {
     selected_index.value = i
-    editing_node.value = node.id
+    input_value.value = node.id
 }
 
 function save_node() {
-    if (editting_node) {
-        editting_node.title = editing_node.name
-        editting_node.id = editing_node.value
-        editting_node = null
+    if (input_value.name.trim() === '') {
+        notif_warning('请输入标题')
+
+        return
+    }
+    if (input_value.value.trim() === '') {
+        notif_warning('请选择链接目标')
+
+        return
+    }
+
+    if (selected_dirty_node) {
+        if (confirm_type.value) {
+            const tree = selected_dirty_node.parent?.children ?? cloned.value
+            const index = tree.indexOf(selected_dirty_node)
+
+            if (index >= 0) {
+                const new_node: ContentsNode = {
+                    id: input_value.value,
+                    title: input_value.name,
+                    selected: true,
+                    parent: selected_dirty_node.parent,
+                }
+                if (selected_dirty_node) {
+                    selected_dirty_node.selected = false
+                }
+                switch (confirm_type.value) {
+                    case 'before':
+                        tree.splice(index, 0, new_node)
+                        selected_dirty_node = tree[index]
+                        break
+                    case 'after':
+                        tree.splice(index + 1, 0, new_node)
+                        selected_dirty_node = tree[index + 1]
+                        break
+                    default:
+                        break
+                }
+                confirm_type.value = null
+            }
+        } else if (editting_node) {
+            selected_dirty_node.title = input_value.name
+            editting_node.id = input_value.value
+        }
     }
     contents_edit.value = false
+}
+
+function insert_before() {
+    input_value.name = ''
+    input_value.value = ''
+    confirm_type.value = 'before'
+    contents_edit.value = true
+}
+
+function insert_after() {
+    input_value.name = ''
+    input_value.value = ''
+    confirm_type.value = 'after'
+    contents_edit.value = true
 }
 </script>
 
@@ -250,10 +306,12 @@ function save_node() {
         <q-btn
           pst="abs l-250 t-20"
           label="上方添加"
+          @click="insert_before"
         />
         <q-btn
           pst="abs l-250 t-70"
           label="下方添加"
+          @click="insert_after"
         />
         <q-btn
           pst="abs r-80 b-10"
@@ -282,7 +340,7 @@ function save_node() {
       w="80vw"
     >
       <q-input
-        v-model="editing_node.name"
+        v-model="input_value.name"
         dense
         outlined
         label="标题"
@@ -302,7 +360,7 @@ function save_node() {
           tabindex="0"
           m="t-10"
         >
-          {{ editing_node.value }}
+          {{ input_value.value }}
         </div>
       </q-field>
       <div m="t-10">
@@ -334,14 +392,14 @@ function save_node() {
         p="10"
       >
         <q-btn
-          pst="abs r-80 b-10"
-          label="取消"
-          @click="contents_edit = false"
-        />
-        <q-btn
           pst="abs r-10 b-10"
           label="确定"
           @click="save_node"
+        />
+        <q-btn
+          pst="abs r-80 b-10"
+          label="取消"
+          @click="contents_edit = false"
         />
       </div>
     </div>

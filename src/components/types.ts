@@ -32,7 +32,6 @@ interface ContentsNode {
     title: string
     selected?: boolean
     expanded?: boolean
-    attrs?: Record<string, string>
     children?: ContentsNode[]
     parent?: ContentsNode
 }

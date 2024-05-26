@@ -4,8 +4,8 @@ function xmlToDom(xml: string) {
     return new DOMParser().parseFromString(xml, 'application/xhtml+xml')
 }
 
-function domToXml(dom: Document) {
-    return xmlserializer.serializeToString(dom)
+function domToXml(dom: Document, type: 'xhtml' | 'xml' = 'xhtml') {
+    return type === 'xhtml' ? new XMLSerializer().serializeToString(dom) : xmlserializer.serializeToString(dom)
 }
 
 function domToObj(dom: Element) {

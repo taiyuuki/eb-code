@@ -380,7 +380,7 @@ const useStatus = defineStore('status', {
         async save_contents() {
             if (this.nav_version === 3) {
                 const ol = document.createElement('ol')
-                const loop_stack: [HTMLOListElement, ContentsNode[]][] = []
+                const loop_stack: [HTMLOListElement, ContentsNode[]][] = [[ol, this.contents_tree]]
 
                 ol.appendChild(document.createTextNode('\n'))
                 while (loop_stack.length) {
@@ -403,6 +403,9 @@ const useStatus = defineStore('status', {
                 }
 
                 contents.dom!.querySelector('ol')?.replaceWith(ol)
+
+                const contents_xml = domToXml(contents.dom!)
+                await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
             } else {
                 const navMap = document.createElementNS(contents.namespaceURI, 'navMap')
                 navMap.appendChild(document.createTextNode('\n'))
@@ -445,10 +448,10 @@ const useStatus = defineStore('status', {
                 }
 
                 contents.dom!.querySelector('navMap')?.replaceWith(navMap)
-            }
 
-            const contents_xml = domToXml(contents.dom!)
-            await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
+                const contents_xml = domToXml(contents.dom!, 'xml')
+                await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
+            }
         },
         add_meta(tagName: string, value: string) {
             const count = this.metadata.filter(m => m.tagName === tagName).length
@@ -776,7 +779,7 @@ const useStatus = defineStore('status', {
             }
         },
         async save_opf() {
-            const code = domToXml(opf.dom!).replace(/\n\s*\n\s*\n/g, '\n\n')
+            const code = domToXml(opf.dom!, 'xml').replace(/\n\s*\n\s*\n/g, '\n\n')
             if (activity_nodes.opened_node?.type === 'opf') {
                 this.is_toogle = true
                 this.current.code = code

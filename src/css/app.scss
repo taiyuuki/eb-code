@@ -88,3 +88,9 @@ body {
 .q-menu {
     box-shadow: 0 0 2px var(--eb-fg);
 }
+
+.q-tooltip {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    box-shadow: 0 0 2px var(--eb-fg);
+}

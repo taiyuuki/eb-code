@@ -3,6 +3,7 @@ import type { Event } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import type { Language } from '@/editor/shiki'
+import type { SearchResult } from '@/components/types'
 
 class InvokeRequest<Payload, Error = string> {
     resolve: (value: Payload | PromiseLike<Payload>)=> void
@@ -120,10 +121,6 @@ const invoke_rename_file = function() {
 
 // 搜索
 const invoke_search = function() {
-    type SearchResult = {
-        lnum: number,
-        line: string,
-    }
     type Payload = Record<string, SearchResult[]>
 
     const ir = new InvokeRequest<Payload>('search', 'search-error')
@@ -131,6 +128,17 @@ const invoke_search = function() {
     return function(dir: string, pattern: string, regex: boolean, case_sensitive: boolean) {
 
         return ir.invoke('find', { searchOption: { dir, pattern, regex, case_sensitive } })
+    }
+}()
+
+// 替换
+const invoke_replace = function() {
+    type Payload = string
+    const ir = new InvokeRequest<Payload>('replace', 'replace-error')
+
+    return function(dir: string, pattern: string, regex: boolean, case_sensitive: boolean, replacement: string) {
+
+        return ir.invoke('replace', { replaceOption: { dir, pattern, regex, case_sensitive, replacement } })
     }
 }()
 
@@ -144,4 +152,5 @@ export {
     invoke_remove_file,
     invoke_rename_file,
     invoke_search,
+    invoke_replace,
 }

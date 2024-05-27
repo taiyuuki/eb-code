@@ -36,10 +36,16 @@ interface ContentsNode {
     parent?: ContentsNode
 }
 
+interface SearchResult {
+    lnum: number
+    line: string
+}
+
 export type {
     FileNode,
     TreeProps, 
     TreeEmits, 
     Moved, 
     ContentsNode, 
+    SearchResult,
 }

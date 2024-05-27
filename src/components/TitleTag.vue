@@ -90,7 +90,8 @@ function close(e: MouseEvent, node: FileNode) {
     />
     {{ tag_name }}
     <div
-      class="i-ic:baseline-cancel close-btn"
+      class="i-ic:baseline-cancel
+      close-btn"
       op="50 hover:100"
       display-inline-block
       invisible

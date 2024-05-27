@@ -23,6 +23,7 @@ fn main() {
             copy::copy_file,
             rename::rename_file,
             search::find,
+            search::replace,
         ])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())

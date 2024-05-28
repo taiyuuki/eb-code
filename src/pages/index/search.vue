@@ -39,6 +39,10 @@ async function replace() {
     search()
 }
 
+function open(k: string, item: SearchResult) {
+    status.open_by_id(k, item.lnum)
+}
+
 watch([() => case_sensitive.value, () => regex.value], () => {
     search()
 })
@@ -70,7 +74,7 @@ watch([() => case_sensitive.value, () => regex.value], () => {
           pointer
           @click="case_sensitive = !case_sensitive"
         >
-          <q-tooltip>
+          <q-tooltip :delay="500">
             区分大小写
           </q-tooltip>
         </q-btn>
@@ -80,14 +84,17 @@ watch([() => case_sensitive.value, () => regex.value], () => {
           pointer
           @click="regex = !regex"
         >
-          <q-tooltip>
+          <q-tooltip :delay="500">
             使用正则表达式
           </q-tooltip>
         </q-btn>
       </template>
     </q-input>
   </div>
-  <div p="r-10">
+  <div
+    p="r-10"
+    m="t-5"
+  >
     <q-input
       v-model="replacement"
       :dark="theme.dark"
@@ -102,7 +109,7 @@ watch([() => case_sensitive.value, () => regex.value], () => {
           pointer
           @click="replace"
         >
-          <q-tooltip>
+          <q-tooltip :delay="500">
             全部替换
           </q-tooltip>
         </q-btn>
@@ -137,6 +144,7 @@ watch([() => case_sensitive.value, () => regex.value], () => {
           pointer
           m="l-5"
           flex="1"
+          @click="open(k, v[0])"
         >
           {{ k }}
         </div>
@@ -146,6 +154,7 @@ watch([() => case_sensitive.value, () => regex.value], () => {
         :key="i"
         m="l-30"
         pointer
+        @click="open(k, item)"
       >
         {{ item.line }}
       </div>

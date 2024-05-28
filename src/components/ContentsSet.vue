@@ -381,14 +381,14 @@ function insert_after(node?: ContentsNode) {
         style="box-shadow: 0 0 2px var(--eb-fg);"
       >
         <template
-          v-for="(node, i) in status.nodes[TREE.HTML].children"
+          v-for="(node, i) in status.contents_links"
           :key="node.id"
         >
           <div
             flex="~"
             items-center
             p="y-10"
-            :class="{ selected: i === selected_index, hovered: true }"
+            :class="{ hovered: true, selected: i === selected_index }"
             @click="select_node(node, i)"
           >
             {{ node.id }}
@@ -414,12 +414,3 @@ function insert_after(node?: ContentsNode) {
     </div>
   </q-dialog>
 </template>
-
-<style scoped>
-.selected {
-    background: var(--vscode-toolbar-activeBackground);
-}
-.hovered:hover {
-    background: var(--vscode-toolbar-hoverBackground);
-}
-</style>

@@ -51,7 +51,7 @@ monaco_controller.on_change_code(() => {
             if (!check_xml(code)) {
                 return
             }
-            status.parse_contents
+            status.parse_contents()
         }
 
         invoke_write_text(status.dir, status.current.id, code)

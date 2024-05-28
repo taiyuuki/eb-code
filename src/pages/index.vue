@@ -144,8 +144,3 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
   </q-page>
 </template>
 
-<style scoped>
-.selected {
-    background: var(--vscode-toolbar-activeBackground);
-}
-</style>

@@ -101,10 +101,9 @@ async function open_cover() {
             :key="img.id"
           >
             <div
-              hover="bg-var-vscode-toolbar-hoverBackground"
               m="y-5"
               p="x-5"
-              :class="{ selected: selections[i] }"
+              :class="{ hovered: true, selected: selections[i] }"
               @click="seletct_cover(img, i)"
             >
               {{ img.id }}

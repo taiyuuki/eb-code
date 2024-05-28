@@ -119,6 +119,19 @@ function scroll_top_to(top: number) {
     editor.setScrollTop(top)
 }
 
+function scroll_to_line(lnum: number) {
+    const editor = monaco.editor.getEditors()[0]
+
+    editor.revealLineNearTop(lnum)
+
+    setTimeout(() => {
+        editor.setPosition({
+            lineNumber: lnum,
+            column: 1,
+        })
+    })
+}
+
 function set_font_size(size: number) {
     const editor = monaco.editor.getEditors()[0]
     editor.updateOptions({ fontSize: size })
@@ -128,6 +141,7 @@ export {
     initMonaco,
     get_scroll_top,
     scroll_top_to,
+    scroll_to_line,
     create_controller,
     get_code,
     set_font_size,

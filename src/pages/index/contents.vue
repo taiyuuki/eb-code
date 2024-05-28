@@ -16,14 +16,17 @@ function open(node: ContentsNode) {
     activity_contents.selected_node = node
     activity_contents.selected_node.selected = true
 
-    // TODO: 跳转至id，当前做法是直接删除id
-    const i = node.id.lastIndexOf('#')
-    let id = node.id
-    if (i > 0) {
-        id = node.id.substring(0, node.id.indexOf('#'))
+    const [id, _$id] = node.id.split('#')
+    if (node.id in status.contents_id_lnum) {
+        status.open_by_id(id, status.contents_id_lnum[node.id])
+    } else {
+        status.open_by_id(id, 1)
     }
-    status.open_by_id(id)
 }
+
+onMounted(() => {
+    status.load_contents_link()
+})
 </script>
 
 <template>

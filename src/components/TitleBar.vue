@@ -26,6 +26,7 @@ listen(TauriEvent.WINDOW_RESIZED, async _ => {
 const theme = useTheme()
 const status = useStatus()
 const activity_nodes = useActivity()
+const router = useRouter()
 
 async function open_epub_file() {
     if (status.is_opening || status.is_saving) {
@@ -52,6 +53,7 @@ async function open_epub_file() {
             status.set_base_path(payload.base_path)
             status.is_opening = false
             status.parse_epub(payload)
+            router.replace({ path: '/' })
         }, () => {
             status.is_opening = false
             notif_negative('失败！不是有效的EPUB文件。')

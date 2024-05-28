@@ -3,6 +3,8 @@ import type { FileNode } from './types'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
 import { basename } from '@/utils/path'
+import { vScrollview } from '@/directives/v-scrollview'
+import { vVisible } from '@/directives/v-visible'
 
 const props = defineProps<{ node: FileNode }>()
 const emit = defineEmits<{
@@ -29,10 +31,12 @@ function close(e: MouseEvent, node: FileNode) {
 
 <template>
   <div
-    hover="cursor-pointer bg-var-vscode-toolbar-hoverBackground [&>.close-btn]:visible"
-    :class="{ opened: node.open }"
+    v-scrollview="node.open"
+    :class="{ selected: node.open, hovered: true }"
+    hover="[&>.close-btn]:visible!"
+    pointer
     h="100%"
-    p="15"
+    p="y-15 x-5"
     whitespace-nowrap
     @mousedown="open($event)"
   >
@@ -90,11 +94,10 @@ function close(e: MouseEvent, node: FileNode) {
     />
     {{ tag_name }}
     <div
-      class="i-ic:baseline-cancel
-      close-btn"
-      op="50 hover:100"
+      v-visible="node.open"
+      class="i-ic:baseline-cancel close-btn"
+      op="60 hover:100"
       display-inline-block
-      invisible
       middle
       w="20"
       h="20"
@@ -103,15 +106,3 @@ function close(e: MouseEvent, node: FileNode) {
     />
   </div>
 </template>
-
-<style>
-div.opened {
-  background-color: var(--vscode-toolbar-activeBackground);
-}
-
-div.opened:hover {
-  background-color: var(--vscode-toolbar-activeBackground);
-}
-</style>
-@/stores/status
-@/utils/path

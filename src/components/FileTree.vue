@@ -25,11 +25,7 @@ const line_width = computed(() => {
 })
 const status = useStatus()
 
-function toggle(e: MouseEvent, node: FileNode) {
-    if (e.button !== 0) {
-        return
-    }
-    
+function toggle(node: FileNode) { 
     status.add_tab(node)
     status.open(node)
 }
@@ -397,42 +393,13 @@ function new_css() {
             </q-item>
           </q-list>
         </q-menu>
-        <div
+        <FileItem
           v-if="node.icon"
-          hover="cursor-pointer bg-var-vscode-toolbar-hoverBackground"
-          :class="{ selected: node.selected }"
-          middle
-          p="y-2"
-          text="14"
-          whitespace-nowrap
-          select-none
-          @mousedown="toggle($event, node)"
-        >
-          <div
-            v-if="node.children"
-            :class="node.expanded ? 'i-ic:outline-keyboard-arrow-down' : 'i-ic:outline-keyboard-arrow-right'"
-            display-inline-block
-            middle
-            w="20"
-            h="20"
-            :style="`margin-left: ${indent}px`"
-          />
-          <div
-            v-else
-            display-inline-block
-            w="20"
-            h="20"
-          />
-          <div
-            :class="node.icon"
-            display-inline-block
-            middle
-            w="20"
-            h="20"
-            :style="`margin-left: ${node.children ? 0 : indent}px`"
-          />
-          {{ node.name }}
-        </div>
+          :node="node"
+          :level="level"
+          :indent="indent"
+          @toggle="toggle"
+        />
         <div
           v-else
           m="l-60 r-20" 
@@ -467,14 +434,6 @@ function new_css() {
 </template>
 
 <style scoped>
-div.selected {
-  background-color: var(--vscode-toolbar-activeBackground);
-}
-
-div.selected:hover {
-  background-color: var(--vscode-toolbar-activeBackground);
-}
-
 .folder {
   position: relative;
 }

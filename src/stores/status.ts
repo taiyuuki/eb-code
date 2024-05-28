@@ -3,10 +3,10 @@ import { convertFileSrc } from '@tauri-apps/api/core'
 import { arr_remove } from '@taiyuuki/utils'
 import type { ContentsNode, FileNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
-import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_write_text } from '@/invoke'
+import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_search, invoke_write_text } from '@/invoke'
 import { basename, filename, relative } from '@/utils/path'
 import { is_audio, is_font, is_html, is_image, is_style, is_text, is_video } from '@/utils/is'
-import { get_scroll_top, scroll_top_to } from '@/editor'
+import { get_scroll_top, scroll_to_line, scroll_top_to } from '@/editor'
 import { useActivity } from '@/composables/useActivity'
 import { notif_negative, notif_positive } from '@/notif'
 import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
@@ -92,6 +92,8 @@ const useStatus = defineStore('status', {
         nav_in_spine: false,
         nav_version: 2 as 2 | 3,
         contents_tree: [] as ContentsNode[],
+        contents_links: [] as FileNode[],
+        contents_id_lnum: {} as Record<string, number>,
     }),
     getters: {
 
@@ -196,7 +198,7 @@ const useStatus = defineStore('status', {
                 this.parse_cover()
                 this.parse_metadata()
                 this.parse_nav()
-                this.parse_contents()
+                await this.parse_contents()
             }
         },
         async reload_opf() {
@@ -373,6 +375,24 @@ const useStatus = defineStore('status', {
                     }   
                 }
             }
+        },
+        async load_contents_link() {
+            const result = await invoke_search(this.dir, 'id=".*?"', true, false)
+            this.contents_links.length = 0
+            this.nodes[TREE.HTML].children?.forEach(node => {
+                this.contents_links.push(node)
+                if (node.id in result) {
+                    const reg = /id="(.*?)"/
+                    result[node.id].forEach(r => {
+                        const id = `${node.id}#${reg.exec(r.line)![1]}`
+                        this.contents_id_lnum[id] = r.lnum
+                        this.contents_links.push({
+                            id,
+                            name: id,
+                        })
+                    })
+                }
+            })
         },
         parse_guide() {
             
@@ -806,7 +826,7 @@ const useStatus = defineStore('status', {
                     return this.expanded ? 'i-vscode-icons:folder-type-view-opened' : 'i-vscode-icons:folder-type-view'
                 },
                 children: [],
-                expanded: false,
+                expanded: true,
                 type: 'folder',
             },
             {
@@ -1001,12 +1021,11 @@ const useStatus = defineStore('status', {
             this.current.id = id
             this.is_reading = false
             this.is_toogle = false
-            scroll_top_to(this.get_top(id))
         },
-        open(node: FileNode) {
+        open(node: FileNode, lnum?: number) {
 
             // 如果是同一个节点，不操作
-            if (activity_nodes.opened_node === node || this.is_reading) {
+            if ((activity_nodes.opened_node === node || this.is_reading) && !lnum) {
                 return
             }
 
@@ -1027,6 +1046,11 @@ const useStatus = defineStore('status', {
                 invoke_get_text(node.id, this.dir).then(payload => {
                     this.set_text(payload[0], payload[1], node.id)
                     this.display = DISPLAY.CODE
+                    if (lnum) {
+                        scroll_to_line(lnum)
+                    } else {
+                        scroll_top_to(this.get_top(node.id))
+                    }
                 }, () => {
                     notif_negative('缓存文件被删除，请重新打开EPUB。')
                 })
@@ -1040,11 +1064,10 @@ const useStatus = defineStore('status', {
                 this.display = DISPLAY.METADATA
             }
         },
-        open_by_id(id: string) {
-            
+        open_by_id(id: string, lnum?: number) {
             const node = this.nodes[TREE.HTML].children!.find(n => n.id === id)
             if (node) {
-                this.open(node)
+                this.open(node, lnum)
                 this.add_tab(node)
             }
         },

@@ -157,9 +157,8 @@ function expand(node: ContentsNode) {
         </q-item>
       </q-list>
     </q-menu>
-    <div
-      flex="~ justify-start items-center" 
-      :class="{ contents: true, selected: node.selected }"
+    <div 
+      flex="~ justify-start items-center"
       @click="expand(node)"
     >
       <div
@@ -179,6 +178,7 @@ function expand(node: ContentsNode) {
         pointer
         m="l-5"
         flex="1"
+        :class="{ hovered: true, selected: node.selected }"
         @click="open($event, node)"
       >
         {{ node.title }}
@@ -210,13 +210,3 @@ function expand(node: ContentsNode) {
     </template>
   </div>
 </template>
-
-<style scoped>
-div.selected {
-  background-color: var(--vscode-toolbar-activeBackground);
-}
-
-div.contents:hover {
-  background-color: var(--vscode-toolbar-activeBackground);
-}
-</style>

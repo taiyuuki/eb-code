@@ -10,7 +10,8 @@ import { useStatus } from '@/stores/status'
 import { invoke_clean_cache } from '@/invoke'
 import { useActivity } from '@/composables/useActivity'
 
-const sidebar_width = ref(300)
+const sidebar_width = ref(256)
+const preview_width = ref(200)
 const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
 const theme = useTheme()
 const status = useStatus()
@@ -95,7 +96,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
       <q-splitter
         v-model="sidebar_width"
         unit="px"
-        :limits="[300, Infinity]"
+        :limits="[180, Infinity]"
         separator-class="bg-var-eb-fg"
         flex="1"
       >
@@ -104,42 +105,54 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
         </template>
   
         <template #after>
-          <TitleBanner
-            :dark="theme.dark"
-            dense
+          <q-splitter
+            v-model="preview_width"
+            unit="px"
+            reverse
           >
-            <q-scroll-area
-              visible
-              style="height: 50px;"
-              @mousewheel.prevent="scroll_ytx"
-            >
-              <draggable
-                :list="status.tabs"
-                item-key="id"
-                animation="200"
-                force-fallback
-                class="flex items-center flex-nowrap"
+            <template #before>
+              <TitleBanner
+                :dark="theme.dark"
+                dense
               >
-                <template #item="{ element: node }">
-                  <TitleTag
-                    :node="node"
-                    @close="close_file"
-                    @open="open_file"
-                  />
-                </template>
-              </draggable>
-            </q-scroll-area>
-          </TitleBanner>
-          <CodeEditor
-            v-show="status.display === DISPLAY.CODE"
-            :language="status.current.lang"
-            :code="status.current.code"
-          />
-          <ImageViewer
-            v-show="status.display === DISPLAY.IMAGE"
-            :src="status.current.src"
-          />
-          <MetaSet v-if="status.display === DISPLAY.METADATA" />
+                <q-scroll-area
+                  visible
+                  style="height: 50px;"
+                  @mousewheel.prevent="scroll_ytx"
+                >
+                  <draggable
+                    :list="status.tabs"
+                    item-key="id"
+                    animation="200"
+                    force-fallback
+                    class="flex items-center flex-nowrap"
+                  >
+                    <template #item="{ element: node }">
+                      <TitleTag
+                        :node="node"
+                        @close="close_file"
+                        @open="open_file"
+                      />
+                    </template>
+                  </draggable>
+                </q-scroll-area>
+              </TitleBanner>
+              <CodeEditor
+                v-show="status.display === DISPLAY.CODE"
+                :language="status.current.lang"
+                :code="status.current.code"
+              />
+          
+              <ImageViewer
+                v-show="status.display === DISPLAY.IMAGE"
+                :src="status.current.src"
+              />
+              <MetaSet v-if="status.display === DISPLAY.METADATA" />
+            </template>
+            <template #after>
+              <HtmlPreview />
+            </template>
+          </q-splitter>
         </template>
       </q-splitter>
     </div>

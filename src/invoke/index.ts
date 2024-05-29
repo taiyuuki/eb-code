@@ -153,6 +153,17 @@ const invoke_replace = function() {
     }
 }()
 
+// 获取预览端口
+const invoke_get_port = function() {
+    type Payload = number
+    const ir = new InvokeRequest<Payload>('port', 'port-error')
+
+    return function() {
+
+        return ir.invoke('get_port')
+    }
+}()
+
 export {
     invoke_setup,
     invoke_open_epub,
@@ -166,4 +177,5 @@ export {
     invoke_rename_file,
     invoke_search,
     invoke_replace,
+    invoke_get_port,
 }

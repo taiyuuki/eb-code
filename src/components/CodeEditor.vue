@@ -11,6 +11,7 @@ import { invoke_write_text } from '@/invoke'
 import { check_xml } from '@/utils/xml'
 import { useActivity } from '@/composables/useActivity'
 import { SAVE_DELAY } from '@/static'
+import { usePreview } from '@/stores/preview'
 
 const theme = useTheme()
 const status = useStatus()
@@ -19,6 +20,7 @@ const editor = useElementRef()
 const monaco_controller = create_controller()
 const activity_node = useActivity()
 let timeout_id = 0
+const preview = usePreview()
 
 monaco_controller.on_change_code(() => {
     if (status.is_toogle) {
@@ -54,7 +56,9 @@ monaco_controller.on_change_code(() => {
             status.parse_contents()
         }
 
-        invoke_write_text(status.dir, status.current.id, code)
+        invoke_write_text(status.dir, status.current.id, code).then(() => {
+            preview.need_reload = true
+        })
     }, SAVE_DELAY)
 })
 

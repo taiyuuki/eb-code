@@ -12,6 +12,8 @@ import { notif_negative, notif_positive } from '@/notif'
 import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
 import { DISPLAY, TREE } from '@/static'
 import { cover_template, xhtml_template } from '@/template/xhtml'
+import stores from '@/stores'
+import { usePreview } from '@/stores/preview'
 
 /**
  * TODO: 统一变量命名
@@ -23,6 +25,9 @@ import { cover_template, xhtml_template } from '@/template/xhtml'
 
 const activity_nodes = useActivity()
 
+const preview = usePreview(stores)
+
+preview.get_port()
 function tree_index(name: string) {
     if (is_html(name)) {
         return TREE.HTML
@@ -1053,6 +1058,7 @@ const useStatus = defineStore('status', {
                 invoke_get_text(node.id, this.dir).then(payload => {
                     this.set_text(payload[0], payload[1], node.id)
                     this.display = DISPLAY.CODE
+                    preview.id = node.id
                     if (lnum) {
                         scroll_to_line(lnum)
                     } else {

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { FileNode } from './types'
 import { useStatus } from '@/stores/status'
-import { useTheme } from '@/stores/theme'
 import { basename } from '@/utils/path'
 import { vScrollview } from '@/directives/v-scrollview'
 import { vVisible } from '@/directives/v-visible'
@@ -11,7 +10,7 @@ const emit = defineEmits<{
     (e: 'open', node: FileNode): void,
     (e: 'close', node: FileNode): void
 }>()
-const theme = useTheme()
+
 const status = useStatus()
 
 const tag_name = computed(() => {
@@ -32,7 +31,7 @@ function close(e: MouseEvent, node: FileNode) {
 <template>
   <div
     v-scrollview="node.open"
-    :class="{ selected: node.open, hovered: true }"
+    :class="{ 'list-selection': true, 'selected': node.open }"
     hover="[&>.close-btn]:visible!"
     pointer
     h="100%"
@@ -42,9 +41,6 @@ function close(e: MouseEvent, node: FileNode) {
   >
     <q-menu
       context-menu
-      :dark="theme.dark"
-      bg="var-eb-bg"
-      text="var-eb-fg"
     >
       <q-list>    
         <q-item

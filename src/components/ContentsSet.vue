@@ -187,9 +187,8 @@ function save_node() {
                     selected: true,
                     parent: selected_dirty_node.parent,
                 }
-                if (selected_dirty_node) {
-                    selected_dirty_node.selected = false
-                }
+                selected_dirty_node.selected = false
+                
                 switch (confirm_type.value) {
                     case 'before':
                         tree.splice(index, 0, new_node)
@@ -207,6 +206,24 @@ function save_node() {
         } else if (editting_node) {
             selected_dirty_node.title = input_value.name
             editting_node.id = input_value.value
+        }
+    } else {
+        const new_node: ContentsNode = {
+            id: input_value.value,
+            title: input_value.name,
+            selected: true,
+        }
+        switch (confirm_type.value) {
+            case 'before':
+                cloned.value.unshift(new_node)
+                selected_dirty_node = cloned.value[0]
+                break
+            case 'after':
+                cloned.value.push(new_node)
+                selected_dirty_node = cloned.value[cloned.value.length - 1]
+                break
+            default:
+                break
         }
     }
     contents_edit.value = false
@@ -260,6 +277,7 @@ function insert_after(node?: ContentsNode) {
         />
       </q-bar>
       <q-scroll-area
+        visible
         h="50vh"
       >
         <ContentsTree
@@ -376,6 +394,7 @@ function insert_after(node?: ContentsNode) {
         选择目标
       </div>
       <q-scroll-area
+        visible
         m="t-10"
         h="30vh"
         style="box-shadow: 0 0 2px var(--eb-fg);"
@@ -388,7 +407,7 @@ function insert_after(node?: ContentsNode) {
             flex="~"
             items-center
             p="y-10"
-            :class="{ hovered: true, selected: i === selected_index }"
+            :class="{ 'list-selection': true, 'selected': i === selected_index }"
             @click="select_node(node, i)"
           >
             {{ node.id }}

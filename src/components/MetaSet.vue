@@ -145,6 +145,7 @@ function meta_changed() {
       </div>
       <div flex="2">
         <q-scroll-area
+          visible
           style="height: 100%;"
         >
           <template

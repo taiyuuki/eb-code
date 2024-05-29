@@ -994,6 +994,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-global-shortcut",
  "tauri-plugin-shell",
+ "uuid",
  "walkdir",
  "zip 0.6.6",
 ]

@@ -93,6 +93,7 @@ async function open_cover() {
         flex="~"
       >
         <q-scroll-area
+          visible
           h="50vh"
           flex="1"
         >
@@ -103,7 +104,7 @@ async function open_cover() {
             <div
               m="y-5"
               p="x-5"
-              :class="{ hovered: true, selected: selections[i] }"
+              :class="{ 'list-selection': true, 'selected': selections[i] }"
               @click="seletct_cover(img, i)"
             >
               {{ img.id }}
@@ -111,6 +112,7 @@ async function open_cover() {
           </template>
         </q-scroll-area>
         <q-scroll-area
+          visible
           w="300"
           h="50vh"
         >

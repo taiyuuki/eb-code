@@ -15,7 +15,8 @@
         "width": 1200,
         "height": 800,
         "dragDropEnabled": false,
-        "decorations": false
+        "decorations": false,
+        "theme": "Dark"
       }
     ],
     "security": {

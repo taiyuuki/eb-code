@@ -124,6 +124,7 @@ watch([() => case_sensitive.value, () => regex.value], () => {
     {{ counter.found }}个文件中有 {{ counter.total }} 个结果
   </div>
   <q-scroll-area
+    visible
     m="t-10"
     style="height: calc(100vh - 300px);"
     select-none
@@ -141,6 +142,7 @@ watch([() => case_sensitive.value, () => regex.value], () => {
           pointer
         />
         <div
+          class="list-selection"
           pointer
           m="l-5"
           flex="1"
@@ -152,6 +154,7 @@ watch([() => case_sensitive.value, () => regex.value], () => {
       <div
         v-for="(item, i) in v"
         :key="i"
+        class="list-selection"
         m="l-30"
         pointer
         @click="open(k, item)"

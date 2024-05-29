@@ -15,7 +15,7 @@ function toggle(e: MouseEvent, node: FileNode) {
   <div
     v-scrollview="node.selected"
     pointer
-    :class="{ hovered: true, selected: node.selected }"
+    :class="{ 'list-selection': true, 'selected': node.selected }"
     middle
     p="y-2"
     text="14"

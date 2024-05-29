@@ -305,9 +305,6 @@ function new_css() {
       <div :class="{ draggable: node.type === 'html' || node.type === 'navigation' && status.nav_in_spine }">
         <q-menu
           context-menu
-          :dark="theme.dark"
-          bg="var-eb-bg"
-          text="var-eb-fg"
         >
           <q-list>
             <q-item

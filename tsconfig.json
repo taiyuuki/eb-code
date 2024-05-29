@@ -44,5 +44,8 @@
     "./src-capacitor",
     "./src-cordova",
     "./quasar.config.*.temporary.compiled*"
+  ],
+  "include": [
+    "./src"
   ]
 }

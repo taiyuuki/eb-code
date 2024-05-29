@@ -1,7 +1,7 @@
 // @unocss-include
 import { convertFileSrc } from '@tauri-apps/api/core'
 import { arr_remove } from '@taiyuuki/utils'
-import type { ContentsNode, FileNode } from '@/components/types'
+import type { ContentsNode, EpubContent, FileNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
 import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_search, invoke_write_text } from '@/invoke'
 import { basename, filename, relative } from '@/utils/path'
@@ -99,7 +99,7 @@ const useStatus = defineStore('status', {
 
         // EPUB文件名
         file_name(state) {
-            return filename(state.current.save_path)
+            return filename(state.current.save_path) || 'Untitled.epub'
         },
         book_id(state) {
             return state.metadata.find(m => m.tagName === 'dc:identifier')?.textContent || ''
@@ -107,13 +107,17 @@ const useStatus = defineStore('status', {
         book_title(state) {
             return state.metadata.find(m => m.tagName === 'dc:title')?.textContent || ''
         },
+        editable(state) {
+            return state.dir !== ''
+        },
     },
     actions: {
-        parse_epub(payload: { chapters: string[], paths: string[], container: string }) {
+        parse_epub(payload: EpubContent) {
             
             const dom = xmlToDom(payload.container)
             const rootfile = dom.getElementsByTagName('rootfile')[0]
             this.opf_id = rootfile.getAttribute('full-path') || ''
+            this.dir = payload.dir
 
             this.init_tree()
 
@@ -315,7 +319,10 @@ const useStatus = defineStore('status', {
             this.contents_tree.length = 0
 
             if (this.nav_version === 3) {
-                const ol = contents.dom.querySelector('nav[id="toc"]')?.querySelector('ol')
+                const navs = contents.dom.querySelectorAll('nav')
+                const ol = Array.from(navs).find(nav => nav.getAttribute('epub:type') === 'toc')
+                    ?.querySelector('ol') 
+
                 const loop_stack: [Element | null | undefined, ContentsNode[], parent: ContentsNode | null][] = [[ol, this.contents_tree, null]]
                 while (loop_stack.length) {
                     const [ol, tree, parent] = loop_stack.pop()!
@@ -1087,7 +1094,10 @@ const useStatus = defineStore('status', {
             this.nav_href = ''
             this.nav_in_spine = false
             this.contents_tree.length = 0
-            invoke_clean_cache(this.dir)
+            this.contents_id_lnum = {}
+            this.contents_links.length = 0
+            this.is_reading = false
+            this.dir && invoke_clean_cache(this.dir)
             this.dir = ''
         },
     },

@@ -3,7 +3,7 @@ import type { Event } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import type { Language } from '@/editor/shiki'
-import type { SearchResult } from '@/components/types'
+import type { EpubContent, SearchResult } from '@/components/types'
 
 class InvokeRequest<Payload, Error = string> {
     resolve: (value: Payload | PromiseLike<Payload>)=> void
@@ -29,19 +29,30 @@ class InvokeRequest<Payload, Error = string> {
     }
 }
 
+// 启动时打开文件
+const invoke_setup = function() {
+    const ir = new InvokeRequest<EpubContent>('setup-open', 'setup-error')
+ 
+    return function() {
+        return ir.invoke('open_epub_on_setup')
+    }
+}()
+
 // 打开EPUB
 const invoke_open_epub = function() {
-    type Payload = {
-        chapters: string[], 
-        paths: string[], 
-        dir: string,
-        base_path: string,
-        container: string,
-    }
-    const ir = new InvokeRequest<Payload>('epub-opened', 'epub-open-error')
+    const ir = new InvokeRequest<EpubContent>('epub-opened', 'epub-open-error')
 
     return function(path: string) {
         return ir.invoke('open_epub', { path })
+    }
+}()
+
+// 新建EPUB
+const invoke_create_epub = function() {
+    const ir = new InvokeRequest<EpubContent>('epub-created', 'epub-create-error')
+
+    return function(version: number) {
+        return ir.invoke('create_epub', { version })
     }
 }()
 
@@ -143,7 +154,9 @@ const invoke_replace = function() {
 }()
 
 export {
+    invoke_setup,
     invoke_open_epub,
+    invoke_create_epub,
     invoke_save_epub,
     invoke_get_text,
     invoke_write_text,

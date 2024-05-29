@@ -50,6 +50,7 @@ onMounted(() => {
     </div>
   </TitleBanner>
   <q-scroll-area
+    visible
     style="height: calc(100vh - 170px);"
   >
     <ContentsTree

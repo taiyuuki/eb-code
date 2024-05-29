@@ -41,7 +41,17 @@ interface SearchResult {
     line: string
 }
 
+interface EpubContent {
+    chapters: string[], 
+    paths: string[], 
+    dir: string,
+    base_path: string,
+    container: string,
+    save_path: string,
+}
+
 export type {
+    EpubContent,
     FileNode,
     TreeProps, 
     TreeEmits, 

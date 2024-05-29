@@ -3,41 +3,89 @@ use epub::archive::EpubArchive;
 use epub::doc::EpubDoc;
 use rand::distributions::{Alphanumeric, Distribution};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::{self, Path};
 use std::{fs, io::Write};
 use tauri::Manager;
 
+pub mod directory;
+mod epub2_template;
+mod epub3_template;
+mod template;
+
 use self::directory::format_dir;
 
-pub mod directory;
-
 #[derive(Serialize, Deserialize, Clone)]
-struct EpubContents {
+pub struct EpubContent {
     dir: String,
     chapters: Vec<String>,
     paths: Vec<String>,
     base_path: String,
     container: String,
+    save_path: String,
 }
 
-impl EpubContents {
+impl EpubContent {
     fn new(dir: &str) -> Self {
         let path = "";
-        EpubContents {
+        EpubContent {
             dir: dir.to_string(),
             chapters: Vec::new(),
             paths: Vec::new(),
             base_path: format_dir(dir, path),
             container: String::new(),
+            save_path: String::new(),
         }
     }
 
     fn set_container(&mut self, container: String) {
         self.container = container;
     }
+
+    fn set_save_path(&mut self, save_path: String) {
+        self.save_path = save_path;
+    }
+
+    fn epub2(dir: &str) -> Self {
+        let mut epub_content = EpubContent::new(dir);
+
+        epub_content
+            .chapters
+            .push("OEBPS/Text/Section0001.xhtml".to_string());
+
+        epub_content
+            .paths
+            .push("OEBPS/Text/Section0001.xhtml".to_string());
+        epub_content.paths.push("OEBPS/toc.ncx".to_string());
+        epub_content.paths.push("OEBPS/ebook.opf".to_string());
+        epub_content
+            .paths
+            .push("META-INF/container.xml".to_string());
+        epub_content.paths.push("mimetype".to_string());
+        epub_content
+    }
+
+    fn epub3(dir: &str) -> Self {
+        let mut epub_content = EpubContent::new(dir);
+
+        epub_content
+            .chapters
+            .push("OEBPS/Text/Section0001.xhtml".to_string());
+
+        epub_content
+            .paths
+            .push("OEBPS/Text/Section0001.xhtml".to_string());
+        epub_content.paths.push("OEBPS/ebook.opf".to_string());
+        epub_content.paths.push("Styles/nav.css".to_string());
+        epub_content
+            .paths
+            .push("META-INF/container.xml".to_string());
+        epub_content.paths.push("mimetype".to_string());
+        epub_content
+    }
 }
 
-fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
+pub fn un_zip(path: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
     let epub_archive = EpubArchive::new(path)?;
     let mut epub = EpubDoc::new(path)?;
 
@@ -48,13 +96,14 @@ fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
         .map(char::from)
         .collect();
 
-    let mut epub_contents = EpubContents::new(&rand_dir);
+    let mut epub_content = EpubContent::new(&rand_dir);
+    epub_content.set_save_path(path.to_string());
 
     let len = epub.spine.len();
     for _ in 0..len {
         let path = epub.get_current_path();
         if let Some(p) = path {
-            epub_contents.chapters.push(p.to_str().unwrap().to_string());
+            epub_content.chapters.push(p.to_str().unwrap().to_string());
         }
         epub.go_next();
     }
@@ -67,7 +116,7 @@ fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
         match epub.get_resource_by_path(path) {
             Some(resource) => {
                 if path.eq("META-INF/container.xml") {
-                    epub_contents.set_container(String::from_utf8_lossy(&resource).to_string());
+                    epub_content.set_container(String::from_utf8_lossy(&resource).to_string());
                 }
                 let output_as_string =
                     directory::format_dir(&rand_dir, &path.replace("/", path::MAIN_SEPARATOR_STR));
@@ -85,23 +134,105 @@ fn un_zip(path: &str) -> Result<EpubContents, Box<dyn std::error::Error>> {
             None => continue,
         }
     }
-    epub_contents.paths = epub_archive
+    epub_content.paths = epub_archive
         .files
         .into_iter()
         .filter(|x| !x.ends_with("/"))
         .collect();
 
-    Ok(epub_contents)
+    Ok(epub_content)
 }
 
 #[tauri::command]
 pub fn open_epub(path: &str, app_handle: tauri::AppHandle) {
     match un_zip(path) {
-        Ok(epub_contents) => {
-            let _ = app_handle.emit("epub-opened", epub_contents);
+        Ok(epub_content) => {
+            let _ = app_handle.emit("epub-opened", epub_content);
         }
         Err(_e) => {
             let _ = app_handle.emit("epub-open-error", "打开失败");
         }
+    };
+}
+
+pub fn create_epub2(dir: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
+    let uid = uuid::Uuid::new_v4().to_string();
+    let mut epub = HashMap::new();
+    epub.insert("mimetype", template::MIME_TYPE.to_string());
+    epub.insert("META-INF/container.xml", template::CONTAINER.to_string());
+    epub.insert(
+        "OEBPS/ebook.opf",
+        epub2_template::OPF.replace("{uuid}", &uid),
+    );
+    epub.insert("OEBPS/toc.ncx", epub2_template::NCX.replace("{uuid}", &uid));
+    epub.insert(
+        "OEBPS/Text/Section0001.xhtml",
+        template::SECTION.to_string(),
+    );
+    for (key, value) in epub.iter() {
+        let path = format_dir(dir, key);
+        let folder = Path::new(&path)
+            .parent()
+            .with_context(|| format!("文件夹不存在: {path:?}"))
+            .unwrap();
+        if !Path::new(folder).exists() {
+            fs::create_dir_all(folder).with_context(|| format!("创建文件夹失败: {path:?}"))?;
+        }
+        fs::write(&path, value)?;
+    }
+
+    Ok(EpubContent::epub2(dir))
+}
+
+fn create_epub3(dir: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
+    let uid = uuid::Uuid::new_v4().to_string();
+    let mut epub = HashMap::new();
+
+    epub.insert("mimetype", template::MIME_TYPE.to_string());
+    epub.insert("META-INF/container.xml", template::CONTAINER.to_string());
+    epub.insert(
+        "OEBPS/ebook.opf",
+        epub3_template::OPF.replace("{uuid}", &uid),
+    );
+    epub.insert("OEBPS/nav.xhtml", epub3_template::NAV.to_string());
+    epub.insert(
+        "OEBPS/Text/Section0001.xhtml",
+        template::SECTION.to_string(),
+    );
+    epub.insert("Styles/nav.css", epub3_template::NAV_CSS.to_string());
+    for (key, value) in epub.iter() {
+        let path = format_dir(dir, key);
+        let folder = Path::new(&path)
+            .parent()
+            .with_context(|| format!("文件夹不存在: {path:?}"))
+            .unwrap();
+        if !Path::new(folder).exists() {
+            fs::create_dir_all(folder).with_context(|| format!("创建文件夹失败: {path:?}"))?;
+        }
+        fs::write(&path, value)?;
+    }
+
+    Ok(EpubContent::epub3(dir))
+}
+
+#[tauri::command]
+pub fn create_epub(version: usize, app_handle: tauri::AppHandle) {
+    let mut rng = rand::thread_rng();
+    let rand_dir: String = Alphanumeric
+        .sample_iter(&mut rng)
+        .take(7)
+        .map(char::from)
+        .collect();
+
+    match match version {
+        2 => create_epub2(&rand_dir),
+        3 => create_epub3(&rand_dir),
+        _ => create_epub2(&rand_dir),
+    } {
+        Ok(mut epub_content) => {
+            epub_content.set_container(template::CONTAINER.to_string());
+            app_handle.emit("epub-created", epub_content).unwrap()
+        }
+        Err(_) => app_handle.emit("epub-create-error", "创建失败").unwrap(),
     };
 }

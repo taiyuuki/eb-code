@@ -57,14 +57,19 @@ function scroll_ytx(e: WheelEvent) {
 }
 
 app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
-    invoke_clean_cache(status.dir).then(() => {
+    if (status.dir) {
+        invoke_clean_cache(status.dir).then(() => {
+            app_window.destroy()
+        })
+    } else {
         app_window.destroy()
-    })
+    }
 })
 </script>
 
 <template>
   <q-page
+    v-show="status.editable"
     pst="rel"
     style="min-height: inherit;"
   >
@@ -104,6 +109,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
             dense
           >
             <q-scroll-area
+              visible
               style="height: 50px;"
               @mousewheel.prevent="scroll_ytx"
             >

@@ -34,10 +34,10 @@ body {
 }
 
 .selected {
-    background: var(--vscode-list-focusBackground);
-    color: var(--vscode-list-focusForeground);
+    background: var(--vscode-list-activeSelectionBackground)!important;
+    color: var(--vscode-list-activeSelectionForeground)!important;
 }
-.hovered:hover {
+.list-selection:hover {
     background: var(--vscode-list-hoverBackground);
     color: var(--vscode-list-hoverForeground);
 }
@@ -96,6 +96,8 @@ body {
 
 .q-menu {
     box-shadow: 0 0 2px var(--eb-fg);
+    background-color: var(--vscode-menu-background);
+    color: var(--vscode-menu-foreground);
 }
 
 .q-tooltip {

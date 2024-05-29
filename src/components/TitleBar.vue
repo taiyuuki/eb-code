@@ -2,7 +2,7 @@
 import { Window } from '@tauri-apps/api/window'
 import { open, save } from '@tauri-apps/plugin-dialog'
 import { TauriEvent, listen } from '@tauri-apps/api/event'
-import { invoke_clean_cache, invoke_open_epub, invoke_save_epub } from '@/invoke'
+import { invoke_clean_cache, invoke_create_epub, invoke_open_epub, invoke_save_epub } from '@/invoke'
 import { useTheme } from '@/stores/theme'
 import { useStatus } from '@/stores/status'
 import { DISPLAY } from '@/static'
@@ -14,13 +14,24 @@ import { contents_setting } from '@/composables/contents_setting'
 
 const appWindow = new Window('main')
 const is_maximized = ref(false)
+const new_epub_menu = ref()
+
+function close_window() {
+    appWindow.destroy()
+}
 
 async function toggle_maximize() {
     await appWindow.toggleMaximize()
 }
 
-listen(TauriEvent.WINDOW_RESIZED, async _ => {
+async function get_maximized() {
     is_maximized.value = await appWindow.isMaximized()
+}
+
+listen(TauriEvent.WINDOW_RESIZED, get_maximized)
+
+onMounted(() => {
+    get_maximized()
 })
 
 const theme = useTheme()
@@ -49,7 +60,6 @@ async function open_epub_file() {
                 status.close_epub()
             }
             status.current.save_path = path
-            status.set_dir(payload.dir)
             status.set_base_path(payload.base_path)
             status.is_opening = false
             status.parse_epub(payload)
@@ -59,6 +69,14 @@ async function open_epub_file() {
             notif_negative('失败！不是有效的EPUB文件。')
         })
     }
+}
+
+async function create_epub(version: number) {
+    const payload = await invoke_create_epub(version)
+    if (status.dir !== '') {
+        status.close_epub()
+    }
+    status.parse_epub(payload)
 }
 
 async function save_epub() {
@@ -120,7 +138,7 @@ async function save_epub_to() {
 
 function close_epub() {
     status.clean_tree()
-    invoke_clean_cache(status.dir)
+    status.dir && invoke_clean_cache(status.dir)
     status.close_epub()
 }
 
@@ -153,9 +171,6 @@ function edit_metadata() {
       square
     >
       <q-menu
-        :dark="theme.dark"
-        bg="var-eb-bg"
-        text="var-eb-fg"
         w="fit"
       >
         <q-list>
@@ -168,18 +183,45 @@ function edit_metadata() {
               打开
             </q-item-section>
           </q-item>
-          <q-item
-            v-close-popup
-            clickable
-          >
+          <q-item clickable>
             <q-item-section>
               新建
             </q-item-section>
+            <q-item-section side>
+              <div
+                class="i-ic:round-keyboard-arrow-right"
+                h="20"
+                w="20"
+              />
+            </q-item-section>
+            <q-menu
+              ref="new_epub_menu"
+              anchor="top end"
+              self="top start"
+            >
+              <q-list>
+                <q-item
+                  v-close-popup
+                  clickable
+                  @click="create_epub(2)"
+                >
+                  <q-item-section>EPUB 2</q-item-section>
+                </q-item>
+                <q-item
+                  v-close-popup
+                  clickable
+                  @click="create_epub(3)"
+                >
+                  <q-item-section>EPUB 3</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
           </q-item>
           <q-separator :dark="theme.dark" />
           <q-item
-            v-close-popup
-            clickable
+            v-close-popup="status.editable"
+            :disable="!status.editable"
+            :clickable="status.editable"
             @click="save_epub"
           >
             <q-item-section>
@@ -187,8 +229,9 @@ function edit_metadata() {
             </q-item-section>
           </q-item>
           <q-item
-            v-close-popup
-            clickable
+            v-close-popup="status.editable"
+            :disable="!status.editable"
+            :clickable="status.editable"
             @click="save_epub_to"
           >
             <q-item-section>
@@ -198,11 +241,22 @@ function edit_metadata() {
           <q-separator :dark="theme.dark" />
           <q-item
             v-close-popup
-            clickable
+            :disable="!status.editable"
+            :clickable="status.editable"
             @click="close_epub"
           >
             <q-item-section>
               关闭当前文件
+            </q-item-section>
+          </q-item>
+          <q-separator :dark="theme.dark" />
+          <q-item
+            v-close-popup
+            clickable
+            @click="close_window"
+          >
+            <q-item-section>
+              退出
             </q-item-section>
           </q-item>
         </q-list>
@@ -214,15 +268,13 @@ function edit_metadata() {
       square
     >
       <q-menu
-        :dark="theme.dark"
-        bg="var-eb-bg"
-        text="var-eb-fg"
         w="fit"
       >
         <q-list>
           <q-item
-            v-close-popup
-            clickable
+            v-close-popup="status.editable"
+            :disable="!status.editable"
+            :clickable="status.editable"
             @click="cover_setting = true"
           >
             <q-item-section>
@@ -230,8 +282,9 @@ function edit_metadata() {
             </q-item-section>
           </q-item>
           <q-item
-            v-close-popup
-            clickable
+            v-close-popup="status.editable"
+            :disable="!status.editable"
+            :clickable="status.editable"
             @click="edit_metadata"
           >
             <q-item-section>
@@ -239,8 +292,9 @@ function edit_metadata() {
             </q-item-section>
           </q-item>
           <q-item
-            v-close-popup
-            clickable
+            v-close-popup="status.editable"
+            :disable="!status.editable"
+            :clickable="status.editable"
             @click="contents_setting = true"
           >
             <q-item-section>

@@ -13,7 +13,6 @@ declare module 'vue' {
     ContentsTree: typeof import('./components/ContentsTree.vue')['default']
     CoverSet: typeof import('./components/CoverSet.vue')['default']
     FileItem: typeof import('./components/FileItem.vue')['default']
-    FileNode: typeof import('./components/FileNode.vue')['default']
     FileTree: typeof import('./components/FileTree.vue')['default']
     ImageViewer: typeof import('./components/ImageViewer.vue')['default']
     MetaItem: typeof import('./components/MetaItem.vue')['default']

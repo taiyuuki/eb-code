@@ -16,7 +16,9 @@ const status = useStatus()
     w="100%"
     z-2
   >
-    <div>{{ status.current.save_path }} - epub {{ status.epub_version }}</div>
+    <div v-show="status.editable">
+      {{ status.current.save_path || 'Untitled.epub' }} - epub {{ status.epub_version }}
+    </div>
     <div flex="~">
       <div
         v-show="status.is_saving"

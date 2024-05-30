@@ -12,7 +12,6 @@ import { useActivity } from '@/composables/useActivity'
 import { dirty_meta } from '@/composables/dirty_meta'
 import { contents_setting } from '@/composables/contents_setting'
 import { usePreview } from '@/stores/preview'
-import { vVisible } from '@/directives/v-visible'
 
 const appWindow = new Window('main')
 const is_maximized = ref(false)
@@ -118,9 +117,10 @@ async function save_epub_to() {
             {
                 name: '保存EPUB文件',
                 extensions: ['epub'],
+                
             },
         ],
-        
+        defaultPath: status.current.save_path || 'Unnamed.epub',
     })
 
     if (path) {
@@ -322,18 +322,25 @@ function toggle_preview() {
       <q-menu>
         <q-list>
           <q-item
-            clickable
+            :disable="!status.editable"
+            :clickable="status.editable"
             @click="toggle_preview"
           >
             <q-item-section>
               预览
             </q-item-section>
             <q-item-section
-              v-visible="preview.display"
               side
             >
               <div
-                class="i-mdi:check"
+                v-if="preview.display"
+                class="i-ic:baseline-check-box"
+                h="20"
+                w="20"
+              />
+              <div
+                v-else
+                class="i-ic:baseline-check-box-outline-blank"
                 h="20"
                 w="20"
               />

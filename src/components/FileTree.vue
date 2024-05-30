@@ -7,7 +7,7 @@ import type { FileNode, Moved, TreeProps } from './types'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
 import { basename, filename, mimetype } from '@/utils/path'
-import { is_audio, is_font, is_html, is_image, is_style, is_video } from '@/utils/is'
+import { is_audio, is_font, is_html, is_image, is_scripts, is_style, is_video } from '@/utils/is'
 import { notif_negative, notif_warning } from '@/notif'
 import { invoke_rename_file } from '@/invoke'
 import { TREE } from '@/static'
@@ -25,7 +25,7 @@ const line_width = computed(() => {
 })
 const status = useStatus()
 
-function toggle(node: FileNode) { 
+function toggle(node: FileNode) {
     status.add_tab(node)
     status.open(node)
 }
@@ -51,6 +51,9 @@ async function add_file(node: FileNode) {
     } else if (node.name === 'Fonts' || node.type === 'font') {
         extensions = ['ttf', 'otf', 'woff', 'woff2']
         name = '字体'
+    } else if (node.name === 'Scripts' || node.type === 'js') {
+        extensions = ['js']
+        name = '脚本'
     } else {
         extensions = ['*']
         name = '所有'
@@ -124,6 +127,16 @@ async function add_file(node: FileNode) {
                 } else {
                     status.add_video(file)
                 }
+            } else if (is_scripts(_name)) {
+                asset_path = status.script_path
+                const file = status.manifest_path + asset_path + name
+                const node = status.nodes[TREE.JS].children!.find(n => n.name === file)
+                if (node) {
+                    has = true
+                } else {
+                    status.add_js(file)
+                }
+
             } else {
                 asset_path = status.other_path
                 const file = status.manifest_path + asset_path + name
@@ -355,15 +368,6 @@ function new_css() {
             >
               <q-item-section>
                 {{ status.nav_in_spine ? '移出书脊' : '添加到书脊' }}
-              </q-item-section>
-            </q-item>
-            <q-item
-              v-if="show_base_menu(node)"
-              v-close-popup
-              clickable
-            >
-              <q-item-section>
-                添加副本
               </q-item-section>
             </q-item>
             <q-item

@@ -32,7 +32,7 @@ pub fn get_text(text_directory: TextDirectory, app_handle: tauri::AppHandle) {
             Some("xml") => "html",
             Some("htm") => "html",
             Some("css") => "css",
-            Some("js") => "js",
+            Some("js") => "javascript",
             Some("json") => "json",
             _ => "txt",
         },

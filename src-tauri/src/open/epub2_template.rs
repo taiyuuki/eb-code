@@ -10,7 +10,7 @@ pub const OPF: &str = r#"<?xml version="1.0" encoding="utf-8"?>
         <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
     </manifest>
     <spine toc="ncx">
-        <itemref idref="Section0001.xhtml"/>
+        <itemref idref="Section0001.xhtml" linear="yes" />
     </spine>
 </package>"#;
 

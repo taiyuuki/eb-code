@@ -98,6 +98,7 @@ body {
     box-shadow: 0 0 2px var(--eb-fg);
     background-color: var(--vscode-menu-background);
     color: var(--vscode-menu-foreground);
+    user-select: none;
 }
 
 .q-tooltip {

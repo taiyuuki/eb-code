@@ -3,6 +3,7 @@ const DISPLAY = {
     CODE: 1,
     IMAGE: 2,
     METADATA: 3,
+    AUDIO: 4,
 }
 
 const NOT_SUPPORTED_THEMES = [

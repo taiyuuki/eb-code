@@ -55,6 +55,10 @@ function is_style(name: string) {
     return name.endsWith('.css')
 }
 
+function is_scripts(name: string) {
+    return name.endsWith('.js')
+}
+
 export{
     is_text,
     is_image,
@@ -63,4 +67,5 @@ export{
     is_html,
     is_audio,
     is_video,
+    is_scripts,
 }

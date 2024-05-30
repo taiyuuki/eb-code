@@ -3,9 +3,9 @@ import { convertFileSrc } from '@tauri-apps/api/core'
 import { arr_remove } from '@taiyuuki/utils'
 import type { ContentsNode, EpubContent, FileNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
-import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_search, invoke_write_text } from '@/invoke'
+import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_replace, invoke_search, invoke_write_text } from '@/invoke'
 import { basename, filename, relative } from '@/utils/path'
-import { is_audio, is_font, is_html, is_image, is_style, is_text, is_video } from '@/utils/is'
+import { is_audio, is_font, is_html, is_image, is_scripts, is_style, is_text, is_video } from '@/utils/is'
 import { get_scroll_top, scroll_to_line, scroll_top_to } from '@/editor'
 import { useActivity } from '@/composables/useActivity'
 import { notif_negative, notif_positive } from '@/notif'
@@ -104,7 +104,7 @@ const useStatus = defineStore('status', {
 
         // EPUB文件名
         file_name(state) {
-            return filename(state.current.save_path) || 'Untitled.epub'
+            return filename(state.current.save_path || 'Unnamed.epub')
         },
         book_id(state) {
             return state.metadata.find(m => m.tagName === 'dc:identifier')?.textContent || ''
@@ -633,10 +633,11 @@ const useStatus = defineStore('status', {
         rename_file(node: FileNode, new_name: string) {
             const item = opf.dom?.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
             if (item) {
-                const old_id = item.id
-                const new_id = basename(new_name).replace(/\s/g, '_')
+                const old_id = item?.getAttribute('id')
+                const old_name = node.id.replace(this.manifest_path, '')
+                const new_id = new_name.replace(/\s/g, '_')
                     
-                item.setAttribute('href', new_name)
+                item.setAttribute('href', new_id)
                 item.setAttribute('id', new_id)
 
                 // 重命名书脊
@@ -652,12 +653,19 @@ const useStatus = defineStore('status', {
                 }
 
                 this.save_opf()
+
+                // 重命名XHTML里的资源
+                if (is_image(old_name) || is_font(old_name)) {
+                    invoke_replace(this.dir, old_name, false, false, new_name).then(() => {
+                        if (is_html(this.current.id)) {
+                            this.reload_current()
+                        }
+                    })
+                }
             }
             if (this.has_src(node.id)) {
                 delete this.image_srces[node.id]
             }
-
-            // TODO: 重命名xtml里的引用
         },
         move(old_i: number, new_i: number) {
             const spine_node = opf.dom?.querySelector('spine')
@@ -754,8 +762,38 @@ const useStatus = defineStore('status', {
                     
                 }
                 meta_cover.setAttribute('content', content ?? filename(path))
-                this.save_opf()
             }
+
+            const $id = `${this.text_path}cover.xhtml`
+            let item_xhtml = opf.dom?.querySelector(`item[href="${$id}"]`)
+            const manifest = opf.dom?.querySelector('manifest')
+            if (!item_xhtml) {
+                item_xhtml = document.createElementNS(opf.namespaceURI, 'item')
+                manifest?.appendChild(document.createTextNode('\n'))
+                manifest?.appendChild(item_xhtml)
+                item_xhtml.setAttribute('id', $id)
+                item_xhtml.setAttribute('href', $id)
+                item_xhtml.setAttribute('media-type', 'application/xhtml+xml')
+            }
+            const idref = item_xhtml.getAttribute('id') || $id
+
+            let itemref_cover = opf.dom?.querySelector(`itemref[idref="${idref}"]`)
+            if(!itemref_cover) {
+                itemref_cover = document.createElementNS(opf.namespaceURI, 'itemref')
+                itemref_cover.setAttribute('idref', idref)
+                itemref_cover.setAttribute('linear', 'yes')
+                const spine = opf.dom?.querySelector('spine')
+                const first_child = spine?.children[0]
+                if (first_child) {
+                    spine.insertBefore(document.createTextNode('\n'), first_child)
+                    spine.insertBefore(itemref_cover, first_child)
+                } else {
+                    spine?.appendChild(document.createTextNode('\n'))
+                    spine?.appendChild(itemref_cover)
+                }
+            }
+
+            this.save_opf()
         },
         async new_html(i: number, id: string) {
             const xhtml = xhtml_template()
@@ -1013,7 +1051,11 @@ const useStatus = defineStore('status', {
             if (node.children || this.tabs.find(n => n.id === node.id)) {
                 return
             }
-            this.tabs.push(node)
+
+            // TODO: 增加其他文件类型的预览
+            if (is_text(node.id) || is_image(node.id) || is_style(node.id) || node.type === 'metadata' || is_scripts(node.id)) {
+                this.tabs.push(node)
+            }
         },
         remove_tab_by_id(id: string) {
 
@@ -1091,6 +1133,7 @@ const useStatus = defineStore('status', {
         },
         open(node: FileNode, lnum?: number, hash?: string) {
             if (is_html(node.id)) {
+                preview.id = ''
                 preview.id = node.id + (hash ?? '')
             }
 
@@ -1133,6 +1176,9 @@ const useStatus = defineStore('status', {
                 this.parse_metadata()
                 this.display = DISPLAY.METADATA
             }
+        },
+        reload_current() {
+            this.open_by_id(this.current.id, 1)
         },
         open_by_id(id: string, lnum?: number, hash?: string) {
             const node = this.nodes[TREE.HTML].children!.find(n => n.id === id)

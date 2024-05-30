@@ -11,6 +11,8 @@ import { notif_negative, notif_positive } from '@/notif'
 import { useActivity } from '@/composables/useActivity'
 import { dirty_meta } from '@/composables/dirty_meta'
 import { contents_setting } from '@/composables/contents_setting'
+import { usePreview } from '@/stores/preview'
+import { vVisible } from '@/directives/v-visible'
 
 const appWindow = new Window('main')
 const is_maximized = ref(false)
@@ -38,6 +40,7 @@ const theme = useTheme()
 const status = useStatus()
 const activity_nodes = useActivity()
 const router = useRouter()
+const preview = usePreview()
 
 async function open_epub_file() {
     if (status.is_opening || status.is_saving) {
@@ -60,7 +63,6 @@ async function open_epub_file() {
                 status.close_epub()
             }
             status.current.save_path = path
-            status.set_base_path(payload.base_path)
             status.is_opening = false
             status.parse_epub(payload)
             router.replace({ path: '/' })
@@ -157,6 +159,14 @@ function edit_metadata() {
     status.metadata.length = 0
     status.parse_metadata()
     status.display = DISPLAY.METADATA
+}
+
+function toggle_preview() {
+    if (preview.display) {
+        preview.close()
+    } else {
+        preview.open()
+    }
 }
 </script>
 
@@ -299,6 +309,34 @@ function edit_metadata() {
           >
             <q-item-section>
               编辑目录
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <q-btn
+      label="视图"
+      unelevated
+      square
+    >
+      <q-menu>
+        <q-list>
+          <q-item
+            clickable
+            @click="toggle_preview"
+          >
+            <q-item-section>
+              预览
+            </q-item-section>
+            <q-item-section
+              v-visible="preview.display"
+              side
+            >
+              <div
+                class="i-mdi:check"
+                h="20"
+                w="20"
+              />
             </q-item-section>
           </q-item>
         </q-list>

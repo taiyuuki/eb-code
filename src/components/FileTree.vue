@@ -279,7 +279,7 @@ function new_css() {
     let style_file_name = `${status.manifest_path}${status.style_path}Style${si.toString().padStart(4, '0')}.css`
     while (status.nodes[TREE.STYLE].children!.some(n => n.id === style_file_name)) {
         si++
-        style_file_name = `${status.manifest_path}${status.text_path}Style${si.toString().padStart(4, '0')}.css`
+        style_file_name = `${status.manifest_path}${status.style_path}Style${si.toString().padStart(4, '0')}.css`
     }
     status.new_css(style_file_name)
 }

@@ -12,6 +12,7 @@ import { check_xml } from '@/utils/xml'
 import { useActivity } from '@/composables/useActivity'
 import { SAVE_DELAY } from '@/static'
 import { usePreview } from '@/stores/preview'
+import { is_html, is_style } from '@/utils/is'
 
 const theme = useTheme()
 const status = useStatus()
@@ -24,6 +25,8 @@ const preview = usePreview()
 
 monaco_controller.on_change_code(() => {
     if (status.is_toogle) {
+        status.is_toogle = false
+
         return
     } 
     
@@ -50,14 +53,16 @@ monaco_controller.on_change_code(() => {
         }
 
         if (activity_node.opened_node?.type === 'navigation') {
-            if (!check_xml(code)) {
+            if (status.current.id.endsWith('.ncx') && !check_xml(code)) {
                 return
             }
             status.parse_contents()
         }
 
         invoke_write_text(status.dir, status.current.id, code).then(() => {
-            preview.need_reload = true
+            if (preview.display && is_html(status.current.id) || is_style(status.current.id)) {
+                preview.need_reload = true
+            }
         })
     }, SAVE_DELAY)
 })

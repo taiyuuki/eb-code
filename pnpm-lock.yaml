@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   emmet-monaco-es@5.3.2:
-    hash: qt2k6o45oqjpcq55ysjhjfroau
+    hash: vdpcqbb6tvlg2vhvwtshh7o3gq
     path: patches/emmet-monaco-es@5.3.2.patch
 
 dependencies:
@@ -42,7 +42,7 @@ dependencies:
     version: 1.11.11
   emmet-monaco-es:
     specifier: 5.3.2
-    version: 5.3.2(patch_hash=qt2k6o45oqjpcq55ysjhjfroau)(monaco-editor@0.48.0)
+    version: 5.3.2(patch_hash=vdpcqbb6tvlg2vhvwtshh7o3gq)(monaco-editor@0.48.0)
   monaco-editor:
     specifier: ^0.48.0
     version: 0.48.0
@@ -3235,7 +3235,7 @@ packages:
       sax: 1.1.4
     dev: true
 
-  /emmet-monaco-es@5.3.2(patch_hash=qt2k6o45oqjpcq55ysjhjfroau)(monaco-editor@0.48.0):
+  /emmet-monaco-es@5.3.2(patch_hash=vdpcqbb6tvlg2vhvwtshh7o3gq)(monaco-editor@0.48.0):
     resolution: {integrity: sha512-fb8z9lUVtqXx4IGQQceMwuz7/hYDJdLQj40ZOMQOtBJ4qLTo5XT9H0u/DhfCSWyOktTxZZxiYfkQsGasrv6u0w==}
     peerDependencies:
       monaco-editor: '>=0.22.0'

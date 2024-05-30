@@ -1,15 +1,38 @@
 diff --git a/dist/emmet-monaco.esm.js b/dist/emmet-monaco.esm.js
-index 27db3ee035ab7fa3f627ee715305eea5886012fd..d9dee05619614a86bc0714520656541c682cb076 100644
+index 27db3ee035ab7fa3f627ee715305eea5886012fd..1699d2a9c978475ada3545fb566669612b496396 100644
 --- a/dist/emmet-monaco.esm.js
 +++ b/dist/emmet-monaco.esm.js
-@@ -6016,9 +6016,7 @@ function registerProvider(monaco, languages, syntax) {
+@@ -2341,6 +2341,7 @@ function selfClose(config) {
+     switch (config.options['output.selfClosingStyle']) {
+         case 'xhtml': return ' /';
+         case 'xml': return '/';
++        case 'html': return '/';
+         default: return '';
+     }
+ }
+@@ -4796,7 +4797,7 @@ const defaultOptions$1 = {
+         'required', 'reversed', 'selected', 'typemustmatch'
+     ],
+     'output.reverseAttributes': false,
+-    'output.selfClosingStyle': 'html',
++    'output.selfClosingStyle': 'xhtml',
+     'output.field': (index, placeholder) => placeholder,
+     'output.text': text => text,
+     'markup.href': true,
+@@ -4831,6 +4832,7 @@ const defaultConfig = {
+  * Default per-syntax config
+  */
+ const syntaxConfig = {
++    html: 'xhtml',
+     markup: {
+         snippets: parseSnippets(markupSnippets),
+     },
+@@ -6016,7 +6018,7 @@ function registerProvider(monaco, languages, syntax) {
      }
      const providers = languages.map((language) => monaco.languages.registerCompletionItemProvider(language, {
          triggerCharacters: LANGUAGE_MODES[MAPPED_MODES[language] || language],
 -        provideCompletionItems: (model, position) => isValidLocationForEmmetAbbreviation(model, position, syntax, language)
--            ? doComplete(monaco, model, position, syntax, DEFAULT_CONFIG)
--            : undefined,
-+        provideCompletionItems: (model, position) => syntax === 'html' ? doComplete(monaco, model, position, syntax, DEFAULT_CONFIG) : undefined
++        provideCompletionItems: (model, position) => syntax === 'html'
+             ? doComplete(monaco, model, position, syntax, DEFAULT_CONFIG)
+             : undefined,
      }));
-     return () => {
-         providers.forEach((provider) => provider.dispose());

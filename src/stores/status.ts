@@ -123,6 +123,7 @@ const useStatus = defineStore('status', {
             const rootfile = dom.getElementsByTagName('rootfile')[0]
             this.opf_id = rootfile.getAttribute('full-path') || ''
             this.dir = payload.dir
+            this.base_path = payload.base_path
 
             this.init_tree()
 
@@ -391,7 +392,7 @@ const useStatus = defineStore('status', {
         async load_contents_link() {
             const result = await invoke_search(this.dir, 'id=".*?"', true, false)
             this.contents_links.length = 0
-            this.nodes[TREE.HTML].children?.forEach(node => {
+            this.nodes[TREE.HTML]?.children?.forEach(node => {
                 this.contents_links.push(node)
                 if (node.id in result) {
                     const reg = /id="(.*?)"/
@@ -494,7 +495,6 @@ const useStatus = defineStore('status', {
             }
             
             await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
-            this.is_toogle && (this.is_toogle = false)
         },
         add_meta(tagName: string, value: string) {
             const count = this.metadata.filter(m => m.tagName === tagName).length
@@ -828,7 +828,6 @@ const useStatus = defineStore('status', {
                 this.current.code = code
             }
             await invoke_write_text(this.dir, this.opf_id, code)
-            this.is_toogle && (this.is_toogle = false)
         },
         init_tree() {
             this.nodes = [{
@@ -914,32 +913,89 @@ const useStatus = defineStore('status', {
             }]
         },
         clean_tree() {
-            this.nodes = []
+            this.nodes.length = 0
         },
         add_html(name: string) {
-            this.nodes[TREE.HTML].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-html', type: 'html' })
+            const item = { 
+                id: name,
+                name,
+                icon: 'i-vscode-icons:file-type-html', 
+                type: 'html',
+                parent: this.nodes[TREE.HTML],
+            }
+            this.nodes[TREE.HTML].children!.push(item)
         },
         add_css(name: string) {
-            this.nodes[TREE.STYLE].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-css', type: 'css' })
+            const item = {
+                id: name, 
+                name, 
+                icon: 'i-vscode-icons:file-type-css',
+                type: 'css',
+                parent: this.nodes[TREE.STYLE],
+            }
+            this.nodes[TREE.STYLE].children!.push(item)
         },
         add_image(name: string) {
-            this.nodes[TREE.IMAGE].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-image', type: 'image' })
+            const item = {
+                id: name,
+                name,
+                icon: 'i-vscode-icons:file-type-image',
+                type: 'image', 
+                parent: this.nodes[TREE.IMAGE],
+            }
+            this.nodes[TREE.IMAGE].children!.push(item)
         },
         add_font(name: string) {
-            this.nodes[TREE.FONT].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-font', type: 'font' })
+            const item = {
+                id: name, 
+                name,
+                icon: 'i-vscode-icons:file-type-font',
+                type: 'font', 
+                parent: this.nodes[TREE.FONT],
+            }
+            this.nodes[TREE.FONT].children!.push(item)
         },
         add_js(name: string) {
-            this.nodes[TREE.JS].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-js', type: 'js' })
+            const item = {
+                id: name,
+                name,
+                icon: 'i-vscode-icons:file-type-js',
+                type: 'js',
+                parent: this.nodes[TREE.JS],
+            }
+            this.nodes[TREE.JS].children!.push(item)
         },
         add_audio(name: string) {
-            this.nodes[TREE.AUDIO].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-audio', type: 'audio' })
+            const item = {
+                id: name,
+                name,
+                icon: 'i-vscode-icons:file-type-audio',
+                type: 'audio',
+                parent: this.nodes[TREE.AUDIO],
+            }
+            this.nodes[TREE.AUDIO].children!.push(item)
         },
         add_video(name: string) {
-            this.nodes[TREE.VIDEO].children!.push({ id: name, name, icon: 'i-vscode-icons:file-type-video', type: 'video' })
+            const item = {
+                id: name,
+                name,
+                icon: 'i-vscode-icons:file-type-video',
+                type: 'video',
+                parent: this.nodes[TREE.VIDEO],
+            }
+            this.nodes[TREE.VIDEO].children!.push(item)
         },
         add_other(name: string) {
-            this.nodes[TREE.OTHER].children!.push({ id: name, name, icon: 'i-vscode-icons:default-file', type: 'other' })
+            const item = {
+                id: name,
+                name,
+                icon: 'i-vscode-icons:default-file',
+                type: 'other',
+                parent: this.nodes[TREE.OTHER],
+            }
+            this.nodes[TREE.OTHER].children!.push(item)
         },
+
         add_parent() {
             function add(node: FileNode) {
                 if (node.children) {
@@ -1032,9 +1088,11 @@ const useStatus = defineStore('status', {
             this.current.lang = lang
             this.current.id = id
             this.is_reading = false
-            this.is_toogle = false
         },
-        open(node: FileNode, lnum?: number) {
+        open(node: FileNode, lnum?: number, hash?: string) {
+            if (is_html(node.id)) {
+                preview.id = node.id + (hash ?? '')
+            }
 
             // 如果是同一个节点，不操作
             if ((activity_nodes.opened_node === node || this.is_reading) && !lnum) {
@@ -1058,7 +1116,6 @@ const useStatus = defineStore('status', {
                 invoke_get_text(node.id, this.dir).then(payload => {
                     this.set_text(payload[0], payload[1], node.id)
                     this.display = DISPLAY.CODE
-                    preview.id = node.id
                     if (lnum) {
                         scroll_to_line(lnum)
                     } else {
@@ -1077,10 +1134,10 @@ const useStatus = defineStore('status', {
                 this.display = DISPLAY.METADATA
             }
         },
-        open_by_id(id: string, lnum?: number) {
+        open_by_id(id: string, lnum?: number, hash?: string) {
             const node = this.nodes[TREE.HTML].children!.find(n => n.id === id)
             if (node) {
-                this.open(node, lnum)
+                this.open(node, lnum, hash)
                 this.add_tab(node)
             }
         },
@@ -1089,7 +1146,7 @@ const useStatus = defineStore('status', {
             this.current.code = ''
             this.current.src = ''
             this.current.id = ''
-            this.current.lang = 'html'
+            this.current.lang = 'xhtml'
             this.tabs.length = 0
             this.image_srces = {}
             this.scroll_tops = {}
@@ -1103,6 +1160,8 @@ const useStatus = defineStore('status', {
             this.contents_id_lnum = {}
             this.contents_links.length = 0
             this.is_reading = false
+            preview.close()
+            preview.clean()
             this.dir && invoke_clean_cache(this.dir)
             this.dir = ''
         },

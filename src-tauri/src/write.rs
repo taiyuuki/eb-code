@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 use std::{fs, io::Write};
 use tauri::Manager;
 
@@ -12,6 +13,10 @@ pub struct TextContents {
 }
 
 pub fn write_to_cache(path: &str, content: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let folder = Path::new(path).parent().unwrap();
+    if !folder.exists() {
+        fs::create_dir_all(folder)?;
+    }
     let mut file = fs::File::create(path)?;
     file.write_all(content.as_bytes())?;
     Ok(())

@@ -16,9 +16,9 @@ function open(node: ContentsNode) {
     activity_contents.selected_node = node
     activity_contents.selected_node.selected = true
 
-    const [id, _$id] = node.id.split('#')
+    const [id, $id] = node.id.split('#')
     if (node.id in status.contents_id_lnum) {
-        status.open_by_id(id, status.contents_id_lnum[node.id])
+        status.open_by_id(id, status.contents_id_lnum[node.id], $id ? `#${$id}` : undefined)
     } else {
         status.open_by_id(id, 1)
     }

@@ -3,7 +3,7 @@ import { getHighlighterCore } from 'shiki/core'
 import getWasmInlined from 'shiki/wasm'
 import { NOT_SUPPORTED_THEMES } from '@/static'
 
-export type Language = 'css' | 'html' | 'javascript' | 'json' 
+export type Language = 'css' | 'html' | 'javascript' | 'json' | 'xhtml' 
 
 const themes_imorts = import.meta.glob<ThemeRegistrationRaw>('../../node_modules/shiki/dist/themes/*.mjs', { import: 'default' })
 const langs_imports = import.meta.glob<LanguageRegistration>('../../node_modules/shiki/dist/langs/{css,javascript,json,html,xml}.mjs', { import: 'default' })

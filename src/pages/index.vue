@@ -9,9 +9,11 @@ import { useTheme } from '@/stores/theme'
 import { useStatus } from '@/stores/status'
 import { invoke_clean_cache } from '@/invoke'
 import { useActivity } from '@/composables/useActivity'
+import { usePreview } from '@/stores/preview'
 
 const sidebar_width = ref(256)
-const preview_width = ref(200)
+
+const preview = usePreview()
 const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
 const theme = useTheme()
 const status = useStatus()
@@ -106,7 +108,8 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
   
         <template #after>
           <q-splitter
-            v-model="preview_width"
+            v-model="preview.width"
+            :limits="[0, Infinity]"
             unit="px"
             reverse
           >
@@ -150,7 +153,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
               <MetaSet v-if="status.display === DISPLAY.METADATA" />
             </template>
             <template #after>
-              <HtmlPreview />
+              <HtmlPreview v-if="preview.display" />
             </template>
           </q-splitter>
         </template>

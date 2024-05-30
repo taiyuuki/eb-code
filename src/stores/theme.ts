@@ -6,7 +6,7 @@ const useTheme = defineStore('theme', {
         'dark': false,
         'background': '#24292e', 
         'color': '#e1e4e8',
-        'shiki': 'red' as ShikiTheme,
+        'shiki': 'houston' as ShikiTheme,
         'list.border': '#24292e',
         'list.activeBorder': '#e1e4e8',
     }),

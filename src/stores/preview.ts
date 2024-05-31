@@ -20,6 +20,11 @@ const usePreview = defineStore('preview', {
             this.id = ''
             this.need_reload = false
         },
+        reload_iframe() {
+            if(this.display) {
+                this.need_reload = true
+            }
+        },
         close() {
             this.display = false
             if (this.width === 0) {

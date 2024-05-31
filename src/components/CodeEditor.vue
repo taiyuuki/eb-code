@@ -60,8 +60,8 @@ monaco_controller.on_change_code(() => {
         }
 
         invoke_write_text(status.dir, status.current.id, code).then(() => {
-            if (preview.display && is_html(status.current.id) || is_style(status.current.id)) {
-                preview.need_reload = true
+            if (is_html(status.current.id) || is_style(status.current.id)) {
+                preview.reload_iframe()
             }
         })
     }, SAVE_DELAY)

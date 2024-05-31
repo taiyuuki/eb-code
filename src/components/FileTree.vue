@@ -15,6 +15,7 @@ import { TREE } from '@/static'
 const props = withDefaults(defineProps<TreeProps>(), { indent: 10 })
 const theme = useTheme()
 
+const link_style_dialog = ref(false)
 const rn = ref('')
 
 const next_indent = computed(() => {
@@ -296,6 +297,12 @@ function new_css() {
     }
     status.new_css(style_file_name)
 }
+
+const to_node = ref<FileNode | null>(null)
+async function link_to_style(node: FileNode) {
+    link_style_dialog.value = true
+    to_node.value = node
+}
 </script>
 
 <template>
@@ -343,6 +350,7 @@ function new_css() {
               v-if="is_html(node.id)"
               v-close-popup
               clickable
+              @click="link_to_style(node)"
             >
               <q-item-section>
                 链接样式文件
@@ -440,6 +448,20 @@ function new_css() {
       </div>
     </template>
   </draggable>
+  <q-dialog
+    v-model="link_style_dialog"
+    no-shake
+    no-backdrop-dismiss
+  >
+    <template v-if="to_node">
+      <Suspense>
+        <StyleLink
+          :node="to_node"
+          @complate="link_style_dialog = false"
+        />
+      </Suspense>
+    </template>
+  </q-dialog>
 </template>
 
 <style scoped>

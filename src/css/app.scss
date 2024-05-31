@@ -56,6 +56,7 @@ body {
     background-color: var(--vscode-scrollbarSlider-background);
     width: 14px;
     border-radius: 0;
+    opacity: 1;
 }
 
 .q-scrollarea__thumb:hover, .q-scrollarea--dark .q-scrollarea__thumb:hover {
@@ -105,4 +106,37 @@ body {
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     box-shadow: 0 0 2px var(--eb-fg);
+}
+
+// 未选中外部边框
+.q-checkbox__bg {
+    color: var(--vscode-checkbox-border);
+}
+
+// 发光区域颜色
+.q-checkbox__inner {
+    color: var(--vscode-checkbox-foreground);
+}
+
+// 选中后外部边框
+.q-checkbox__inner--truthy .q-checkbox__bg {
+    color: var(--vscode-checkbox-selectBorder);
+}
+
+// 选中后内部区域颜色
+.q-checkbox__inner--indet .q-checkbox__bg {
+    color: var(--vscode-checkbox-selectBackground);
+}
+
+// 勾√的颜色
+.q-checkbox__svg {
+    color: var(--vscode-checkbox-foreground);
+}
+
+.q-field--error .q-field__bottom {
+    color: var(--vscode-errorForeground);
+}
+
+.text-negative {
+    color: var(--vscode-inputValidation-errorBorder)!important;
 }

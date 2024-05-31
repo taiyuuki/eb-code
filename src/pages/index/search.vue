@@ -58,7 +58,7 @@ function open(k: string, item: SearchResult) {
     status.open_by_id(k, item.lnum)
 }
 
-watch([() => case_sensitive.value, () => regex.value], () => {
+watch([() => case_sensitive.value, () => regex.value, () => word.value], () => {
     trigger_search()
 })
 

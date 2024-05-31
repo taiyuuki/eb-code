@@ -125,6 +125,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
                 <q-scroll-area
                   visible
                   style="height: 50px;"
+                  class="tag-scroll"
                   @mousewheel.prevent="scroll_ytx"
                 >
                   <draggable
@@ -170,3 +171,21 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
   </q-page>
 </template>
 
+<style>
+.tag-scroll .q-scrollarea__thumb {
+    background-color: var(--vscode-scrollbarSlider-background);
+    width: 14px;
+    border-radius: 0;
+    opacity: 0;
+}
+
+.tag-scroll .q-scrollarea__thumb:hover {
+    background-color: var(--vscode-scrollbarSlider-hoverBackground);
+    opacity: 1;
+}
+
+.tag-scroll .q-scrollarea__thumb:active {
+    background-color: var(--vscode-scrollbarSlider-activeBackground);
+    opacity: 1;
+}
+</style>

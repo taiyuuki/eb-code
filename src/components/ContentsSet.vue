@@ -8,6 +8,7 @@ import { contents_setting } from '@/composables/contents_setting'
 import { useTheme } from '@/stores/theme'
 import { TREE } from '@/static'
 import { notif_warning } from '@/notif'
+import { vScrollview } from '@/directives/v-scrollview'
 
 const status = useStatus()
 const theme = useTheme()
@@ -16,6 +17,7 @@ const contents_edit = ref(false)
 let editting_node: ContentsNode | null = null
 let selected_dirty_node: ContentsNode | null = null
 const confirm_type = ref<'after' | 'before' | null>(null)
+const filter_target = ref('')
 
 function select_contents(node: ContentsNode) {
     if (selected_dirty_node) {
@@ -106,6 +108,7 @@ function on_show() {
         activity_contents.selected_node.selected = false
         activity_contents.selected_node = null
     }
+    status.load_contents_link()
     sync()
 }
 
@@ -393,10 +396,18 @@ function insert_after(node?: ContentsNode) {
       <div m="t-10">
         选择目标
       </div>
+      <q-input
+        v-model="filter_target"
+        dense
+        outlined
+        label="过滤"
+        :dark="theme.dark"
+        m="t-10"
+      />
       <q-scroll-area
         visible
         m="t-10"
-        h="30vh"
+        h="35vh"
         style="box-shadow: 0 0 2px var(--eb-fg);"
       >
         <template
@@ -404,6 +415,8 @@ function insert_after(node?: ContentsNode) {
           :key="node.id"
         >
           <div
+            v-show="filter_target === '' || node.id.includes(filter_target)"
+            v-scrollview="i === selected_index"
             flex="~"
             items-center
             p="y-10"

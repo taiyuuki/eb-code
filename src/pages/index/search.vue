@@ -1,16 +1,25 @@
 <script setup lang="ts">
+import { debounce } from '@taiyuuki/utils'
 import type { SearchResult } from '@/components/types'
 import { invoke_replace, invoke_search } from '@/invoke'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
+import { is_html } from '@/utils/is'
 
 const theme = useTheme()
 const status = useStatus()
 const keyword = ref('')
 const replacement = ref('')
-const search_result = ref<Record<string, SearchResult[]>>({})
+const search_result = ref<[string, SearchResult[]][]>([])
 const case_sensitive = ref(false)
 const regex = ref(false)
+const word = ref(false)
+const has_error = ref(false)
+
+const error_tips = computed(() => {
+    return `无效的正则表达式： ${keyword.value}`
+})
+
 const counter = computed(() => {
     const c = {
         total: 0,
@@ -23,20 +32,26 @@ const counter = computed(() => {
 })
 
 async function search() {
-    if (keyword.value.trim() === '') {
-        search_result.value = {}
+    has_error.value = false
+    if (keyword.value === '') {
+        search_result.value.length = 0
 
         return
     }
-    search_result.value = await invoke_search(status.dir, keyword.value.trim(), regex.value, case_sensitive.value)
+    search_result.value = await invoke_search(status.dir, keyword.value, regex.value, case_sensitive.value, word.value)
 }
+
+const trigger_search = debounce(search, 500)
 
 async function replace() {
     if (keyword.value.trim() === '') {
         return
     }
-    await invoke_replace(status.dir, keyword.value.trim(), regex.value, case_sensitive.value, replacement.value)
-    search()
+    await invoke_replace(status.dir, keyword.value, regex.value, case_sensitive.value, word.value, replacement.value)
+    if (is_html(status.current.id)) {
+        status.reload_current()
+    }
+    await trigger_search()
 }
 
 function open(k: string, item: SearchResult) {
@@ -44,8 +59,18 @@ function open(k: string, item: SearchResult) {
 }
 
 watch([() => case_sensitive.value, () => regex.value], () => {
-    search()
+    trigger_search()
 })
+
+watch(() => status.dir, () => {
+    keyword.value = ''
+    replacement.value = ''
+    search_result.value.length = 0
+})
+
+function regexp_error_tips() {
+    has_error.value = true
+}
 </script>
 
 <template>
@@ -64,30 +89,57 @@ watch([() => case_sensitive.value, () => regex.value], () => {
       debounce="500"
       outlined
       label="搜索"
+      :error="has_error"
+      bottom-slots
+      hide-bottom-space
       dense
+      tabindex="100"
       @update:model-value="search"
     >
       <template #append>
-        <q-btn
-          :class="{ 'i-mdi:format-letter-case': true, 'input-icon': case_sensitive }"
-          op="60 hover:100"
-          pointer
+        <div
+          :class="{ 'input-icon': true, 'input-icon-active': case_sensitive }"
           @click="case_sensitive = !case_sensitive"
         >
+          <div
+            class="i-codicon:case-sensitive"
+            inline-block
+          />
           <q-tooltip :delay="500">
             区分大小写
           </q-tooltip>
-        </q-btn>
-        <q-btn
-          :class="{ 'i-mdi:regex': true, 'input-icon': regex }"
-          op="60 hover:100"
-          pointer
+        </div>
+        <div
+          :class="{ 'input-icon': true, 'input-icon-active': word }"
+          @click="word = !word"
+        >
+          <div
+            class="i-codicon:whole-word"
+            inline-block
+          />
+          <q-tooltip :delay="500">
+            全文字匹配
+          </q-tooltip>
+        </div>
+        <div
+          :class="{ 'input-icon': true, 'input-icon-active': regex }"
           @click="regex = !regex"
         >
-          <q-tooltip :delay="500">
-            使用正则表达式
-          </q-tooltip>
-        </q-btn>
+          <div
+            class="i-codicon:regex"
+            inline-block
+            pointer
+          >
+            <q-tooltip :delay="500">
+              使用正则表达式
+            </q-tooltip>
+          </div>
+        </div>
+      </template>
+      <template #error>
+        <div v-if="has_error">
+          {{ error_tips }}
+        </div>
       </template>
     </q-input>
   </div>
@@ -98,15 +150,16 @@ watch([() => case_sensitive.value, () => regex.value], () => {
     <q-input
       v-model="replacement"
       :dark="theme.dark"
+      debounce="500"
       outlined
       label="替换"
       dense
+      tabindex="100"
     >
       <template #append>
         <q-btn
-          class="i-ic:round-find-replace"
-          op="60 hover:100"
-          pointer
+          class="i-codicon:replace-all"
+          :disable="!keyword"
           @click="replace"
         >
           <q-tooltip :delay="500">
@@ -130,8 +183,8 @@ watch([() => case_sensitive.value, () => regex.value], () => {
     select-none
   >
     <template
-      v-for="(v, k) in search_result"
-      :key="k"
+      v-for="(rst, index) in search_result"
+      :key="index"
     >
       <div flex="~ items-center">
         <div
@@ -141,25 +194,34 @@ watch([() => case_sensitive.value, () => regex.value], () => {
           h="20"
           pointer
         />
+
         <div
           class="list-selection"
           pointer
           m="l-5"
           flex="1"
-          @click="open(k, v[0])"
+          @click="open(rst[0], rst[1][0])"
         >
-          {{ k }}
+          {{ rst[0] }}
         </div>
       </div>
       <div
-        v-for="(item, i) in v"
+        v-for="(item, i) in rst[1]"
         :key="i"
         class="list-selection"
         m="l-30"
         pointer
-        @click="open(k, item)"
+        @click="open(rst[0], item)"
       >
-        {{ item.line }}
+        <ReplaceResult
+          :text="item.line"
+          :patten="keyword"
+          :replace="replacement"
+          :regexp="regex"
+          :fixed="case_sensitive"
+          @regexp-error="regexp_error_tips"
+        />
+        <q-separator :dark="theme.dark" />
       </div>
     </template>
   </q-scroll-area>
@@ -167,8 +229,23 @@ watch([() => case_sensitive.value, () => regex.value], () => {
 
 <style scoped>
 .input-icon {
-    background-color: var(--vscode-button-background);
-    opacity: 1;
-    box-shadow: 0 0 2px var(--eb-fg);
+  border-width: 1px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+}
+
+.input-icon:hover {
+  background-color: var(--vscode-inputOption-hoverBackground);
+}
+
+.input-icon.input-icon-active {
+  border-style: solid;
+  color: var(--vscode-inputOption-activeForeground);
+  border-color: var(--vscode-inputOption-activeBorder);
+  background-color: var(--vscode-inputOption-activeBackground);
 }
 </style>

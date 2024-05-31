@@ -15,4 +15,8 @@ function set_opacity(color: string, opacity: number) {
     }
 }
 
-export { set_opacity }
+function escape_regexp(str: string) {
+    return str.replace(/[$()*+.?[\\\]^{|}]/g, '\\$&')
+}
+
+export { set_opacity, escape_regexp }

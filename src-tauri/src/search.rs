@@ -6,7 +6,6 @@ use grep::{
 };
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
     error::Error,
     io::{Read, Write},
 };
@@ -17,6 +16,7 @@ pub struct SearchOption {
     dir: String,
     pattern: String,
     regex: bool,
+    word: bool,
     case_sensitive: bool,
 }
 
@@ -45,12 +45,14 @@ pub fn find_file(
     file: &str,
     pattern: &str,
     case: bool,
+    word: bool,
     fixed: bool,
 ) -> Result<Vec<SearchResult>, Box<dyn Error>> {
     let f = std::fs::File::open(file)?;
 
     let matcher = regex::RegexMatcherBuilder::new()
         .case_insensitive(!case)
+        .word(word)
         .fixed_strings(!fixed)
         .octal(true)
         .multi_line(true)
@@ -77,6 +79,7 @@ pub fn matcher_replace(
     pattern: &str,
     replacement: &str,
     case: bool,
+    word: bool,
     fixed: bool,
 ) -> Result<(), Box<dyn Error>> {
     let mut f = std::fs::File::open(file)?;
@@ -86,6 +89,7 @@ pub fn matcher_replace(
 
     let matcher = regex::RegexMatcherBuilder::new()
         .case_insensitive(!case)
+        .word(word)
         .fixed_strings(!fixed)
         .octal(true)
         .multi_line(true)
@@ -120,7 +124,7 @@ pub fn matcher_replace(
 #[tauri::command]
 pub fn find(search_option: SearchOption, app_handle: tauri::AppHandle) {
     let path = format_dir(&search_option.dir, "");
-    let mut payload = HashMap::new();
+    let mut payload = vec![];
     walkdir::WalkDir::new(&path)
         .into_iter()
         .filter_map(|e| e.ok())
@@ -134,14 +138,15 @@ pub fn find(search_option: SearchOption, app_handle: tauri::AppHandle) {
                 file,
                 &search_option.pattern,
                 search_option.case_sensitive,
+                search_option.word,
                 search_option.regex,
             );
             if let Ok(result) = search_result {
                 if result.len() > 0 {
-                    payload.insert(
+                    payload.push((
                         file.to_string().replace(&path, "").replace("\\", "/"),
                         result,
-                    );
+                    ));
                 }
             }
         });
@@ -153,6 +158,7 @@ pub struct ReplaceOption {
     dir: String,
     pattern: String,
     regex: bool,
+    word: bool,
     case_sensitive: bool,
     replacement: String,
 }
@@ -174,6 +180,7 @@ pub fn replace(replace_option: ReplaceOption, app_handle: tauri::AppHandle) {
                 &replace_option.pattern,
                 &replace_option.replacement,
                 replace_option.case_sensitive,
+                replace_option.word,
                 replace_option.regex,
             );
             if let Err(_e) = r {

@@ -390,13 +390,14 @@ const useStatus = defineStore('status', {
             }
         },
         async load_contents_link() {
-            const result = await invoke_search(this.dir, 'id=".*?"', true, false)
+            const result = await invoke_search(this.dir, 'id=".*?"', true, false, false)
             this.contents_links.length = 0
             this.nodes[TREE.HTML]?.children?.forEach(node => {
                 this.contents_links.push(node)
-                if (node.id in result) {
+                const n = result.find(r => r[0] === node.id)
+                if (n) {
                     const reg = /id="(.*?)"/
-                    result[node.id].forEach(r => {
+                    n[1].forEach(r => {
                         const id = `${node.id}#${reg.exec(r.line)![1]}`
                         this.contents_id_lnum[id] = r.lnum
                         this.contents_links.push({
@@ -656,7 +657,7 @@ const useStatus = defineStore('status', {
 
                 // 重命名XHTML里的资源
                 if (is_image(old_name) || is_font(old_name)) {
-                    invoke_replace(this.dir, old_name, false, false, new_name).then(() => {
+                    invoke_replace(this.dir, old_name, false, false, false, new_name).then(() => {
                         if (is_html(this.current.id)) {
                             this.reload_current()
                         }

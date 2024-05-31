@@ -11,8 +11,7 @@ const cover_src = ref('')
 const status = useStatus()
 const images = computed(() => status.nodes[TREE.IMAGE]?.children ?? [])
 
-const selections = ref([...images.value ? images.value.map(_ => false) : []])
-let si = -1
+const si = ref(-1)
 
 function seletct_cover(img: FileNode, i: number) {
     if (status.has_src(img.id)) {
@@ -21,16 +20,11 @@ function seletct_cover(img: FileNode, i: number) {
         cover_src.value = convertFileSrc(status.base_path + img.id)
         status.image_srces[img.id] = cover_src.value
     }
-    selections.value.fill(false)
-    selections.value[i] = true
-    si = i
+    si.value = i
 }
-function clean_selections() {
-    cover_src.value = ''
-    selections.value.fill(false)
-}
+
 function set_cover() {
-    const img = images.value[si]
+    const img = images.value[si.value]
     if (img) {
         const id = img.id
         status.set_cover(id)
@@ -69,7 +63,6 @@ async function open_cover() {
     no-backdrop-dismiss
     no-shake
     shadow
-    @hide="clean_selections"
   >
     <div 
       bg="var-eb-bg"
@@ -104,7 +97,7 @@ async function open_cover() {
             <div
               m="y-5"
               p="x-5"
-              :class="{ 'list-selection': true, 'selected': selections[i] }"
+              :class="{ 'list-selection': true, 'selected': si === i }"
               @click="seletct_cover(img, i)"
             >
               {{ img.id }}

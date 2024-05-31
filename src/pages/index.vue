@@ -103,7 +103,11 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
         flex="1"
       >
         <template #before>
-          <router-view />
+          <router-view v-slot="{ Component }">
+            <keep-alive>
+              <component :is="Component" />
+            </keep-alive>
+          </router-view>
         </template>
   
         <template #after>

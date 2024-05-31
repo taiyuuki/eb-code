@@ -132,13 +132,19 @@ const invoke_rename_file = function() {
 
 // 搜索
 const invoke_search = function() {
-    type Payload = Record<string, SearchResult[]>
+    type Payload = [string, SearchResult[]][]
 
     const ir = new InvokeRequest<Payload>('search', 'search-error')
 
-    return function(dir: string, pattern: string, regex: boolean, case_sensitive: boolean) {
+    return function(
+        dir: string, 
+        pattern: string, 
+        regex: boolean, 
+        case_sensitive: boolean,
+        word: boolean,
+    ) {
 
-        return ir.invoke('find', { searchOption: { dir, pattern, regex, case_sensitive } })
+        return ir.invoke('find', { searchOption: { dir, pattern, regex, case_sensitive, word } })
     }
 }()
 
@@ -147,9 +153,16 @@ const invoke_replace = function() {
     type Payload = string
     const ir = new InvokeRequest<Payload>('replace', 'replace-error')
 
-    return function(dir: string, pattern: string, regex: boolean, case_sensitive: boolean, replacement: string) {
+    return function(
+        dir: string,
+        pattern: string,
+        regex: boolean,
+        case_sensitive: boolean, 
+        word: boolean,
+        replacement: string,
+    ) {
 
-        return ir.invoke('replace', { replaceOption: { dir, pattern, regex, case_sensitive, replacement } })
+        return ir.invoke('replace', { replaceOption: { dir, pattern, regex, case_sensitive, replacement, word } })
     }
 }()
 

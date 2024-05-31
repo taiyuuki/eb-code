@@ -304,7 +304,6 @@ function new_css() {
     animation="300"
     force-fallback
     item-key="id"
-    group="type"
     draggable=".draggable"
     v-bind="{
       multiDrag: true,
@@ -338,6 +337,15 @@ function new_css() {
             >
               <q-item-section>
                 新建空白样式
+              </q-item-section>
+            </q-item>
+            <q-item
+              v-if="is_html(node.id)"
+              v-close-popup
+              clickable
+            >
+              <q-item-section>
+                链接样式文件
               </q-item-section>
             </q-item>
             <q-item

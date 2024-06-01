@@ -7,12 +7,10 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    ActivityBar: typeof import('./components/ActivityBar.vue')['default']
     CodeEditor: typeof import('./components/CodeEditor.vue')['default']
     ContentsSet: typeof import('./components/ContentsSet.vue')['default']
     ContentsTree: typeof import('./components/ContentsTree.vue')['default']
     CoverSet: typeof import('./components/CoverSet.vue')['default']
-    DiffEditor: typeof import('./components/DiffEditor.vue')['default']
     FileItem: typeof import('./components/FileItem.vue')['default']
     FileTree: typeof import('./components/FileTree.vue')['default']
     HtmlPreview: typeof import('./components/HtmlPreview.vue')['default']
@@ -20,7 +18,6 @@ declare module 'vue' {
     MetaItem: typeof import('./components/MetaItem.vue')['default']
     MetaSet: typeof import('./components/MetaSet.vue')['default']
     NaviBar: typeof import('./components/NaviBar.vue')['default']
-    NewFile: typeof import('./components/NewFile.vue')['default']
     ReplaceResult: typeof import('./components/ReplaceResult.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
@@ -29,5 +26,6 @@ declare module 'vue' {
     TitleBanner: typeof import('./components/TitleBanner.vue')['default']
     TitleBar: typeof import('./components/TitleBar.vue')['default']
     TitleTag: typeof import('./components/TitleTag.vue')['default']
+    ToolBar: typeof import('./components/ToolBar.vue')['default']
   }
 }

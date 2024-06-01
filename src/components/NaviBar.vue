@@ -1,5 +1,5 @@
 <template>
-    <div w="60" p="10">
+    <div class="navi">
         <q-tabs vertical>
             <q-route-tab name="文件" to="/" exact>
                 <div w="36" h="36" class="i-ic:baseline-folder" />
@@ -13,3 +13,15 @@
         </q-tabs>
     </div>
 </template>
+
+<style scoped>
+.navi {
+  color: var(--vscode-menu-foreground);
+  width: 60px;
+  padding: 10px 0;
+  background-color: var(--vscode-menu-background);
+  border-width: 0 1px 0 0;
+  border-style: solid;
+  border-color: var(--vscode-textSeparator-foreground);
+}
+</style>

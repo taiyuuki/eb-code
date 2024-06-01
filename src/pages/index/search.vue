@@ -86,7 +86,7 @@ function regexp_error_tips() {
     <q-input
       v-model="keyword"
       :dark="theme.dark"
-      debounce="500"
+      debounce="1200"
       outlined
       label="搜索"
       :error="has_error"

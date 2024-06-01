@@ -707,7 +707,7 @@ const useStatus = defineStore('status', {
             }
             this.save_opf()
         },
-        set_cover(path: string) {
+        async set_cover(path: string) {
             if (this.has_src(path)) {
                 this.cover_src = this.image_srces[path]
             } else {
@@ -718,10 +718,11 @@ const useStatus = defineStore('status', {
             }
             const img = new Image()
             img.src = this.cover_src
+            const id = `${this.manifest_path + this.text_path}cover.xhtml`
+            const xhtml_href = relative(id, this.opf_id)
             img.onload = () => {
-                const id = `${this.manifest_path + this.text_path}cover.xhtml`
-                const { naturalWidth, naturalHeight } = img
                 const href = relative(path, id)
+                const { naturalWidth, naturalHeight } = img
                 const xhtml = cover_template(naturalWidth, naturalHeight, href)
                 const cc = this.nodes[TREE.HTML].children!.find(n => n.id === id)
                 invoke_write_text(this.dir, id, xhtml).then(() => {
@@ -747,8 +748,8 @@ const useStatus = defineStore('status', {
                 old_items.forEach(i => i.removeAttribute('properties'))
             }
 
-            const id = path.replace(this.manifest_path, '')
-            const item_cover = opf.dom?.querySelector(`item[href="${id}"`)
+            const cover_href = path.replace(this.manifest_path, '')
+            const item_cover = opf.dom?.querySelector(`item[href="${cover_href}"`)
             if (item_cover) {
                 item_cover.setAttribute('properties', 'cover-image')
                 const content = item_cover.id
@@ -794,7 +795,42 @@ const useStatus = defineStore('status', {
                 }
             }
 
-            this.save_opf()
+            if (this.nav_version === 3) {
+                const navs = contents.dom?.querySelectorAll('nav')
+                const ol = Array.from(navs ?? []).find(nav => nav.getAttribute('epub:type') === 'landmarks')
+                    ?.querySelector('ol') 
+                let li_cover = Array.from(ol?.children ?? []).find(li => li.getAttribute('epub:type') === 'cover')
+                const a = document.createElementNS(contents.namespaceURI, 'a')
+                a.setAttribute('href', xhtml_href)
+                a.textContent = 'Cover'
+                if (li_cover) {
+                    li_cover.innerHTML = ''
+                } else {
+                    li_cover = document.createElementNS(contents.namespaceURI, 'li')
+                    ol?.appendChild(li_cover)
+                }
+                li_cover.appendChild(a)
+                const contents_xml = domToXml(contents.dom!)
+                await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
+            } else {
+                let guide_node = opf.dom?.querySelector('guide')
+                if (!guide_node) {
+                    guide_node = document.createElementNS(opf.namespaceURI, 'guide')
+                    const root_node = opf.dom?.querySelector('package')
+                    root_node?.appendChild(guide_node)
+                } 
+                let reference_cover = guide_node.querySelector('reference[type="cover"]')
+                if (!reference_cover) {
+                    reference_cover = document.createElementNS(opf.namespaceURI, 'reference')
+                    guide_node.appendChild(reference_cover)
+                    guide_node.appendChild(document.createTextNode('\n'))
+                }
+                reference_cover.setAttribute('type', 'cover')
+                reference_cover.setAttribute('title', 'cover')
+                reference_cover.setAttribute('href', xhtml_href)
+            }
+
+            await this.save_opf()
         },
         async new_html(i: number, id: string) {
             const xhtml = xhtml_template()
@@ -1182,7 +1218,7 @@ const useStatus = defineStore('status', {
             this.open_by_id(this.current.id, 1)
         },
         open_by_id(id: string, lnum?: number, hash?: string) {
-            const node = this.nodes[TREE.HTML].children!.find(n => n.id === id)
+            const node = this.nodes[TREE.HTML].children!.find(n => n.id === id) ?? this.nodes.find(n => n.id === id)
             if (node) {
                 this.open(node, lnum, hash)
                 this.add_tab(node)
@@ -1207,7 +1243,6 @@ const useStatus = defineStore('status', {
             this.contents_id_lnum = {}
             this.contents_links.length = 0
             this.is_reading = false
-            preview.close()
             preview.clean()
             this.dir && invoke_clean_cache(this.dir)
             this.dir = ''

@@ -76,7 +76,7 @@ impl EpubContent {
             .paths
             .push("OEBPS/Text/Section0001.xhtml".to_string());
         epub_content.paths.push("OEBPS/ebook.opf".to_string());
-        epub_content.paths.push("Styles/nav.css".to_string());
+        epub_content.paths.push("OEBPS/Styles/nav.css".to_string());
         epub_content
             .paths
             .push("META-INF/container.xml".to_string());
@@ -199,7 +199,7 @@ fn create_epub3(dir: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
         "OEBPS/Text/Section0001.xhtml",
         template::SECTION.to_string(),
     );
-    epub.insert("Styles/nav.css", epub3_template::NAV_CSS.to_string());
+    epub.insert("OEBPS/Styles/nav.css", epub3_template::NAV_CSS.to_string());
     for (key, value) in epub.iter() {
         let path = format_dir(dir, key);
         let folder = Path::new(&path)

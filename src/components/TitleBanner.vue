@@ -1,20 +1,24 @@
 <script setup lang="ts">
-import { useTheme } from '@/stores/theme'
-
-const theme = useTheme()
 </script>
 
 <template>
   <q-banner
-    :dark="theme.dark"
     dense
-    bg="var-eb-bg"
-    text="var-eb-fg"
-    h="55"
-    p="0"
     overflow-auto
     select-none
+    class="banner"
   >
     <slot />
   </q-banner>
 </template>
+
+<style scoped>
+.banner {
+  background-color: var(--vscode-menu-background);
+  padding: 0;
+  color: var(--vscode-menu-foreground);
+  border-width: 0 0 1px 0;
+  border-style: solid;
+  border-color: var(--vscode-textSeparator-foreground);
+}
+</style>

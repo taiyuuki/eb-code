@@ -481,11 +481,11 @@ async function link_to_style(node: FileNode) {
 }
 
 .folder-not-active::before {
-  border-color: var(--eb-border);
+  border-color: var(--vscode-checkbox-border);
 }
 
 .folder-active::before {
-  border-color: var(--eb-active-border);
+  border-color: var(--vscode-checkbox-selectBorder);
 }
 </style>
 @/utils/path

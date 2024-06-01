@@ -5,7 +5,6 @@ import type { HighlighterCore } from 'shiki/index.mjs'
 import { create_controller } from '@/editor'
 import { getLighter } from '@/editor/shiki'
 import { useTheme } from '@/stores/theme'
-import { set_opacity } from '@/utils'
 import { useStatus } from '@/stores/status'
 import { invoke_write_text } from '@/invoke'
 import { check_xml } from '@/utils/xml'
@@ -97,9 +96,6 @@ onMounted(async() => {
         theme.color = theme_colors.fg
         theme.background = theme_colors.bg
         theme.dark = theme_colors.type === 'dark'
-
-        theme['list.activeBorder'] = theme_colors.fg
-        theme['list.border'] = set_opacity(theme_colors.fg, 0.3)
         theme.set_colors()
     }, { immediate: true })
 })
@@ -108,7 +104,7 @@ onMounted(async() => {
 <template>
   <div
     ref="editor"
-    style="width: 100%; height: calc(100% - 65px);"
+    style="width: 100%; height: calc(100% - 60px);"
     pst="abs inset-0"
   />
 </template>

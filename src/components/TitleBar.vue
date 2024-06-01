@@ -31,9 +31,7 @@ async function get_maximized() {
 
 listen(TauriEvent.WINDOW_RESIZED, get_maximized)
 
-onMounted(() => {
-    get_maximized()
-})
+onMounted(get_maximized)
 
 const theme = useTheme()
 const status = useStatus()
@@ -168,6 +166,15 @@ function toggle_preview() {
         preview.open()
     }
 }
+
+defineExpose({
+    open_epub_file,
+    create_epub,
+    save_epub,
+    save_epub_to,
+    close_epub,
+    toggle_preview,
+})
 </script>
 
 <template>
@@ -175,10 +182,23 @@ function toggle_preview() {
     data-tauri-drag-region
     class="titlebar"
   >
+    <div
+      h="36"
+      p="8"
+      m="x-10"
+    >
+      <img
+        height="20px"
+        src="icons/epub.svg"
+        alt="epub.svg"
+      >
+    </div>
     <q-btn
+      :ripple="false"
       label="文件"
       unelevated
       square
+      flat
     >
       <q-menu
         w="fit"
@@ -273,9 +293,11 @@ function toggle_preview() {
       </q-menu>
     </q-btn>
     <q-btn
+      :ripple="false"
       label="编辑"
       unelevated
       square
+      flat
     >
       <q-menu
         w="fit"
@@ -315,9 +337,11 @@ function toggle_preview() {
       </q-menu>
     </q-btn>
     <q-btn
+      :ripple="false"
       label="视图"
       unelevated
       square
+      flat
     >
       <q-menu>
         <q-list>
@@ -388,9 +412,9 @@ function toggle_preview() {
   </div>
 </template>
 
-<style>
+<style scoped>
 .titlebar {
-    background: var(--vscode-toolbar-hoverBackground);
+    background: var(--vscode-button-background);
     user-select: none;
     display: flex;
     justify-content: content-between;
@@ -399,27 +423,33 @@ function toggle_preview() {
     top: 0;
     left: 0;
     right: 0;
+    border-width: 0 0 1px 0;
+    border-style: solid;
+    border-color: var(--vscode-textSeparator-foreground);
   }
-  .titlebar-buttons {
-    position:absolute;
-    width: fit-content;
-    right: 0;
-    display: flex;
-    justify-content: flex-end;
-    align-items: middle;
-  }
-  .titlebar-button {
-    opacity: 0.65;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    width: 30px;
-    height: 30px;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  .titlebar-button:hover {
-    background: var(--eb-fg);
-    opacity: 1;
-  }
+.titlebar-buttons {
+  position:absolute;
+  width: fit-content;
+  right: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: middle;
+}
+.titlebar-button {
+  background-color: var(--vscode-button-foreground);
+  opacity: 0.65;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.titlebar-button:hover {
+  opacity: 1;
+}
+.q-btn {
+  background-color: transparent;
+}
 </style>

@@ -42,6 +42,11 @@ body {
     color: var(--vscode-list-hoverForeground);
 }
 
+// 分隔线
+.sprt {
+    background-color: var(--vscode-textSeparator-foreground);
+}
+
 // 覆盖Quasar样式
 .q-btn {
     background-color: var(--vscode-button-background);

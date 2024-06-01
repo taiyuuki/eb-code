@@ -68,9 +68,11 @@ async fn main() {
     tauri::Builder::default()
         .setup(|_app| {
             tauri::async_runtime::spawn(async move {
+                let cors = warp::cors().allow_any_origin();
                 let api = warp::path("static")
                     .and(warp::fs::dir(FOLDER.as_ref() as &Path))
-                    .or(warp::any().map(|| "暂无预览".to_string()));
+                    .or(warp::any().map(|| "暂无预览".to_string()))
+                    .with(cors);
                 let server = warp::serve(api);
                 server.run(([127, 0, 0, 1], *PORT as u16)).await;
             });

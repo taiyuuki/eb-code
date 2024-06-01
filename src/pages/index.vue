@@ -3,33 +3,20 @@ import Draggable from 'vuedraggable'
 import { TauriEvent } from '@tauri-apps/api/event'
 import { getCurrent } from '@tauri-apps/api/window'
 import type { FileNode } from '@/components/types'
-import { themes } from '@/editor/themes'
-import { DISPLAY, NOT_SUPPORTED_THEMES } from '@/static'
+import { DISPLAY } from '@/static'
 import { useTheme } from '@/stores/theme'
 import { useStatus } from '@/stores/status'
 import { invoke_clean_cache } from '@/invoke'
 import { useActivity } from '@/composables/useActivity'
 import { usePreview } from '@/stores/preview'
 
-const sidebar_width = ref(256)
-
 const preview = usePreview()
-const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
 const theme = useTheme()
 const status = useStatus()
 const app_window = getCurrent()
 const activity_node = useActivity()
 
-const options = supported_themes
-    .map(t => t.split('-')
-        .map(t => t.charAt(0).toUpperCase() + t.slice(1))
-        .join(' '))
-
-const selected_theme = ref(options[supported_themes.indexOf(theme.shiki)])
-
-function set_theme(t: string) {
-    theme.set_theme(supported_themes[options.indexOf(t)])
-}
+const sidebar_width = ref(256)
 
 function open_file(node: FileNode) {
     status.open(node)
@@ -76,20 +63,6 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
     pst="rel"
     style="min-height: inherit;"
   >
-    <div flex="~">
-      <q-select
-        v-model="selected_theme"
-        square
-        outlined
-        dense
-        label="主题颜色"
-        popup-content-class="bg-var-eb-bg text-var-eb-fg"
-        color="fg"
-        :options="options"
-        :dark="theme.dark"
-        @update:model-value="set_theme"
-      />
-    </div>
     <div
       flex="~"
       style="height: calc(100vh - 105px);"
@@ -99,7 +72,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
         v-model="sidebar_width"
         unit="px"
         :limits="[180, Infinity]"
-        separator-class="bg-var-eb-fg"
+        separator-class="sprt"
         flex="1"
       >
         <template #before>
@@ -115,6 +88,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
             v-model="preview.width"
             :limits="[0, Infinity]"
             unit="px"
+            separator-class="sprt"
             reverse
           >
             <template #before>

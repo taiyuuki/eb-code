@@ -11,6 +11,7 @@ onBeforeMount(() => {
   <q-layout>
     <q-page-container pst="abs t-40 r-0 l-0">
       <TitleBar />
+      <ToolBar />
       <router-view />
       <StatusBar />
     </q-page-container>

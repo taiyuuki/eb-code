@@ -49,7 +49,7 @@ function close_preview() {
   </TitleBanner>
   <iframe
     ref="$iframe"
-    style="height: calc(100% - 60px); width: 100%; background-color: #fff;"
+    style="height: calc(100% - 45px); width: 100%; background-color: #fff;"
     :src="url"
   />
 </template>

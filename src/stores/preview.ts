@@ -43,7 +43,6 @@ const usePreview = defineStore('preview', {
             }
         },
     },
-    persist: true,
 })
 
 export { usePreview }

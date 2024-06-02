@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { changed } from '@/invoke'
 import { useStatus } from '@/stores/status'
 
 const status = useStatus()
@@ -17,7 +18,7 @@ const status = useStatus()
     z-2
   >
     <div v-show="status.editable">
-      {{ status.current.save_path || 'Unnamed.epub' }} - epub {{ status.epub_version }}
+      {{ status.current.save_path || 'Unnamed.epub' }} <span v-show="changed.dirty">*</span> - epub {{ status.epub_version }}
     </div>
     <div flex="~">
       <div

@@ -5,6 +5,8 @@ import { listen } from '@tauri-apps/api/event'
 import type { Language } from '@/editor/shiki'
 import type { EpubContent, SearchResult } from '@/components/types'
 
+const changed = reactive({ dirty: false })
+
 class InvokeRequest<Payload, Error = string> {
     resolve: (value: Payload | PromiseLike<Payload>)=> void
     reject: (reason?: Error)=> void
@@ -62,6 +64,8 @@ const invoke_save_epub = function() {
     const ir = new InvokeRequest<Payload>('epub-saved', 'epub-save-error')
 
     return function(input_dir: string, output_dir: string) {
+        changed.dirty = false
+
         return ir.invoke('save_epub', { saveOptions: { input_dir, output_dir } })
     }
 }()
@@ -83,6 +87,9 @@ const invoke_write_text = function() {
     const ir = new InvokeRequest<Payload>('write-success', 'write-error')
 
     return function(dir: string, path: string, content: string) {
+        if (!changed.dirty) {
+            changed.dirty = true
+        }
 
         return ir.invoke('write_text', { textContents: { dir, path, content } })
     }
@@ -104,6 +111,10 @@ const invoke_copy_file = function() {
     const ir = new InvokeRequest<Payload>('file-copied', 'file-copy-error')
 
     return function(from: string, dir: string, id: string) {
+        if (!changed.dirty) {
+            changed.dirty = true
+        }
+
         return ir.invoke('copy_file', { copyOption: { dir, from, to_id: id } })
     }
 }()
@@ -114,6 +125,9 @@ const invoke_remove_file = function() {
     const ir = new InvokeRequest<Payload>('remove-success', 'remove-error')
 
     return function(dir: string, id: string) {
+        if (!changed.dirty) {
+            changed.dirty = true
+        }
 
         return ir.invoke('remove_file', { removeOption: { path: dir, id } })
     }
@@ -125,6 +139,9 @@ const invoke_rename_file = function() {
     const ir = new InvokeRequest<Payload>('rename-success', 'rename-error')
 
     return function(dir: string, id: string, new_name: string) {
+        if (!changed.dirty) {
+            changed.dirty = true
+        }
 
         return ir.invoke('rename_file', { renameOption: { path: dir, id, new_name } })
     }
@@ -161,6 +178,9 @@ const invoke_replace = function() {
         word: boolean,
         replacement: string,
     ) {
+        if (!changed.dirty) {
+            changed.dirty = true
+        }
 
         return ir.invoke('replace', { replaceOption: { dir, pattern, regex, case_sensitive, replacement, word } })
     }
@@ -191,4 +211,5 @@ export {
     invoke_search,
     invoke_replace,
     invoke_get_port,
+    changed,
 }

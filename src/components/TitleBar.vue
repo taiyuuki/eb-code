@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Window } from '@tauri-apps/api/window'
-import { open, save } from '@tauri-apps/plugin-dialog'
+import { ask, open, save } from '@tauri-apps/plugin-dialog'
 import { TauriEvent, listen } from '@tauri-apps/api/event'
-import { invoke_clean_cache, invoke_create_epub, invoke_open_epub, invoke_save_epub } from '@/invoke'
+import { changed, invoke_clean_cache, invoke_create_epub, invoke_open_epub, invoke_save_epub } from '@/invoke'
 import { useTheme } from '@/stores/theme'
 import { useStatus } from '@/stores/status'
 import { DISPLAY } from '@/static'
@@ -41,7 +41,22 @@ const preview = usePreview()
 
 async function open_epub_file() {
     if (status.is_opening || status.is_saving) {
+        notif_negative('当前文件尚未处理完毕，请稍后再试。')
+
         return
+    }
+
+    if (changed.dirty) {
+        const conf = await ask('当前文件尚未保存，是否继续？', {
+            title: '确认',
+            okLabel: '是',
+            cancelLabel: '否',
+        })
+        if (conf) {
+            changed.dirty = false
+        } else {
+            return
+        }
     }
     
     const file = await open({
@@ -71,6 +86,18 @@ async function open_epub_file() {
 }
 
 async function create_epub(version: number) {
+    if (changed.dirty) {
+        const conf = await ask('当前文件尚未保存，是否继续？', {
+            title: '确认',
+            okLabel: '是',
+            cancelLabel: '否',
+        })
+        if (conf) {
+            changed.dirty = false
+        }else {
+            return
+        }
+    }
     const payload = await invoke_create_epub(version)
     if (status.dir !== '') {
         status.close_epub()
@@ -135,8 +162,19 @@ async function save_epub_to() {
         notif_positive('文件已保存')
     }
 }
-
-function close_epub() {
+async function close_epub() {
+    if (changed.dirty) {
+        const conf = await ask('当前文件尚未保存，是否继续？', {
+            title: '确认',
+            okLabel: '是',
+            cancelLabel: '否',
+        })
+        if (conf) {
+            changed.dirty = false
+        } else {
+            return
+        }
+    }
     status.clean_tree()
     status.dir && invoke_clean_cache(status.dir)
     status.close_epub()

@@ -2,11 +2,12 @@
 import Draggable from 'vuedraggable'
 import { TauriEvent } from '@tauri-apps/api/event'
 import { getCurrent } from '@tauri-apps/api/window'
+import { ask } from '@tauri-apps/plugin-dialog'
 import type { FileNode } from '@/components/types'
 import { DISPLAY } from '@/static'
 import { useTheme } from '@/stores/theme'
 import { useStatus } from '@/stores/status'
-import { invoke_clean_cache } from '@/invoke'
+import { changed, invoke_clean_cache } from '@/invoke'
 import { useActivity } from '@/composables/useActivity'
 import { usePreview } from '@/stores/preview'
 
@@ -46,7 +47,19 @@ function scroll_ytx(e: WheelEvent) {
     }
 }
 
-app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
+app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
+    if (changed.dirty) {
+        const conf = await ask('当前文件尚未保存，是否继续？', {
+            title: '确认',
+            okLabel: '是',
+            cancelLabel: '否',
+        })
+        if (conf) {
+            changed.dirty = false
+        }else {
+            return
+        }
+    }
     if (status.dir) {
         invoke_clean_cache(status.dir).then(() => {
             app_window.destroy()

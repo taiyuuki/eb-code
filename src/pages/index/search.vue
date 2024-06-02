@@ -78,7 +78,10 @@ function regexp_error_tips() {
     :dark="theme.dark"
     dense
   >
-    <div text="20 bold">
+    <div
+      m="x-5"
+      text="20 bold"
+    >
       搜索
     </div>
   </TitleBanner>

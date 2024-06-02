@@ -32,7 +32,10 @@ function close_preview() {
     :dark="theme.dark"
     dense
   >
-    <div flex="~ justify-between items-center">
+    <div
+      m="x-5"
+      flex="~ justify-between items-center"
+    >
       <div text="20 bold">
         预览
       </div>

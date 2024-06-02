@@ -11,7 +11,10 @@ const theme = useTheme()
     :dark="theme.dark"
     dense
   >
-    <div text="20 bold">
+    <div
+      m="x-5"
+      text="20 bold"
+    >
       书籍资源管理
     </div>
   </TitleBanner>

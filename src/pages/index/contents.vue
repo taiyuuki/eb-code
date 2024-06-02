@@ -31,7 +31,10 @@ function open(node: ContentsNode) {
     dense
   >
     <div flex="~ justify-between items-center">
-      <div text="20 bold">
+      <div
+        m="x-5"
+        text="20 bold"
+      >
         目录
       </div>
       <div

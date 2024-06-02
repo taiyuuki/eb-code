@@ -127,5 +127,6 @@ function set_theme(t: string) {
   border-width: 0 0 1px 0;
   border-style: solid;
   border-color: var(--vscode-textSeparator-foreground);
+  user-select: none;
 }
 </style>

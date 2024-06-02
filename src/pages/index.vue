@@ -103,6 +103,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
             unit="px"
             separator-class="sprt"
             reverse
+            @update:model-value="(v) => { if (v === 0) { preview.close() } }"
           >
             <template #before>
               <TitleBanner

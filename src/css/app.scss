@@ -86,12 +86,7 @@ body {
     background-color: var(--vscode-toolbar-hoverBackground);
 }
 
-.q-field {
-    background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-}
-
-.q-field__control {
+.q-field, .q-field__control, .q-field__label {
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
 }

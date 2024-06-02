@@ -1,5 +1,5 @@
 {
-  "productName": "eb-code",
+  "productName": "Ebook Code",
   "version": "0.1.0",
   "identifier": "com.tauri.ebcode",
   "build": {
@@ -57,14 +57,10 @@
     ],
     "windows": {
       "allowDowngrades": true,
-      "certificateThumbprint": null,
-      "digestAlgorithm": null,
       "nsis": {
         "compression": "lzma"
       },
-      "timestampUrl": null,
       "tsp": false,
-      "webviewFixedRuntimePath": null,
       "webviewInstallMode": {
         "silent": true,
         "type": "downloadBootstrapper"

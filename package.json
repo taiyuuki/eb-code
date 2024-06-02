@@ -63,6 +63,7 @@
     "typescript": "~5.3.3",
     "unocss": "^0.59.4",
     "unplugin-auto-import": "^0.17.6",
+    "unplugin-svg-component": "^0.10.3",
     "unplugin-vue-components": "^0.26.0",
     "vite-plugin-pages": "^0.32.2",
     "vite-plugin-vue-layouts": "^0.11.0"

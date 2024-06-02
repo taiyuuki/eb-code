@@ -1,3 +1,4 @@
+import { resolve } from 'node:path'
 import type { RouteRecord } from 'vue-router'
 import type { PluginEntry } from '@quasar/app-vite/types/configuration/build'
 import nlsPlugin, { Languages } from './nls'
@@ -54,6 +55,14 @@ const vite_plugins: PluginEntry[] = [
         },
     ],
     ['unocss/vite', {/** unocss options */ }],
+    ['unplugin-svg-component/vite', {
+        iconDir: resolve(process.cwd(), 'src/svg'),
+        dts: true,
+        dtsDir: 'src',
+        componentStyle: 'width:100%;height:100%;fill:currentColor;',
+        scanStrategy: 'text',
+    }],
+
     // rollup_plugin_sortablejs(),
 ]
 

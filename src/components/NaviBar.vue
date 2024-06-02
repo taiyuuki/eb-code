@@ -18,7 +18,7 @@
 .navi {
   color: var(--vscode-menu-foreground);
   width: 60px;
-  padding: 10px 0;
+  padding: 0;
   background-color: var(--vscode-menu-background);
   border-width: 0 1px 0 0;
   border-style: solid;

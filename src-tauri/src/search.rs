@@ -35,6 +35,8 @@ pub struct SearchResult {
 /// 参数的值）。该函数将在以下内容中搜索此模式：
 /// * `case`: `find_file` 函数中的 `case` 参数是一个布尔标志，用于确定搜索是否区分大小写。如果 `case` 为
 /// `true`，则搜索将区分大小写，这意味着模式必须与文件中的文本的大小写相匹配。
+/// * `ward`, `find_file` 函数中的 `word` 参数是一个布尔标志，用于确定搜索是否仅匹配完整单词。如果 `word` 为 `true`，则搜索将
+/// 仅匹配完整的单词，这意味着模式中的空格将被视为普通字符。
 /// * `fixed`: `find_file` 函数中的 `fixed` 参数表示搜索模式应被视为固定字符串还是正则表达式。如果 `fixed` 设置为
 /// `true`，则搜索模式将被视为固定字符串，这意味着模式中的特殊字符将被视为普通字符。
 ///
@@ -129,8 +131,11 @@ pub fn find(search_option: SearchOption, app_handle: tauri::AppHandle) {
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| {
-            let path = e.path().to_str().unwrap();
-            path.ends_with(".xhtml") || path.ends_with(".html")
+            let ext = e.path().extension();
+            if let Some(ext) = ext {
+                return ext == "xhtml" || ext == "html";
+            }
+            false
         })
         .for_each(|e| {
             let file = e.path().to_str().unwrap();
@@ -170,8 +175,11 @@ pub fn replace(replace_option: ReplaceOption, app_handle: tauri::AppHandle) {
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| {
-            let path = e.path().to_str().unwrap();
-            path.ends_with(".xhtml") || path.ends_with(".html")
+            let ext = e.path().extension();
+            if let Some(ext) = ext {
+                return ext == "xhtml" || ext == "html";
+            }
+            false
         })
         .for_each(|e| {
             let file = e.path().to_str().unwrap();

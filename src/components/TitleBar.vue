@@ -173,6 +173,7 @@ defineExpose({
     save_epub,
     save_epub_to,
     close_epub,
+    edit_metadata,
     toggle_preview,
 })
 </script>
@@ -185,7 +186,7 @@ defineExpose({
     <div
       h="36"
       p="8"
-      m="x-10"
+      m="x-5"
     >
       <img
         height="20px"
@@ -423,6 +424,7 @@ defineExpose({
     top: 0;
     left: 0;
     right: 0;
+    box-sizing: border-box;
     border-width: 0 0 1px 0;
     border-style: solid;
     border-color: var(--vscode-textSeparator-foreground);

@@ -12,7 +12,8 @@
     "clean": "quasar clean",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
-    "get-themes": "esno ./scripts/get-themes.ts && eslint src/editor/themes.ts --fix"
+    "get-themes": "esno ./scripts/get-themes.ts && eslint src/editor/themes.ts --fix",
+    "gen-license": "esno ./scripts/gen-license.ts"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.11",

@@ -1,6 +1,7 @@
 // @unocss-include
 import { convertFileSrc } from '@tauri-apps/api/core'
 import { arr_remove } from '@taiyuuki/utils'
+import { ask } from '@tauri-apps/plugin-dialog'
 import type { ContentsNode, EpubContent, FileNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
 import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_replace, invoke_search, invoke_write_text } from '@/invoke'
@@ -11,7 +12,7 @@ import { useActivity } from '@/composables/useActivity'
 import { notif_negative, notif_positive } from '@/notif'
 import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
 import { DISPLAY, TREE } from '@/static'
-import { cover_template, xhtml_template } from '@/template/xhtml'
+import { cover_template, ncx_template, xhtml_template } from '@/template/xhtml'
 import stores from '@/stores'
 import { usePreview } from '@/stores/preview'
 
@@ -412,84 +413,88 @@ const useStatus = defineStore('status', {
         parse_guide() {
             
         },
-        async save_contents() {
-            let contents_xml = ''
-            if (this.nav_version === 3) {
-                const ol = document.createElement('ol')
-                const loop_stack: [HTMLOListElement, ContentsNode[]][] = [[ol, this.contents_tree]]
-
-                ol.appendChild(document.createTextNode('\n'))
-                while (loop_stack.length) {
-                    const [ol, tree] = loop_stack.pop()!
-                    tree.forEach(node => {
-                        const li = document.createElement('li')
-                        li.appendChild(document.createTextNode('\n'))
-                        const a = document.createElement('a')
-                        a.textContent = node.title
-                        a.href = node.id.replace(this.manifest_path, '')
-                        li.appendChild(a)
-                        li.appendChild(document.createTextNode('\n'))
-                        ol.appendChild(li)
-                        ol.appendChild(document.createTextNode('\n'))
-                        if (node.children?.length) {
-                            const ol = document.createElement('ol')
-                            li.appendChild(ol)
-                            loop_stack.push([ol, node.children])
-                        }
-                    })
-                    
-                }
-
-                contents.dom
-                    ?.querySelector('nav[id="toc"]')
-                    ?.querySelector('ol')
-                    ?.replaceWith(ol)
-                contents_xml = domToXml(contents.dom!)
-            } else {
-                const navMap = document.createElementNS(contents.namespaceURI, 'navMap')
-                navMap.appendChild(document.createTextNode('\n'))
-                const loop_stack: [Element, ContentsNode][] = []
-                for (let i = this.contents_tree.length - 1; i >= 0; i--) {
-                    loop_stack.push([navMap, this.contents_tree[i]])
-                }
+        get_nav_epub2(dom: Document, namespaceURI: string) {
+            const navMap = document.createElementNS(namespaceURI, 'navMap')
+            navMap.appendChild(document.createTextNode('\n'))
+            const loop_stack: [Element, ContentsNode][] = []
+            for (let i = this.contents_tree.length - 1; i >= 0; i--) {
+                loop_stack.push([navMap, this.contents_tree[i]])
+            }
                 
-                let index = 1
-                while (loop_stack.length) {
-                    const [navMap, node] = loop_stack.pop()!
-                    const navPoint = document.createElementNS(contents.namespaceURI, 'navPoint')
-                    navPoint.appendChild(document.createTextNode('\n'))
-                    const text = document.createElementNS(contents.namespaceURI, 'text')
-                    text.textContent = node.title
+            let index = 1
+            while (loop_stack.length) {
+                const [navMap, node] = loop_stack.pop()!
+                const navPoint = document.createElementNS(namespaceURI, 'navPoint')
+                navPoint.appendChild(document.createTextNode('\n'))
+                const text = document.createElementNS(namespaceURI, 'text')
+                text.textContent = node.title
 
-                    navPoint.setAttribute('id', `navPoint-${index}`)
-                    navPoint.setAttribute('playOrder', `${index}`)
+                navPoint.setAttribute('id', `navPoint-${index}`)
+                navPoint.setAttribute('playOrder', `${index}`)
                     
-                    const label = document.createElementNS(contents.namespaceURI, 'navLabel')
-                    label.appendChild(text)
-                    navPoint.appendChild(label)
+                const label = document.createElementNS(namespaceURI, 'navLabel')
+                label.appendChild(text)
+                navPoint.appendChild(label)
 
-                    const content = document.createElementNS(contents.namespaceURI, 'content')
-                    content.setAttribute('src', node.id.replace(this.manifest_path, ''))
+                const content = document.createElementNS(namespaceURI, 'content')
+                content.setAttribute('src', node.id.replace(this.manifest_path, ''))
 
-                    navPoint.appendChild(document.createTextNode('\n'))
-                    navPoint.appendChild(content)
-                    navPoint.appendChild(document.createTextNode('\n'))
+                navPoint.appendChild(document.createTextNode('\n'))
+                navPoint.appendChild(content)
+                navPoint.appendChild(document.createTextNode('\n'))
 
-                    navMap.appendChild(navPoint)
-                    navMap.appendChild(document.createTextNode('\n'))
+                navMap.appendChild(navPoint)
+                navMap.appendChild(document.createTextNode('\n'))
 
-                    index++
-                    if (node.children?.length) {
-                        for (let i = node.children.length - 1; i >= 0; i--) {
-                            loop_stack.push([navPoint, node.children[i]])
-                        }
+                index++
+                if (node.children?.length) {
+                    for (let i = node.children.length - 1; i >= 0; i--) {
+                        loop_stack.push([navPoint, node.children[i]])
                     }
                 }
-
-                contents.dom!.querySelector('navMap')?.replaceWith(navMap)
-
-                contents_xml = domToXml(contents.dom!, 'xml')
             }
+
+            dom.querySelector('navMap')?.replaceWith(navMap)
+
+            return domToXml(dom, 'xml')
+        },
+        get_nav_epub3(dom: Document) {
+            const ol = document.createElement('ol')
+            const loop_stack: [HTMLOListElement, ContentsNode[]][] = [[ol, this.contents_tree]]
+
+            ol.appendChild(document.createTextNode('\n'))
+            while (loop_stack.length) {
+                const [ol, tree] = loop_stack.pop()!
+                tree.forEach(node => {
+                    const li = document.createElement('li')
+                    li.appendChild(document.createTextNode('\n'))
+                    const a = document.createElement('a')
+                    a.textContent = node.title
+                    a.href = node.id.replace(this.manifest_path, '')
+                    li.appendChild(a)
+                    li.appendChild(document.createTextNode('\n'))
+                    ol.appendChild(li)
+                    ol.appendChild(document.createTextNode('\n'))
+                    if (node.children?.length) {
+                        const ol = document.createElement('ol')
+                        li.appendChild(ol)
+                        loop_stack.push([ol, node.children])
+                    }
+                })
+                    
+            }
+
+            dom
+                ?.querySelector('nav[id="toc"]')
+                ?.querySelector('ol')
+                ?.replaceWith(ol)
+
+            return domToXml(dom)
+        },
+        async save_contents() {
+            const contents_xml = this.nav_version === 2 
+                ? this.get_nav_epub2(contents.dom!, contents.namespaceURI) 
+                : this.get_nav_epub3(contents.dom!)
             
             if (activity_nodes.opened_node?.type === 'navigation') {
                 this.is_toogle = true
@@ -497,6 +502,61 @@ const useStatus = defineStore('status', {
             }
             
             await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
+        },
+        async gen_ncx_for_epub2() {
+            const conf = await ask('此操作是为了兼容ePub2，如果你后续修改了导航文件，你可能需要重新执行此操作，是否继续？', {
+                title: '提示',
+                okLabel: '是',
+                cancelLabel: '否',
+            })
+            if (!conf) return
+            const dom = xmlToDom(ncx_template(this.book_id))
+            const contents_xml = this.get_nav_epub2(dom, 'http://www.idpf.org/2007/ops')
+            const ncx_id = `${this.manifest_path}toc.ncx`
+            await invoke_write_text(this.dir, ncx_id, contents_xml)
+            opf.dom?.querySelector('spine')?.setAttribute('toc', 'ncx')
+            opf.dom?.querySelector('manifest')?.appendChild(document.createTextNode('\n'))
+            const item = opf.dom?.querySelector('item[id="ncx"]')
+            if (item) {
+                item.setAttribute('href', 'toc.ncx')
+            } else {
+                opf.dom?.querySelector('manifest')?.appendChild(objToDom({ 'tagName': 'item', 'id': 'ncx', 'href': 'toc.ncx', 'type': 'ncx', 'media-type': 'application/x-dtbncx+xml' }, opf.namespaceURI))
+            }
+            const navs = contents.dom?.querySelectorAll('nav')
+            const ol = Array.from(navs ?? []).find(nav => nav.getAttribute('epub:type') === 'landmarks')
+                ?.querySelector('ol') 
+            if (ol) {
+                const lis = Array.from(ol.querySelectorAll('li'))
+                const guide = document.createElementNS(opf.namespaceURI, 'guide')
+                guide.appendChild(document.createTextNode('\n'))
+                lis.forEach(li => {
+                    const a = li.querySelector('a')
+                    const type = a?.getAttribute('epub:type')
+                    const href = a?.getAttribute('href')
+                    const text = a?.textContent
+
+                    const reference = document.createElementNS(opf.namespaceURI, 'reference')
+                    reference.setAttribute('type', type || 'text')
+                    reference.setAttribute('title', text || '')
+                    reference.setAttribute('href', href || '')
+                    guide.appendChild(reference)
+                    guide.appendChild(document.createTextNode('\n'))
+                })
+                const old_guide = opf.dom?.querySelector('guide')
+                if (old_guide) {
+                    old_guide.replaceWith(guide)
+                } else {
+                    opf.dom?.querySelector('package')?.appendChild(guide)
+                }
+            }
+            await this.save_opf()
+            const ncx_node = this.nodes.find(n => n.id === ncx_id)
+            if (ncx_node) {
+                ncx_node.id = ncx_id
+                ncx_node.name = ncx_id
+            } else {
+                this.nodes.push({ id: ncx_id, name: ncx_id, icon: 'i-vscode-icons:file-type-text', type: 'ncx' })
+            }
         },
         add_meta(tagName: string, value: string) {
             const count = this.metadata.filter(m => m.tagName === tagName).length
@@ -904,6 +964,9 @@ const useStatus = defineStore('status', {
                 this.current.code = code
             }
             await invoke_write_text(this.dir, this.opf_id, code)
+            if (this.current.id === this.opf_id) {
+                this.reload_current()
+            }
         },
         init_tree() {
             this.nodes = [{

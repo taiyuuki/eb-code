@@ -376,16 +376,26 @@ async function link_to_style(node: FileNode) {
                 重命名
               </q-item-section>
             </q-item>
-            <q-item
-              v-if="node.type === 'navigation' && node.id.endsWith('html')"
-              v-close-popup
-              clickable
-              @click="add_nav_to_spine(node)"
-            >
-              <q-item-section>
-                {{ status.nav_in_spine ? '移出书脊' : '添加到书脊' }}
-              </q-item-section>
-            </q-item>
+            <template v-if="node.type === 'navigation' && node.id.endsWith('html')">
+              <q-item
+                v-close-popup
+                clickable
+                @click="add_nav_to_spine(node)"
+              >
+                <q-item-section>
+                  {{ status.nav_in_spine ? '移出书脊' : '添加到书脊' }}
+                </q-item-section>
+              </q-item>
+              <q-item
+                v-close-popup
+                clickable
+                @click="status.gen_ncx_for_epub2"
+              >
+                <q-item-section>
+                  为ePub2生成NCX和GUIDE
+                </q-item-section>
+              </q-item>
+            </template>
             <q-item
               v-close-popup
               clickable

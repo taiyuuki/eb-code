@@ -40,4 +40,23 @@ const cover_template = (width: number, height: number, href: string) => {
     `.trim()
 }
 
-export { xhtml_template, cover_template }
+const ncx_template = (uuid: string) => {
+    return `<?xml version="1.0" encoding="utf-8"?>
+    <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+    <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+        <head>
+            <meta name="dtb:uid" content="urn:${uuid}" />
+            <meta name="dtb:depth" content="0" />
+            <meta name="dtb:totalPageCount" content="0" />
+            <meta name="dtb:maxPageNumber" content="0" />
+        </head>
+    <docTitle>
+        <text>Unknown</text>
+    </docTitle>
+    <navMap>
+
+    </navMap>
+    </ncx>`
+}
+
+export { xhtml_template, cover_template, ncx_template }

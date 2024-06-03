@@ -2,7 +2,7 @@
 import type { FileNode } from './types'
 import { invoke_get_text, invoke_write_text } from '@/invoke'
 import { notif_negative } from '@/notif'
-import { TREE } from '@/static'
+import { DISPLAY, TREE } from '@/static'
 import { useStatus } from '@/stores/status'
 import { relative } from '@/utils/path'
 import { domToXml, xmlToDom } from '@/utils/xml'
@@ -55,7 +55,9 @@ async function link_to_style() {
     })
     await invoke_write_text(status.dir, props.node.id, domToXml(dom).replace(/\n\s*\n\s*\n/g, '\n\n'))
     if (status.current.id === props.node.id) {
-        status.reload_current()
+        if (status.display === DISPLAY.CODE) {
+            status.reload_current()
+        }
         preview.reload_iframe()
     }
     emit('complate')

@@ -719,7 +719,7 @@ const useStatus = defineStore('status', {
                 // 重命名XHTML里的资源
                 if (is_image(old_name) || is_font(old_name)) {
                     invoke_replace(this.dir, old_name, false, false, false, new_name).then(() => {
-                        if (is_html(this.current.id)) {
+                        if (this.display === DISPLAY.CODE && is_html(this.current.id)) {
                             this.reload_current()
                         }
                     })
@@ -964,7 +964,7 @@ const useStatus = defineStore('status', {
                 this.current.code = code
             }
             await invoke_write_text(this.dir, this.opf_id, code)
-            if (this.current.id === this.opf_id) {
+            if (this.display === DISPLAY.CODE && this.current.id === this.opf_id) {
                 this.reload_current()
             }
         },

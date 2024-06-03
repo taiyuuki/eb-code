@@ -5,6 +5,7 @@ import { invoke_replace, invoke_search } from '@/invoke'
 import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
 import { is_html } from '@/utils/is'
+import { DISPLAY } from '@/static'
 
 const theme = useTheme()
 const status = useStatus()
@@ -48,7 +49,7 @@ async function replace() {
         return
     }
     await invoke_replace(status.dir, keyword.value, regex.value, case_sensitive.value, word.value, replacement.value)
-    if (is_html(status.current.id)) {
+    if (status.display === DISPLAY.CODE && is_html(status.current.id)) {
         status.reload_current()
     }
     await trigger_search()

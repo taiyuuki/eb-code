@@ -160,7 +160,8 @@ const useStatus = defineStore('status', {
             })
 
             this.add_parent()
-            this.manifest_path = `${this.opf_id.substring(0, this.opf_id.lastIndexOf('/'))}/`
+            const root_path = this.opf_id.substring(0, this.opf_id.lastIndexOf('/')) 
+            this.manifest_path = root_path === '' ? '' : `${root_path}/`
 
             const get_sub_path = (path: string) => {
                 const file_name = basename(path)

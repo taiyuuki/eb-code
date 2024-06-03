@@ -10,16 +10,17 @@ onBeforeMount(() => {
     document.documentElement.addEventListener('contextmenu', e => {
         e.preventDefault()
     })
-    document.addEventListener('keydown', function(e: KeyboardEvent) {
 
-        if (
-            e.key === 'F5'
-            || e.ctrlKey && e.key === 'r'
-            || e.metaKey && e.key === 'r'
-        ) {
-            e.preventDefault()
-        }
-    })
+    // document.addEventListener('keydown', function(e: KeyboardEvent) {
+
+    //     if (
+    //         e.key === 'F5'
+    //         || e.ctrlKey && e.key === 'r'
+    //         || e.metaKey && e.key === 'r'
+    //     ) {
+    //         e.preventDefault()
+    //     }
+    // })
 })
 
 function open() {

@@ -36,6 +36,8 @@ function extname(path: string) {
  * @returns 相对路径
  */
 function relative(target: string, from: string) {
+    target = `root/${target}`
+    from = `root/${from}`
     const f = target.split('/')
     f.shift()
     const t = from.split('/') 
@@ -56,9 +58,6 @@ function relative(target: string, from: string) {
         rel_path += '../'
     }
 
-    // if (!rel_path) {
-    //     rel_path += './'
-    // }
     rel_path += f.join('/')
 
     return rel_path

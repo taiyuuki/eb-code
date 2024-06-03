@@ -123,10 +123,46 @@ function mimetype(path: string) {
     }
 }
 
+function dirname(path: string) {
+    return path.substring(0, path.lastIndexOf('/'))
+}
+
+function join(...paths: string[]) {
+    const path = ''
+
+    return paths.reduce((path, b, i) => {
+        if (b.endsWith('/')) {
+            b = b.substring(0, b.length - 1)
+        }
+        if (i === 0) {
+            if (b.startsWith('/')) {
+                return b.substring(1)
+            } else if (b.startsWith('./')) {
+                return b.substring(2)
+            } else {
+                return b
+            }
+        } else if (b.startsWith('/')) {
+            return path + b
+        } else if (b.startsWith('./')) {
+            return path + b.substring(1)
+        } else if (b.startsWith('../')) {
+            return path.substring(0, path.lastIndexOf('/') + 1) + b.substring(3)
+
+        } else if (path === '') {
+            return b
+        } else {
+            return `${path}/${b}`
+        }
+    }, path)
+}
+
 export {
     basename,
     filename,
     extname,
     mimetype,
+    dirname,
+    join,
     relative,
 }

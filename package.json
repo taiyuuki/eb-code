@@ -9,6 +9,7 @@
     "lint": "eslint src/** --fix",
     "dev": "quasar dev",
     "build": "quasar build",
+    "test": "vitest",
     "clean": "quasar clean",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
@@ -67,7 +68,8 @@
     "unplugin-svg-component": "^0.10.3",
     "unplugin-vue-components": "^0.26.0",
     "vite-plugin-pages": "^0.32.2",
-    "vite-plugin-vue-layouts": "^0.11.0"
+    "vite-plugin-vue-layouts": "^0.11.0",
+    "vitest": "^1.6.0"
   },
   "engines": {
     "node": "^24 || ^22 || ^20 || ^18",

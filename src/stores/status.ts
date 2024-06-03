@@ -5,7 +5,7 @@ import { ask } from '@tauri-apps/plugin-dialog'
 import type { ContentsNode, EpubContent, FileNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
 import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_replace, invoke_search, invoke_write_text } from '@/invoke'
-import { basename, filename, relative } from '@/utils/path'
+import { basename, dirname, filename, join, relative } from '@/utils/path'
 import { is_audio, is_font, is_html, is_image, is_scripts, is_style, is_text, is_video } from '@/utils/is'
 import { get_scroll_top, scroll_to_line, scroll_top_to } from '@/editor'
 import { useActivity } from '@/composables/useActivity'
@@ -340,9 +340,11 @@ const useStatus = defineStore('status', {
                             const a = li.querySelector('a')
                             const title = a?.textContent || ''
                             const href = a?.getAttribute('href') || './'
+                            const id = join(dirname(this.nav_href), `${this.manifest_path}${href}`)
+
                             const branch: ContentsNode = {
                                 title,
-                                id: `${this.manifest_path}${href}`,
+                                id,
                             }
 
                             if (parent) {
@@ -370,9 +372,11 @@ const useStatus = defineStore('status', {
                         points.forEach(nav => {
                             const title = nav.querySelector('text')?.textContent || ''
                             const href = nav.querySelector('content')?.getAttribute('src') || './'
+                            const id = join(dirname(this.nav_href), `${this.manifest_path}${href}`)
+
                             const branch: ContentsNode = {
                                 title,
-                                id: `${this.manifest_path}${href}`,
+                                id,
                             }
 
                             if (parent) {

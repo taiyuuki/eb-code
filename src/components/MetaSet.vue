@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { useQuasar } from 'quasar'
 import { arr_remove, object_keys } from '@taiyuuki/utils'
 import { useStatus } from '@/stores/status'
-import { useTheme } from '@/stores/theme'
 import { cover_setting } from '@/composables/cover_setting'
 import { dirty_meta } from '@/composables/dirty_meta'
 
@@ -32,23 +30,28 @@ const _META_PROPERTY: Record<string, string> = {
     'collection-type': '合集、系列',
 }
 
-const meta_items = object_keys(_META_KEY).map(t => {
-    return {
-        label: _META_KEY[t],
-        value: t,
-    }
-})
+const meta_selections = reactive(object_keys(_META_KEY).reduce((r, k) => {
+    r[k] = false
 
-const meta_property_items = object_keys(_META_PROPERTY).map(t => {
-    return {
-        label: _META_PROPERTY[t],
-        value: t,
-    }
-})
+    return r
+}, {} as Record<string, boolean>))
+const meta_property_selections = reactive(object_keys(_META_PROPERTY).reduce((r, k) => {
+    r[k] = false
 
-const $q = useQuasar()
+    return r
+}, {} as Record<string, boolean>))
+
+const meta_dialog = ref(false)
+const meta_property_dialog = ref(false)
+
+// const meta_items = object_keys(_META_KEY).map(t => {
+//     return {
+//         label: _META_KEY[t],
+//         value: t,
+//     }
+// })
+
 const status = useStatus()
-const theme = useTheme()
 
 onMounted(() => {
     Object.assign(dirty_meta.value, status.metadata)
@@ -65,41 +68,33 @@ onBeforeUnmount(async() => {
 })
 
 function add_meta() {
-    $q.dialog({
-        title: '添加元数据',
-        options: {
-            type: 'checkbox',
-            model: [],
-            items: meta_items,
-        },
-        dark: theme.dark,
-        ok: '添加',
-        cancel: '取消',
-    }).onOk(data => {
-
-        data.forEach((t: string) => {
+    object_keys(meta_selections).forEach(t => {
+        if (meta_selections[t]) {
             status.add_meta(t, '[点我修改属性值]')
-        })
+
+            meta_selections[t] = false
+        }
     })
+
+    meta_dialog.value = false
 }
 
-function add_meta_child(item: Record<string, any>) {
-    $q.dialog({
-        title: '添加元数据属性',
-        options: {
-            type: 'checkbox',
-            model: [],
-            items: meta_property_items,
-        },
-        dark: theme.dark,
-        ok: '添加',
-        cancel: '取消',
-    }).onOk(data => {
+let temp_meta_item: Record<string, any>
+function add_child(item: Record<string, any>) {
+    temp_meta_item = item
+    meta_property_dialog.value = true
+}
 
-        data.forEach((t: string) => {
-            status.add_meta_child(item, t, '[点我修改属性值]')
-        })
+function add_meta_property() {
+
+    object_keys(meta_property_selections).forEach(t => {
+        if (meta_property_selections[t]) {
+            status.add_meta_child(temp_meta_item, t, '[点我修改属性值]')
+
+            meta_property_selections[t] = false
+        }
     })
+    meta_property_dialog.value = false
 }
 
 function remove_meta_item(item: Record<string, any>) {
@@ -122,7 +117,7 @@ function meta_changed() {
 </script>
 
 <template>
-  <div h="100%">
+  <div h="95%">
     <div
       flex="~ nowrap"
       p="l-20"
@@ -158,7 +153,7 @@ function meta_changed() {
               :property="_META_PROPERTY"
               @remove="remove_meta_item"
               @remove-child="remove_meta_child"
-              @add-child="add_meta_child"
+              @add-child="add_child"
               @updata:item="meta_changed"
             />
           </template>
@@ -176,8 +171,115 @@ function meta_changed() {
       /> 
       <q-btn
         label="添加元数据"
-        @click="add_meta"
+        @click="meta_dialog = true"
       />
     </div>
   </div>
+  <q-dialog
+    v-model="meta_dialog"
+    no-backdrop-dismiss
+    no-shake
+    shadow
+  >
+    <div
+      bg="var-eb-bg"
+      text="var-eb-fg"
+      h="65vh"
+      w="80vw"
+      select-none
+    >
+      <q-bar>
+        <div>元数据设置</div>
+        <q-space />
+        <q-btn
+          v-close-popup
+          dense
+          flat
+          icon="close"
+        />
+      </q-bar>
+      <q-scroll-area h="50vh">
+        <div
+          v-for="(text, key) in _META_KEY"
+          :key="key"
+        >
+          <q-checkbox
+            v-model="meta_selections[key]"
+            size="xs"
+            :label="text"
+          />
+        </div>
+      </q-scroll-area>
+      <div
+        pst="rel"
+        p="10"
+        h="80"
+      >
+        <q-btn
+          pst="abs r-80 b-10"
+          label="确定"
+          @click="add_meta"
+        />
+        <q-btn
+          pst="abs r-10 b-10"
+          label="取消"
+          @click="meta_dialog = false"
+        />
+      </div>
+    </div>
+  </q-dialog>
+
+  <q-dialog
+    v-model="meta_property_dialog"
+    no-backdrop-dismiss
+    no-shake
+    shadow
+  >
+    <div
+      bg="var-eb-bg"
+      text="var-eb-fg"
+      h="65vh"
+      w="80vw"
+      select-none
+    >
+      <q-bar>
+        <div>添加属性</div>
+        <q-space />
+        <q-btn
+          v-close-popup
+          dense
+          flat
+          icon="close"
+        />
+      </q-bar>
+      <q-scroll-area h="50vh">
+        <div
+          v-for="(text, key) in _META_PROPERTY"
+          :key="key"
+        >
+          <q-checkbox
+            v-model="meta_property_selections[key]"
+            size="xs"
+            :label="text"
+          />
+        </div>
+      </q-scroll-area>
+      <div
+        pst="rel"
+        p="10"
+        h="80"
+      >
+        <q-btn
+          pst="abs r-80 b-10"
+          label="确定"
+          @click="add_meta_property"
+        />
+        <q-btn
+          pst="abs r-10 b-10"
+          label="取消"
+          @click="meta_property_dialog = false"
+        />
+      </div>
+    </div>
+  </q-dialog>
 </template>

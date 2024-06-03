@@ -112,6 +112,7 @@ function edit_meta(e: Event, item: Record<string, any>) {
           title="新增属性"
           class="i-ic:round-post-add"
           pointer
+          @click="emit('add-child', item)"
         />
         <div
           title="删除"

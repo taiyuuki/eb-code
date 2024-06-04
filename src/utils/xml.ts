@@ -5,7 +5,11 @@ function xmlToDom(xml: string) {
 }
 
 function domToXml(dom: Document, type: 'xhtml' | 'xml' = 'xhtml') {
-    return type === 'xhtml' ? new XMLSerializer().serializeToString(dom) : xmlserializer.serializeToString(dom)
+    return type === 'xhtml' ? new XMLSerializer().serializeToString(dom) : `<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN"
+       "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+       
+    ${xmlserializer.serializeToString(dom)}`
 }
 
 function domToObj(dom: Element) {

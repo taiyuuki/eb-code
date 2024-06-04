@@ -18,7 +18,7 @@ const is_maximized = ref(false)
 const new_epub_menu = ref()
 
 function close_window() {
-    appWindow.destroy()
+    appWindow.close()
 }
 
 async function toggle_maximize() {

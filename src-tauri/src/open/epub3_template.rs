@@ -36,7 +36,7 @@ pub const NAV: &str = r##"<?xml version="1.0" encoding="utf-8"?>
         <h2>Guide</h2>
         <ol>
             <li>
-                <a epub:type="toc" href="#toc">Toc</a>
+                <a epub:type="toc" href="Text/nav.xhtml">Toc</a>
             </li>
         </ol>
     </nav>

@@ -42,16 +42,16 @@ dependencies:
     version: 1.11.11
   emmet-monaco-es:
     specifier: 5.3.2
-    version: 5.3.2(patch_hash=vdpcqbb6tvlg2vhvwtshh7o3gq)(monaco-editor@0.48.0)
+    version: 5.3.2(patch_hash=vdpcqbb6tvlg2vhvwtshh7o3gq)(monaco-editor@0.49.0)
   monaco-editor:
-    specifier: ^0.48.0
-    version: 0.48.0
+    specifier: ^0.49.0
+    version: 0.49.0
   monaco-editor-core:
     specifier: ^0.48.0
     version: 0.48.0
   monaco-editor-textmate:
     specifier: ^4.0.0
-    version: 4.0.0(monaco-editor@0.48.0)(monaco-textmate@3.0.1)
+    version: 4.0.0(monaco-editor@0.49.0)(monaco-textmate@3.0.1)
   monaco-textmate:
     specifier: ^3.0.1
     version: 3.0.1(onigasm@2.2.5)
@@ -100,11 +100,11 @@ devDependencies:
     specifier: ^1.1.14
     version: 1.1.14
   '@iconify-json/vscode-icons':
-    specifier: ^1.1.34
-    version: 1.1.34
+    specifier: ^1.1.35
+    version: 1.1.35
   '@quasar/app-vite':
     specifier: '>=2.0.0-beta.14'
-    version: 2.0.0-beta.14(@types/node@20.14.0)(eslint@9.4.0)(pinia@2.1.7)(quasar@2.16.4)(vue-router@4.3.2)(vue@3.4.27)
+    version: 2.0.0-beta.14(@types/node@20.14.2)(eslint@9.4.0)(pinia@2.1.7)(quasar@2.16.4)(vue-router@4.3.2)(vue@3.4.27)
   '@taiyuuki/eslint-config':
     specifier: ^1.4.7
     version: 1.4.7(@typescript-eslint/parser@7.10.0)(eslint@9.4.0)(typescript@5.3.3)
@@ -115,8 +115,8 @@ devDependencies:
     specifier: '>=2.0.0-beta.20'
     version: 2.0.0-beta.20
   '@types/node':
-    specifier: ^20.14.0
-    version: 20.14.0
+    specifier: ^20.14.2
+    version: 20.14.2
   '@unocss/preset-attributify':
     specifier: ^0.59.4
     version: 0.59.4
@@ -164,7 +164,7 @@ devDependencies:
     version: 0.11.0(vite@5.2.10)(vue-router@4.3.2)(vue@3.4.27)
   vitest:
     specifier: ^1.6.0
-    version: 1.6.0(@types/node@20.14.0)
+    version: 1.6.0(@types/node@20.14.2)
 
 packages:
 
@@ -1065,8 +1065,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/vscode-icons@1.1.34:
-    resolution: {integrity: sha512-aBNizvBp+I1r1Fs5YUhFqLPmw8nY8PBe0N8hov9Ri1KdEqILILOMT5k+3Vvk0koEMLENyLbOTYtOVf0/KU4HiA==}
+  /@iconify-json/vscode-icons@1.1.35:
+    resolution: {integrity: sha512-mUootLfDN4M9u5CL+gjJIGoVo/IaTGRo3WnysNTqTf9T5vkoe+EscJkx9aLbLs6gjSPQ+449SyuyTbBaF+nXww==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -1188,7 +1188,7 @@ packages:
     resolution: {integrity: sha512-j7P6Rgr3mmtdkeDGTe0E/aYyWEWVtc5yFXtHCRHs28/jptDEWfaVOc5T7cblqy1XKPPfCxJc/8DwQ5YgLOZOVQ==}
     dev: true
 
-  /@quasar/app-vite@2.0.0-beta.14(@types/node@20.14.0)(eslint@9.4.0)(pinia@2.1.7)(quasar@2.16.4)(vue-router@4.3.2)(vue@3.4.27):
+  /@quasar/app-vite@2.0.0-beta.14(@types/node@20.14.2)(eslint@9.4.0)(pinia@2.1.7)(quasar@2.16.4)(vue-router@4.3.2)(vue@3.4.27):
     resolution: {integrity: sha512-Ch4mlstNq92xPacvWv7b8DHuXhVezMXSVPUMyvjHYOLhrwbajajRUbyjFO5MP57d4oKPlC5+3OYtTZP+RPP7Ww==}
     engines: {node: ^30 || ^28 || ^26 || ^24 || ^22 || ^20 || ^18, npm: '>= 6.14.12', yarn: '>= 1.17.3'}
     hasBin: true
@@ -1256,7 +1256,7 @@ packages:
       semver: 7.6.0
       serialize-javascript: 6.0.2
       table: 6.8.2
-      vite: 5.2.10(@types/node@20.14.0)(sass@1.75.0)
+      vite: 5.2.10(@types/node@20.14.2)(sass@1.75.0)
       vue: 3.4.27(typescript@5.3.3)
       vue-router: 4.3.2(vue@3.4.27)
       webpack-merge: 5.10.0
@@ -1302,7 +1302,7 @@ packages:
     dependencies:
       '@vitejs/plugin-vue': 5.0.4(vite@5.2.10)(vue@3.4.27)
       quasar: 2.16.4
-      vite: 5.2.10(@types/node@20.14.0)(sass@1.75.0)
+      vite: 5.2.10(@types/node@20.14.2)(sass@1.75.0)
       vue: 3.4.27(typescript@5.3.3)
     dev: true
 
@@ -1836,7 +1836,7 @@ packages:
     resolution: {integrity: sha512-fB3Zu92ucau0iQ0JMCFQE7b/dv8Ot07NI3KaZIkIUNXq82k4eBAqUaneXfleGY9JWskeS9y+u0nXMyspcuQrCg==}
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 20.14.0
+      '@types/node': 20.14.2
     dev: true
 
   /@types/chrome@0.0.262:
@@ -1855,7 +1855,7 @@ packages:
   /@types/connect@3.4.38:
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
     dependencies:
-      '@types/node': 20.14.0
+      '@types/node': 20.14.2
     dev: true
 
   /@types/cordova@11.0.3:
@@ -1882,7 +1882,7 @@ packages:
   /@types/express-serve-static-core@4.19.0:
     resolution: {integrity: sha512-bGyep3JqPCRry1wq+O5n7oiBgGWmeIJXPjXXCo8EK0u8duZGSYar7cGqd3ML2JUsLGeB7fmc06KYo9fLGWqPvQ==}
     dependencies:
-      '@types/node': 20.14.0
+      '@types/node': 20.14.2
       '@types/qs': 6.9.15
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
@@ -1918,7 +1918,7 @@ packages:
   /@types/http-proxy@1.17.14:
     resolution: {integrity: sha512-SSrD0c1OQzlFX7pGu1eXxSEjemej64aaNPRhhVYUGqXh0BtldAAx37MG8btcumvpgKyZp1F5Gn3JkktdxiFv6w==}
     dependencies:
-      '@types/node': 20.14.0
+      '@types/node': 20.14.2
     dev: true
 
   /@types/json-schema@7.0.15:
@@ -1946,11 +1946,11 @@ packages:
   /@types/node-forge@1.3.11:
     resolution: {integrity: sha512-FQx220y22OKNTqaByeBGqHWYz4cl94tpcxeFdvBo3wjG6XPBuZ0BNgNZRV5J5TFmmcsJ4IzsLkmGRiQbnYsBEQ==}
     dependencies:
-      '@types/node': 20.14.0
+      '@types/node': 20.14.2
     dev: true
 
-  /@types/node@20.14.0:
-    resolution: {integrity: sha512-5cHBxFGJx6L4s56Bubp4fglrEpmyJypsqI6RgzMfBHWUJQGWAAi8cWcgetEbZXHYXo9C2Fa4EEds/uSyS4cxmA==}
+  /@types/node@20.14.2:
+    resolution: {integrity: sha512-xyu6WAMVwv6AKFLB+e/7ySZVr/0zLCzOa7rSpq6jNwpqOrUbcACDWC+53d4n2QHOnDou0fbIsg8wZu/sxrnI4Q==}
     dependencies:
       undici-types: 5.26.5
     dev: true
@@ -1975,14 +1975,14 @@ packages:
     resolution: {integrity: sha512-x2EM6TJOybec7c52BX0ZspPodMsQUd5L6PRwOunVyVUhXiBSKf3AezDL8Dgvgt5o0UfKNfuA0eMLr2wLT4AiBA==}
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 20.14.0
+      '@types/node': 20.14.2
     dev: true
 
   /@types/serve-static@1.15.7:
     resolution: {integrity: sha512-W8Ym+h8nhuRwaKPaDw34QUkwsGi6Rc4yYqvKFo5rm2FUEhCFbzVWrxXUxuKK8TASjWsysJY0nsmNCGhCOIsrOw==}
     dependencies:
       '@types/http-errors': 2.0.4
-      '@types/node': 20.14.0
+      '@types/node': 20.14.2
       '@types/send': 0.17.4
     dev: true
 
@@ -2197,7 +2197,7 @@ packages:
       '@unocss/core': 0.59.4
       '@unocss/reset': 0.59.4
       '@unocss/vite': 0.59.4(vite@5.2.10)
-      vite: 5.2.10(@types/node@20.14.0)(sass@1.75.0)
+      vite: 5.2.10(@types/node@20.14.2)(sass@1.75.0)
     transitivePeerDependencies:
       - rollup
     dev: true
@@ -2395,7 +2395,7 @@ packages:
       chokidar: 3.6.0
       fast-glob: 3.3.2
       magic-string: 0.30.10
-      vite: 5.2.10(@types/node@20.14.0)(sass@1.75.0)
+      vite: 5.2.10(@types/node@20.14.2)(sass@1.75.0)
     transitivePeerDependencies:
       - rollup
     dev: true
@@ -2407,7 +2407,7 @@ packages:
       vite: ^5.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 5.2.10(@types/node@20.14.0)(sass@1.75.0)
+      vite: 5.2.10(@types/node@20.14.2)(sass@1.75.0)
       vue: 3.4.27(typescript@5.3.3)
     dev: true
 
@@ -3673,13 +3673,13 @@ packages:
       sax: 1.1.4
     dev: true
 
-  /emmet-monaco-es@5.3.2(patch_hash=vdpcqbb6tvlg2vhvwtshh7o3gq)(monaco-editor@0.48.0):
+  /emmet-monaco-es@5.3.2(patch_hash=vdpcqbb6tvlg2vhvwtshh7o3gq)(monaco-editor@0.49.0):
     resolution: {integrity: sha512-fb8z9lUVtqXx4IGQQceMwuz7/hYDJdLQj40ZOMQOtBJ4qLTo5XT9H0u/DhfCSWyOktTxZZxiYfkQsGasrv6u0w==}
     peerDependencies:
       monaco-editor: '>=0.22.0'
     dependencies:
       emmet: 2.4.7
-      monaco-editor: 0.48.0
+      monaco-editor: 0.49.0
     dev: false
     patched: true
 
@@ -5574,18 +5574,18 @@ packages:
     resolution: {integrity: sha512-HaGsPuwG+2LA9Ya2lmU7zEh8TdA33E8kh94+RplFDq+4ZjW+pa3NlxOIZGyrNrBybvicitByY3Ys9c//NLaDVQ==}
     dev: false
 
-  /monaco-editor-textmate@4.0.0(monaco-editor@0.48.0)(monaco-textmate@3.0.1):
+  /monaco-editor-textmate@4.0.0(monaco-editor@0.49.0)(monaco-textmate@3.0.1):
     resolution: {integrity: sha512-Clwup5LJzVfwURQrS+odSEC5/hZBEG36pQnvBKt4OtBndF8r2xLeXUZcK/AqEBK2u0Npy7frFp9hG7m66Ol9hA==}
     peerDependencies:
       monaco-editor: 0.x.x
       monaco-textmate: ^3.0.0
     dependencies:
-      monaco-editor: 0.48.0
+      monaco-editor: 0.49.0
       monaco-textmate: 3.0.1(onigasm@2.2.5)
     dev: false
 
-  /monaco-editor@0.48.0:
-    resolution: {integrity: sha512-goSDElNqFfw7iDHMg8WDATkfcyeLTNpBHQpO8incK6p5qZt5G/1j41X0xdGzpIkGojGXM+QiRQyLjnfDVvrpwA==}
+  /monaco-editor@0.49.0:
+    resolution: {integrity: sha512-2I8/T3X/hLxB2oPHgqcNYUVdA/ZEFShT7IAujifIPMfKkNbLOqY8XCoyHCXrsdjb36dW9MwoTwBCFpXKMwNwaQ==}
     dev: false
 
   /monaco-textmate@3.0.1(onigasm@2.2.5):
@@ -7229,7 +7229,7 @@ packages:
       '@unocss/transformer-directives': 0.59.4
       '@unocss/transformer-variant-group': 0.59.4
       '@unocss/vite': 0.59.4(vite@5.2.10)
-      vite: 5.2.10(@types/node@20.14.0)(sass@1.75.0)
+      vite: 5.2.10(@types/node@20.14.2)(sass@1.75.0)
     transitivePeerDependencies:
       - postcss
       - rollup
@@ -7368,7 +7368,7 @@ packages:
       replace-ext: 1.0.1
     dev: true
 
-  /vite-node@1.6.0(@types/node@20.14.0):
+  /vite-node@1.6.0(@types/node@20.14.2):
     resolution: {integrity: sha512-de6HJgzC+TFzOu0NTC4RAIsyf/DY/ibWDYQUcuEA84EMHhcefTUGkjFHKKEJhQN4A+6I0u++kr3l36ZF2d7XRw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -7377,7 +7377,7 @@ packages:
       debug: 4.3.4
       pathe: 1.1.2
       picocolors: 1.0.1
-      vite: 5.2.10(@types/node@20.14.0)(sass@1.75.0)
+      vite: 5.2.10(@types/node@20.14.2)(sass@1.75.0)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -7415,7 +7415,7 @@ packages:
       json5: 2.2.3
       local-pkg: 0.5.0
       picocolors: 1.0.1
-      vite: 5.2.10(@types/node@20.14.0)(sass@1.75.0)
+      vite: 5.2.10(@types/node@20.14.2)(sass@1.75.0)
       vue-router: 4.3.2(vue@3.4.27)
       yaml: 2.4.2
     transitivePeerDependencies:
@@ -7431,14 +7431,14 @@ packages:
     dependencies:
       debug: 4.3.4
       fast-glob: 3.3.2
-      vite: 5.2.10(@types/node@20.14.0)(sass@1.75.0)
+      vite: 5.2.10(@types/node@20.14.2)(sass@1.75.0)
       vue: 3.4.27(typescript@5.3.3)
       vue-router: 4.3.2(vue@3.4.27)
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite@5.2.10(@types/node@20.14.0)(sass@1.75.0):
+  /vite@5.2.10(@types/node@20.14.2)(sass@1.75.0):
     resolution: {integrity: sha512-PAzgUZbP7msvQvqdSD+ErD5qGnSFiGOoWmV5yAKUEI0kdhjbH6nMWVyZQC/hSc4aXwc0oJ9aEdIiF9Oje0JFCw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -7466,7 +7466,7 @@ packages:
       terser:
         optional: true
     dependencies:
-      '@types/node': 20.14.0
+      '@types/node': 20.14.2
       esbuild: 0.20.2
       postcss: 8.4.38
       rollup: 4.17.0
@@ -7475,7 +7475,7 @@ packages:
       fsevents: 2.3.3
     dev: true
 
-  /vitest@1.6.0(@types/node@20.14.0):
+  /vitest@1.6.0(@types/node@20.14.2):
     resolution: {integrity: sha512-H5r/dN06swuFnzNFhq/dnz37bPXnq8xB2xB5JOVk8K09rUtoeNN+LHWkoQ0A/i3hvbUKKcCei9KpbxqHMLhLLA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -7500,7 +7500,7 @@ packages:
       jsdom:
         optional: true
     dependencies:
-      '@types/node': 20.14.0
+      '@types/node': 20.14.2
       '@vitest/expect': 1.6.0
       '@vitest/runner': 1.6.0
       '@vitest/snapshot': 1.6.0
@@ -7518,8 +7518,8 @@ packages:
       strip-literal: 2.1.0
       tinybench: 2.8.0
       tinypool: 0.8.4
-      vite: 5.2.10(@types/node@20.14.0)(sass@1.75.0)
-      vite-node: 1.6.0(@types/node@20.14.0)
+      vite: 5.2.10(@types/node@20.14.2)(sass@1.75.0)
+      vite-node: 1.6.0(@types/node@20.14.2)
       why-is-node-running: 2.2.2
     transitivePeerDependencies:
       - less

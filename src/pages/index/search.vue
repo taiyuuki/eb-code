@@ -21,6 +21,10 @@ const error_tips = computed(() => {
     return `无效的正则表达式： ${keyword.value}`
 })
 
+const disable_replace = computed(() => {
+    return has_error.value || keyword.value === ''
+})
+
 const counter = computed(() => {
     const c = {
         total: 0,
@@ -39,7 +43,11 @@ async function search() {
 
         return
     }
-    search_result.value = await invoke_search(status.dir, keyword.value, regex.value, case_sensitive.value, word.value)
+    try {
+        search_result.value = await invoke_search(status.dir, keyword.value, regex.value, case_sensitive.value, word.value)
+    } catch (_) {
+        has_error.value = true
+    }
 }
 
 const trigger_search = debounce(search, 500)
@@ -48,11 +56,15 @@ async function replace() {
     if (keyword.value.trim() === '') {
         return
     }
-    await invoke_replace(status.dir, keyword.value, regex.value, case_sensitive.value, word.value, replacement.value)
-    if (status.display === DISPLAY.CODE && is_html(status.current.id)) {
-        status.reload_current()
+    try {
+        await invoke_replace(status.dir, keyword.value, regex.value, case_sensitive.value, word.value, replacement.value)
+        if (status.display === DISPLAY.CODE && is_html(status.current.id)) {
+            status.reload_current()
+        }
+        await trigger_search()
+    } catch(_) {
+        has_error.value = true
     }
-    await trigger_search()
 }
 
 function open(k: string, item: SearchResult) {
@@ -67,6 +79,7 @@ watch(() => status.dir, () => {
     keyword.value = ''
     replacement.value = ''
     search_result.value.length = 0
+    has_error.value = false
 })
 
 function regexp_error_tips() {
@@ -90,7 +103,7 @@ function regexp_error_tips() {
     <q-input
       v-model="keyword"
       :dark="theme.dark"
-      debounce="1200"
+      debounce="800"
       outlined
       label="搜索"
       :error="has_error"
@@ -163,10 +176,13 @@ function regexp_error_tips() {
       <template #append>
         <q-btn
           class="i-codicon:replace-all"
-          :disable="!keyword"
+          :disable="disable_replace"
           @click="replace"
         >
-          <q-tooltip :delay="500">
+          <q-tooltip
+            v-if="!disable_replace"
+            :delay="500"
+          >
             全部替换
           </q-tooltip>
         </q-btn>

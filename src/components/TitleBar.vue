@@ -198,11 +198,7 @@ function edit_metadata() {
 }
 
 function toggle_preview() {
-    if (preview.display) {
-        preview.close()
-    } else {
-        preview.open()
-    }
+    preview.toggle()
 }
 
 defineExpose({

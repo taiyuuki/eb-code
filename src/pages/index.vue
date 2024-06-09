@@ -110,28 +110,42 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
                 :dark="theme.dark"
                 dense
               >
-                <q-scroll-area
-                  visible
-                  style="height: 50px;"
-                  class="tag-scroll"
-                  @mousewheel.prevent="scroll_ytx"
+                <div 
+                  flex="~ justify-between items-center"
                 >
-                  <draggable
-                    :list="status.tabs"
-                    item-key="id"
-                    animation="200"
-                    force-fallback
-                    class="flex items-center flex-nowrap"
+                  <q-scroll-area
+                    visible
+                    style="height: 50px;"
+                    class="tag-scroll"
+                    flex="1"
+                    @mousewheel.prevent="scroll_ytx"
                   >
-                    <template #item="{ element: node }">
-                      <TitleTag
-                        :node="node"
-                        @close="close_file"
-                        @open="open_file"
-                      />
-                    </template>
-                  </draggable>
-                </q-scroll-area>
+                    <draggable
+                      :list="status.tabs"
+                      item-key="id"
+                      animation="200"
+                      force-fallback
+                      class="flex items-center flex-nowrap"
+                    >
+                      <template #item="{ element: node }">
+                        <TitleTag
+                          :node="node"
+                          @close="close_file"
+                          @open="open_file"
+                        />
+                      </template>
+                    </draggable>
+                  </q-scroll-area>
+                  <div
+                    class="i-codicon:layout-sidebar-right"
+                    w="20"
+                    h="20"
+                    m="x-5"
+                    op="60 hover:100"
+                    pointer
+                    @click="preview.toggle"
+                  />
+                </div>
               </TitleBanner>
               <CodeEditor
                 v-show="status.display === DISPLAY.CODE"

@@ -42,6 +42,13 @@ const usePreview = defineStore('preview', {
                 this.width = this.latest_width
             }
         },
+        toggle() {
+            if (this.display) {
+                this.close()
+            } else {
+                this.open()
+            }
+        },
     },
 })
 

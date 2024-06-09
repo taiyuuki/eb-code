@@ -12,6 +12,7 @@ const status = useStatus()
 const theme = useTheme()
 
 const url = computed(() => {
+
     return `http://127.0.0.1:${preview.port}/static/${status.dir}/${preview.id}`
 })
 
@@ -52,7 +53,7 @@ function close_preview() {
   </TitleBanner>
   <iframe
     ref="$iframe"
-    style="height: calc(100% - 45px); width: 100%; background-color: #fff;"
+    style="height: calc(100% - 55px); width: 100%; background-color: #fff;"
     :src="url"
   />
 </template>

@@ -2,6 +2,13 @@
 
 EPUB文档编辑器，目前正在开发中。
 
+# Preview
+
+![pre01.jpg](./res/pre01.jpg)
+![pre02.jpg](./res/pre02.jpg)
+![pre03.gif](./res/pre03.gif)
+![pre04.gif](./res/pre04.gif)
+
 ## Features
 
 * 支持创建ePub2和ePub3。
@@ -21,7 +28,7 @@ EPUB文档编辑器，目前正在开发中。
 * 多行搜索
 * 字体子集化
 * 自定义主题颜色
-* 文件分割
+* 文件分割、合并
 * 代码片段
 * 自动检测更新
 

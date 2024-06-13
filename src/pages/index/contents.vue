@@ -50,7 +50,7 @@ function open(node: ContentsNode) {
   </TitleBanner>
   <q-scroll-area
     visible
-    style="height: calc(100vh - 170px);"
+    style="height: calc(100vh - 170px);padding-bottom: 12px;"
   >
     <ContentsTree
       :contents="status.contents_tree"

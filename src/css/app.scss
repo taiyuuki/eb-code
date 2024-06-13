@@ -60,6 +60,7 @@ body {
 .q-scrollarea__thumb, .q-scrollarea--dark .q-scrollarea__thumb {
     background-color: var(--vscode-scrollbarSlider-background);
     width: 14px;
+    height: 12px;
     border-radius: 0;
     opacity: 1;
 }

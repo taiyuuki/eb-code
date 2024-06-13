@@ -1,8 +1,8 @@
 diff --git a/dist/emmet-monaco.esm.js b/dist/emmet-monaco.esm.js
-index 27db3ee035ab7fa3f627ee715305eea5886012fd..1699d2a9c978475ada3545fb566669612b496396 100644
+index d2af37ba8591f312c1de730f7aada8be7bf9eb6e..96071d042291bb80933bc7f996e18a17e62a2e46 100644
 --- a/dist/emmet-monaco.esm.js
 +++ b/dist/emmet-monaco.esm.js
-@@ -2341,6 +2341,7 @@ function selfClose(config) {
+@@ -2356,6 +2356,7 @@ function selfClose(config) {
      switch (config.options['output.selfClosingStyle']) {
          case 'xhtml': return ' /';
          case 'xml': return '/';
@@ -10,24 +10,7 @@ index 27db3ee035ab7fa3f627ee715305eea5886012fd..1699d2a9c978475ada3545fb56666961
          default: return '';
      }
  }
-@@ -4796,7 +4797,7 @@ const defaultOptions$1 = {
-         'required', 'reversed', 'selected', 'typemustmatch'
-     ],
-     'output.reverseAttributes': false,
--    'output.selfClosingStyle': 'html',
-+    'output.selfClosingStyle': 'xhtml',
-     'output.field': (index, placeholder) => placeholder,
-     'output.text': text => text,
-     'markup.href': true,
-@@ -4831,6 +4832,7 @@ const defaultConfig = {
-  * Default per-syntax config
-  */
- const syntaxConfig = {
-+    html: 'xhtml',
-     markup: {
-         snippets: parseSnippets(markupSnippets),
-     },
-@@ -6016,7 +6018,7 @@ function registerProvider(monaco, languages, syntax) {
+@@ -6078,7 +6079,7 @@ function registerProvider(monaco, languages, syntax) {
      }
      const providers = languages.map((language) => monaco.languages.registerCompletionItemProvider(language, {
          triggerCharacters: LANGUAGE_MODES[MAPPED_MODES[language] || language],

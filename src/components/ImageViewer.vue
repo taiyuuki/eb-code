@@ -7,15 +7,14 @@ import { useStatus } from '@/stores/status'
 import { DISPLAY } from '@/static'
 
 const props = defineProps<{ src: string }>()
-const eventList = [] as HTMLEventManage<any>[]
+const event_list = [] as HTMLEventManage<any>[]
 const image_size = reactive({ width: 0, height: 0 })
 const mask_class = ref('mask-transparent')
 
-// const show_controller = ref(false)
 const controller = useElementRef<HTMLDivElement>()
 const status = useStatus()
 
-const imagePosition = reactive({
+const image_position = reactive({
     scale: 1, // 缩放倍数
     top: 0,
     left: 0,
@@ -23,7 +22,9 @@ const imagePosition = reactive({
     size: '', // 图片短边长度
 })
 
-const touchStore = {
+const image_size_label = computed(() => `图片尺寸： ${image_size.width} * ${image_size.height}`)
+
+const touch_store = {
     pageX: 0,
     pageY: 0,
     pageX2: 0,
@@ -33,47 +34,47 @@ const touchStore = {
 }
 
 // 图片蒙层样式
-const maskStyle = computed(() => {
-    return `top:${imagePosition.top}px;left:${imagePosition.left}px`
+const mask_style = computed(() => {
+    return `top:${image_position.top}px;left:${image_position.left}px`
 })
 
 // 缩放
-const picResize = (resize: number) => {
-    imagePosition.scale += resize
-    if (imagePosition.scale > 5) {
-        imagePosition.scale = 5
+const pic_scale = (scale: number) => {
+    image_position.scale += scale
+    if (image_position.scale > 5) {
+        image_position.scale = 5
     }
-    if (imagePosition.scale < 0.3) {
-        imagePosition.scale = 0.3
+    if (image_position.scale < 0.3) {
+        image_position.scale = 0.3
     }
 }
 
 // 图片样式
-const imageStyle = computed(() => {
-    return `transform:scale(${imagePosition.scale}) rotate(${imagePosition.deg}deg);${imagePosition.size}`
+const image_style = computed(() => {
+    return `transform:scale(${image_position.scale}) rotate(${image_position.deg}deg);${image_position.size}`
 })
 
-function resizeOnscroll(e: WheelEvent) {
+function resize_onscroll(e: WheelEvent) {
     e.preventDefault()
-    picResize(-e.deltaY / 1000)
+    pic_scale(-e.deltaY / 1000)
 
     return false
 }
 
 // 拖动
-const dragMove: TouchPanValue = function(details) {
-    if (touchStore.draggable) {
-        imagePosition.top += details!.delta!.y!
-        imagePosition.left += details!.delta!.x!
+const drag_move: TouchPanValue = function(details) {
+    if (touch_store.draggable) {
+        image_position.top += details!.delta!.y!
+        image_position.left += details!.delta!.x!
     }
 }
 
 // 重置
-const sizeReset = () => {
-    imagePosition.deg = 0
-    imagePosition.top = 0
-    imagePosition.left = 0
-    imagePosition.scale = 1
+const size_reset = () => {
+    image_position.deg = 0
+    image_position.top = 0
+    image_position.left = 0
+    image_position.scale = 1
 }
 
 const vTakeSize: Directive = (img: HTMLImageElement) => {
@@ -89,11 +90,11 @@ const vTakeSize: Directive = (img: HTMLImageElement) => {
         image_size.height = naturalHeight
         const img_radio = naturalWidth / naturalHeight
         if (naturalHeight < container_height && naturalWidth < container_width) {
-            imagePosition.size = `width:${naturalWidth}px;height:${naturalHeight}px`
+            image_position.size = `width:${naturalWidth}px;height:${naturalHeight}px`
         } else if (img_radio > radio) {
-            imagePosition.size = 'width:100%'
+            image_position.size = 'width:100%'
         } else {
-            imagePosition.size = 'height:100%'
+            image_position.size = 'height:100%'
         }
         
         status.display = DISPLAY.IMAGE
@@ -127,11 +128,11 @@ function mouse_pan(state: 'end' | 'start') {
 }
 
 watch(() => props.src, () => {
-    sizeReset()
+    size_reset()
 })
 
 onBeforeUnmount(() => {
-    for (const eventItem of eventList) {
+    for (const eventItem of event_list) {
         eventItem.removeEventListener()
     }
 })
@@ -146,19 +147,19 @@ onBeforeUnmount(() => {
       v-show="mouse_moving"
       class="image-size"
     >
-      图片尺寸： {{ image_size.width }} * {{ image_size.height }}
+      {{ image_size_label }}
     </div>
     <div  
-      :style="maskStyle"
+      :style="mask_style"
       class="image"
-      @mousewheel="resizeOnscroll"
+      @mousewheel="resize_onscroll"
     >
       <img
-        v-touch-pan.prevent.mouse="dragMove"
+        v-touch-pan.prevent.mouse="drag_move"
         v-take-size
         :src="src"
         :alt="src"
-        :style="imageStyle"
+        :style="image_style"
         draggable="false"
         crossorigin="anonymous"
       >
@@ -169,7 +170,7 @@ onBeforeUnmount(() => {
       class="image-controller"
     >
       <q-slider
-        v-model="imagePosition.scale"
+        v-model="image_position.scale"
         class="scale-slider"
         :step="0.1"
         :min="0.3"
@@ -183,7 +184,7 @@ onBeforeUnmount(() => {
         m="l-20"
         op="80 hover:100"
         cursor-pointer
-        @click="sizeReset"
+        @click="size_reset"
       />
       <div
         class="i-radix-icons:transparency-grid"

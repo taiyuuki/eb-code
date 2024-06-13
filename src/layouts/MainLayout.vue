@@ -19,6 +19,11 @@ onBeforeMount(() => {
         ) {
             e.preventDefault()
         }
+
+        if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault()
+            titlebar.value.save_epub()
+        }
     })
 })
 

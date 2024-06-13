@@ -199,7 +199,7 @@ function regexp_error_tips() {
   <q-scroll-area
     visible
     m="t-10"
-    style="height: calc(100vh - 300px);"
+    style="height: calc(100vh - 300px);padding-bottom: 12px;"
     select-none
   >
     <template

@@ -20,7 +20,7 @@ const theme = useTheme()
   </TitleBanner>
   <q-scroll-area
     visible
-    style="height: calc(100vh - 165px);"
+    style="height: calc(100vh - 165px);padding-bottom: 12px;"
   > 
     <FileTree
       :files="status.nodes"

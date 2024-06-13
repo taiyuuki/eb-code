@@ -106,6 +106,9 @@ async function create_epub(version: number) {
 }
 
 async function save_epub() {
+    if (status.dir === '') {
+        return
+    }
     if (status.current.save_path === '') {
         save_epub_to()
     } else if (status.is_opening || status.is_saving) {
@@ -132,6 +135,9 @@ async function save_epub() {
 }
 
 async function save_epub_to() {
+    if (status.dir === '') {
+        return
+    }
     if (status.is_opening || status.is_saving) {
         notif_negative('当前文件尚未处理完毕，请稍后再试。')
 

@@ -99,6 +99,7 @@ async function open_cover() {
               p="x-5"
               :class="{ 'list-selection': true, 'selected': si === i }"
               @click="seletct_cover(img, i)"
+              @dblclick="set_cover"
             >
               {{ img.id }}
             </div>

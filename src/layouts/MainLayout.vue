@@ -7,9 +7,21 @@ import { cover_setting } from '@/composables/cover_setting'
 const titlebar = useCompRef(TitleBar)
 onBeforeMount(() => {
     document.documentElement.classList.add('monaco-component')
-    document.documentElement.addEventListener('contextmenu', e => {
+    if (window.location.hostname !== 'tauri.localhost') {
+        return
+    }
+
+    document.addEventListener('contextmenu', e => {
         e.preventDefault()
-    })
+
+        return false
+    }, { capture: true })
+
+    document.addEventListener('selectstart', e => {
+        e.preventDefault()
+
+        return false
+    }, { capture: true })
 
     document.addEventListener('keydown', function(e: KeyboardEvent) {
         if (

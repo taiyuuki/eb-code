@@ -12,12 +12,15 @@ import {
 describe('path', () => {
     it('basename', () => {
         expect(basename('a/b/c.txt')).toBe('c.txt')
+        expect(basename('item/Style/main.css')).toBe('main.css')
     })
     it('filename', () => {
         expect(filename('a/b/c.txt')).toBe('c')
+        expect(filename('item/Style/main.css')).toBe('main')
     })
     it('extname', () => {
         expect(extname('a/b/c.txt')).toBe('txt')
+        expect(extname('item/Style/main.css')).toBe('css')
     })
     it('mimetype', () => {
         expect(mimetype('a/b/c.txt')).toBe('text/plain')
@@ -44,5 +47,8 @@ describe('path', () => {
     })
     it('relative', () => {  
         expect(relative('a/b/c.txt', 'a/b/d.txt')).toBe('c.txt')
+        expect(relative('abc/bcd/dfg.html', 'aaa/bbb/ccc.jpg')).toBe('../../abc/bcd/dfg.html')
+        expect(relative('item/image/cover.jpg', 'item/Text/cover.html')).toBe('../image/cover.jpg')
+        expect(relative('item/Style/main.css', 'item/Text/cover.html')).toBe('../Style/main.css')
     })
 })

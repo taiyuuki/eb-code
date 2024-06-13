@@ -1,5 +1,5 @@
 import * as monaco from 'monaco-editor'
-import { emmetHTML } from 'emmet-monaco-es'
+import { emmetCSS, emmetHTML } from 'emmet-monaco-es'
 import editorWorker from 'monaco-editor-core/esm/vs/editor/editor.worker?worker'
 import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
@@ -11,7 +11,6 @@ function initMonaco() {
     
     self.MonacoEnvironment = {
         getWorker: function(_workerId: string, label: string) {
-
             switch (label) {
                 case 'json':
                     return new jsonWorker({ name: label })
@@ -22,6 +21,7 @@ function initMonaco() {
                 case 'xml':
                     return new htmlWorker({ name: label })
                 case 'javascript':
+                case 'typescript':
                     return new typescriptWorker({ name: label })
                 default:
                     return new editorWorker({ name: label })
@@ -30,6 +30,7 @@ function initMonaco() {
     }
     
     emmetHTML(monaco)
+    emmetCSS(monaco)
 }
 
 class MonacoController {

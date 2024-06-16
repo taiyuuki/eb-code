@@ -56,7 +56,8 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
         })
         if (conf) {
             changed.dirty = false
-        }else {
+        }
+        else {
             return
         }
     }
@@ -64,7 +65,8 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
         invoke_clean_cache(status.dir).then(() => {
             app_window.destroy()
         })
-    } else {
+    }
+    else {
         app_window.destroy()
     }
 })

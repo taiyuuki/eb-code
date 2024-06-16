@@ -54,7 +54,8 @@ async function open_epub_file() {
         })
         if (conf) {
             changed.dirty = false
-        } else {
+        }
+        else {
             return
         }
     }
@@ -94,7 +95,8 @@ async function create_epub(version: number) {
         })
         if (conf) {
             changed.dirty = false
-        }else {
+        }
+        else {
             return
         }
     }
@@ -111,11 +113,13 @@ async function save_epub() {
     }
     if (status.current.save_path === '') {
         save_epub_to()
-    } else if (status.is_opening || status.is_saving) {
+    }
+    else if (status.is_opening || status.is_saving) {
         notif_negative('当前文件尚未处理完毕，请稍后再试。')
   
         return
-    } else {
+    }
+    else {
         status.is_saving = true
         try{
             if (status.meta_is_dirty) {
@@ -124,7 +128,8 @@ async function save_epub() {
                 status.meta_is_dirty = false
             }
             await invoke_save_epub(status.dir, status.current.save_path)
-        } catch(_e) {
+        }
+        catch(_e) {
             notif_negative('保存失败！缓存文件被删除了。')
             
             return
@@ -159,7 +164,8 @@ async function save_epub_to() {
         status.current.save_path = path
         try {
             await invoke_save_epub(status.dir, path)
-        } catch(_e) {
+        }
+        catch(_e) {
             notif_negative('保存失败！缓存文件被删除了。')
 
             return 
@@ -177,7 +183,8 @@ async function close_epub() {
         })
         if (conf) {
             changed.dirty = false
-        } else {
+        }
+        else {
             return
         }
     }

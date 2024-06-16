@@ -60,7 +60,8 @@ function contents_left(node: ContentsNode) {
         })
         if (node.children) {
             node.children.push(...afters)
-        } else {
+        }
+        else {
             node.expanded = true
             node.children = afters
         }
@@ -80,7 +81,8 @@ function contents_right(node: ContentsNode) {
         node.parent = parent
         if (parent.children) {
             parent.children.push(node)
-        } else {
+        }
+        else {
             parent.expanded = true
             parent.children = [node]
         }
@@ -119,11 +121,14 @@ function contents_move(derection: 'down' | 'left' | 'right' | 'up') {
     const node = selected_dirty_node
     if (derection === 'up') {
         contents_up(node)
-    } else if (derection === 'down') {
+    }
+    else if (derection === 'down') {
         contents_down(node)
-    } else if (derection === 'left') {
+    }
+    else if (derection === 'left') {
         contents_left(node)
-    } else if (derection === 'right') {
+    }
+    else if (derection === 'right') {
         contents_right(node)
     }
 }
@@ -206,11 +211,13 @@ function save_node() {
                 }
                 confirm_type.value = null
             }
-        } else if (editting_node) {
+        }
+        else if (editting_node) {
             selected_dirty_node.title = input_value.name
             editting_node.id = input_value.value
         }
-    } else {
+    }
+    else {
         const new_node: ContentsNode = {
             id: input_value.value,
             title: input_value.name,

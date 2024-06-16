@@ -16,7 +16,8 @@ const si = ref(-1)
 function seletct_cover(img: FileNode, i: number) {
     if (status.has_src(img.id)) {
         cover_src.value = status.image_srces[img.id]
-    } else {
+    }
+    else {
         cover_src.value = convertFileSrc(status.base_path + img.id)
         status.image_srces[img.id] = cover_src.value
     }
@@ -45,12 +46,14 @@ async function open_cover() {
         let has = false
         if (node) {
             has = true
-        } else {
+        }
+        else {
             status.add_image(path)
         }
         await status.add_file(file.path, name, status.image_path + name, mimetype(file.path), has)
         status.set_cover(status.manifest_path + status.image_path + name)
-    } else {
+    }
+    else {
         return
     }
     cover_setting.value = false

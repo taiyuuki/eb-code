@@ -91,9 +91,11 @@ const vTakeSize: Directive = (img: HTMLImageElement) => {
         const img_radio = naturalWidth / naturalHeight
         if (naturalHeight < container_height && naturalWidth < container_width) {
             image_position.size = `width:${naturalWidth}px;height:${naturalHeight}px`
-        } else if (img_radio > radio) {
+        }
+        else if (img_radio > radio) {
             image_position.size = 'width:100%'
-        } else {
+        }
+        else {
             image_position.size = 'height:100%'
         }
         
@@ -107,7 +109,8 @@ let timer = 0
 function show_controller() {
     if (mouse_moving.value) {
         clearTimeout(timer)
-    } else {
+    }
+    else {
         mouse_moving.value = true
     }
     timer = window.setTimeout(() => {

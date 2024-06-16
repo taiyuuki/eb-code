@@ -29,7 +29,8 @@ const usePreview = defineStore('preview', {
             this.display = false
             if (this.width === 0) {
                 this.latest_width = this.base_width
-            } else {
+            }
+            else {
                 this.latest_width = this.width
                 this.width = 0
             }
@@ -38,14 +39,16 @@ const usePreview = defineStore('preview', {
             this.display = true
             if (this.latest_width === 0) {
                 this.latest_width = this.base_width
-            } else {
+            }
+            else {
                 this.width = this.latest_width
             }
         },
         toggle() {
             if (this.display) {
                 this.close()
-            } else {
+            }
+            else {
                 this.open()
             }
         },

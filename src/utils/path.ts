@@ -44,7 +44,8 @@ function relative(target: string, from: string) {
     for (let i = 0; i < f.length; i++) {
         if(f[i] === t[i]) {
             num++
-        } else {
+        }
+        else {
             break
         }
     }
@@ -134,21 +135,28 @@ function join(...paths: string[]) {
         if (i === 0) {
             if (b.startsWith('/')) {
                 return b.substring(1)
-            } else if (b.startsWith('./')) {
+            }
+            else if (b.startsWith('./')) {
                 return b.substring(2)
-            } else {
+            }
+            else {
                 return b
             }
-        } else if (b.startsWith('/')) {
+        }
+        else if (b.startsWith('/')) {
             return path + b
-        } else if (b.startsWith('./')) {
+        }
+        else if (b.startsWith('./')) {
             return path + b.substring(1)
-        } else if (b.startsWith('../')) {
+        }
+        else if (b.startsWith('../')) {
             return path.substring(0, path.lastIndexOf('/') + 1) + b.substring(3)
 
-        } else if (path === '') {
+        }
+        else if (path === '') {
             return b
-        } else {
+        }
+        else {
             return `${path}/${b}`
         }
     }, path)

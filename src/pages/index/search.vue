@@ -45,7 +45,8 @@ async function search() {
     }
     try {
         search_result.value = await invoke_search(status.dir, keyword.value, regex.value, case_sensitive.value, word.value)
-    } catch (_) {
+    }
+    catch (_) {
         has_error.value = true
     }
 }
@@ -62,7 +63,8 @@ async function replace() {
             status.reload_current()
         }
         await trigger_search()
-    } catch(_) {
+    }
+    catch(_) {
         has_error.value = true
     }
 }

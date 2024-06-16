@@ -32,19 +32,26 @@ preview.get_port()
 function tree_index(name: string) {
     if (is_html(name)) {
         return TREE.HTML
-    } else if (is_style(name)) {
+    }
+    else if (is_style(name)) {
         return TREE.STYLE
-    } else if (is_image(name)) {
+    }
+    else if (is_image(name)) {
         return TREE.IMAGE
-    } else if (is_font(name)) {
+    }
+    else if (is_font(name)) {
         return TREE.FONT
-    } else if (name.endsWith('.js')) {
+    }
+    else if (name.endsWith('.js')) {
         return TREE.JS
-    } else if (is_audio(name)) {
+    }
+    else if (is_audio(name)) {
         return TREE.AUDIO
-    } else if (is_video(name)) {
+    }
+    else if (is_video(name)) {
         return TREE.VIDEO
-    } else {
+    }
+    else {
         return TREE.OTHER
     }
 }
@@ -139,23 +146,32 @@ const useStatus = defineStore('status', {
                 const name = file.toLowerCase()
                 if (is_html(name)) {
                     return
-                } else if (name.endsWith('.js')) {
+                }
+                else if (name.endsWith('.js')) {
                     this.add_js(file)
-                } else if (is_style(name)) {
+                }
+                else if (is_style(name)) {
                     this.add_css(file)
-                } else if (is_image(name)) {
+                }
+                else if (is_image(name)) {
                     this.add_image(file)
-                } else if (is_audio(name)) {
+                }
+                else if (is_audio(name)) {
                     this.add_audio(file)
-                } else if (is_font(name)) {
+                }
+                else if (is_font(name)) {
                     this.add_font(file)
-                } else if (name.endsWith('.opf')) {
+                }
+                else if (name.endsWith('.opf')) {
                     this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-text', type: 'opf' })
-                } else if (name.endsWith('.ncx')) {
+                }
+                else if (name.endsWith('.ncx')) {
                     this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-text', type: 'ncx' })
-                } else if (file === 'mimetype' || file === 'META-INF/container.xml') {
+                }
+                else if (file === 'mimetype' || file === 'META-INF/container.xml') {
                     return
-                } else {
+                }
+                else {
                     this.add_other(file)
                 }
             })
@@ -239,7 +255,8 @@ const useStatus = defineStore('status', {
                 
                 if (cover_id) {
                     cover_node = opf.dom.querySelector(`item[id="${cover_id}"]`)
-                } else {
+                }
+                else {
                     cover_node = opf.dom.querySelector('item[properties="cover-image"]')
                 
                 }
@@ -254,7 +271,8 @@ const useStatus = defineStore('status', {
                 if (cover_href) {
                     const path = this.nodes[2].children!.find(n => n.id.endsWith(cover_href))?.id
                     this.cover_src = path ? convertFileSrc(this.base_path + path) : ''
-                } else {
+                }
+                else {
                     this.cover_src = ''
                 }
                 
@@ -283,7 +301,8 @@ const useStatus = defineStore('status', {
                                 temp[t_id].children = []
                             }
                             temp[t_id].children.push(domToObj(node))
-                        } else {
+                        }
+                        else {
                             this.metadata.push(domToObj(node))
                         }
                     })
@@ -311,7 +330,8 @@ const useStatus = defineStore('status', {
                     nav.type = 'navigation'
                     nav.icon = 'i-vscode-icons:file-type-pddl-happenings'
                     this.nav_in_spine = true
-                } else {
+                }
+                else {
                     this.nodes.push({ id: file, name: file, icon: 'i-vscode-icons:file-type-pddl-happenings', type: 'navigation' })
                     this.nav_in_spine = false
                 }
@@ -362,7 +382,8 @@ const useStatus = defineStore('status', {
                         })
                     }
                 }
-            } else {
+            }
+            else {
                 const navMap = contents.dom.querySelector('navMap')
                 const loop_stack: [Element | null, ContentsNode[], parent: ContentsNode | null][] = [[navMap, this.contents_tree, null]]
                 while (loop_stack.length) {
@@ -523,7 +544,8 @@ const useStatus = defineStore('status', {
             const item = opf.dom?.querySelector('item[id="ncx"]')
             if (item) {
                 item.setAttribute('href', 'toc.ncx')
-            } else {
+            }
+            else {
                 opf.dom?.querySelector('manifest')?.appendChild(objToDom({ 'tagName': 'item', 'id': 'ncx', 'href': 'toc.ncx', 'type': 'ncx', 'media-type': 'application/x-dtbncx+xml' }, opf.namespaceURI))
             }
             const navs = contents.dom?.querySelectorAll('nav')
@@ -549,7 +571,8 @@ const useStatus = defineStore('status', {
                 const old_guide = opf.dom?.querySelector('guide')
                 if (old_guide) {
                     old_guide.replaceWith(guide)
-                } else {
+                }
+                else {
                     opf.dom?.querySelector('package')?.appendChild(guide)
                 }
             }
@@ -558,7 +581,8 @@ const useStatus = defineStore('status', {
             if (ncx_node) {
                 ncx_node.id = ncx_id
                 ncx_node.name = ncx_id
-            } else {
+            }
+            else {
                 this.nodes.push({ id: ncx_id, name: ncx_id, icon: 'i-vscode-icons:file-type-text', type: 'ncx' })
             }
         },
@@ -620,7 +644,8 @@ const useStatus = defineStore('status', {
             if (has) {
                 delete this.image_srces[this.manifest_path + href]
                 
-            } else {
+            }
+            else {
                 const item = document.createElementNS(opf.namespaceURI, 'item')
                 item.setAttribute('id', id.replace(/\s/g, '_'))
                 item.setAttribute('href', href)
@@ -741,7 +766,8 @@ const useStatus = defineStore('status', {
                 if (new_i === children.length - 1) {
                     spine_node.appendChild(spine_node.removeChild(moved_el))
                     spine_node.appendChild(document.createTextNode('\n'))
-                } else {
+                }
+                else {
                     const target_el = children[new_i < old_i ? new_i : new_i + 1]!
                     spine_node?.insertBefore(spine_node?.removeChild(moved_el), target_el)
                     spine_node?.insertBefore(document.createTextNode('\n'), target_el)
@@ -760,11 +786,13 @@ const useStatus = defineStore('status', {
                 if (children?.length) {
                     spine_node?.insertBefore(nav_item, children[0])
                     spine_node?.insertBefore(document.createTextNode('\n'), children[1])
-                } else {
+                }
+                else {
                     spine_node?.appendChild(nav_item)
                 }
 
-            } else {
+            }
+            else {
                 const nav_item = opf.dom!.querySelector(`itemref[idref="${this.nav_id}"]`)
                 if (nav_item) {
                     spine_node?.removeChild(nav_item)
@@ -775,7 +803,8 @@ const useStatus = defineStore('status', {
         async set_cover(path: string) {
             if (this.has_src(path)) {
                 this.cover_src = this.image_srces[path]
-            } else {
+            }
+            else {
                 const src = convertFileSrc(this.base_path + path)
                 this.cover_src = src
                 this.image_srces[path] = src
@@ -795,7 +824,8 @@ const useStatus = defineStore('status', {
                         if (cc.open) {
                             this.current.code = xhtml
                         }
-                    } else {
+                    }
+                    else {
                         this.nodes[TREE.HTML].children?.unshift({
                             id,
                             name: id,
@@ -854,7 +884,8 @@ const useStatus = defineStore('status', {
                 if (first_child) {
                     spine.insertBefore(document.createTextNode('\n'), first_child)
                     spine.insertBefore(itemref_cover, first_child)
-                } else {
+                }
+                else {
                     spine?.appendChild(document.createTextNode('\n'))
                     spine?.appendChild(itemref_cover)
                 }
@@ -870,14 +901,16 @@ const useStatus = defineStore('status', {
                 a.textContent = 'Cover'
                 if (li_cover) {
                     li_cover.innerHTML = ''
-                } else {
+                }
+                else {
                     li_cover = document.createElementNS(contents.namespaceURI, 'li')
                     ol?.appendChild(li_cover)
                 }
                 li_cover.appendChild(a)
                 const contents_xml = domToXml(contents.dom!)
                 await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
-            } else {
+            }
+            else {
                 let guide_node = opf.dom?.querySelector('guide')
                 if (!guide_node) {
                     guide_node = document.createElementNS(opf.namespaceURI, 'guide')
@@ -929,7 +962,8 @@ const useStatus = defineStore('status', {
                 if (i + 1 < children.length) {
                     spine_node.insertBefore(itemref, children[i + 1])
                     spine_node.insertBefore(document.createTextNode('\n'), children[i + 1])
-                } else {
+                }
+                else {
                     spine_node.appendChild(itemref)
                     spine_node.appendChild(document.createTextNode('\n'))
                 }
@@ -1192,7 +1226,8 @@ const useStatus = defineStore('status', {
         open_first() {
             if (this.tabs[0]) {
                 this.open(this.tabs[0])
-            } else {
+            }
+            else {
                 this.display = DISPLAY.NONE
                 this.current.code = ''
                 this.current.src = ''
@@ -1266,17 +1301,20 @@ const useStatus = defineStore('status', {
                     this.display = DISPLAY.CODE
                     if (lnum) {
                         scroll_to_line(lnum)
-                    } else {
+                    }
+                    else {
                         scroll_top_to(this.get_top(node.id))
                     }
                 }, () => {
                     notif_negative('缓存文件被删除，请重新打开EPUB。')
                 })
-            } else if (is_image(node.id)) {
+            }
+            else if (is_image(node.id)) {
                 this.set_src(node.id)
 
                 // this.display = DISPLAY.IMAGE 移至ImageViewer.vue
-            } else if (node.id === 'metadata') {
+            }
+            else if (node.id === 'metadata') {
                 this.parse_cover()
                 this.parse_metadata()
                 this.display = DISPLAY.METADATA

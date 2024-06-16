@@ -11,6 +11,7 @@ export default tyk({
         '**/node_modules',
         '**.eslintrc.js',
         '**/src-ssr',
+        '**/src-tauri',
     ],
 }, {
     files: ['quasar.config.ts'],

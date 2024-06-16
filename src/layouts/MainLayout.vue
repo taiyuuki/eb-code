@@ -24,15 +24,18 @@ onBeforeMount(() => {
             || e.metaKey && e.key === 'r'
         ) {
             e.preventDefault()
-        } else if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+        }
+        else if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault()
             titlebar.value.save_epub()
-        } else if (status.display === DISPLAY.CODE) {
+        }
+        else if (status.display === DISPLAY.CODE) {
             if (e.key === '-' || e.key === '_' && e.ctrlKey) {
                 e.preventDefault()
                 font_size.size = Math.max(font_size.size - 2, 8)
                 set_font_size(font_size.size)
-            } else if (e.key === '+' || e.key === '=' && e.ctrlKey) {
+            }
+            else if (e.key === '+' || e.key === '=' && e.ctrlKey) {
                 e.preventDefault()
                 font_size.size = Math.min(font_size.size + 2, 40)
                 set_font_size(font_size.size)

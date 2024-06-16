@@ -19,7 +19,8 @@ function open(node: ContentsNode) {
     const [id, $id] = node.id.split('#')
     if (node.id in status.contents_id_lnum) {
         status.open_by_id(id, status.contents_id_lnum[node.id], $id ? `#${$id}` : undefined)
-    } else {
+    }
+    else {
         status.open_by_id(id, 1)
     }
 }

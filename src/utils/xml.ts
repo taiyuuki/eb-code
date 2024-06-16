@@ -25,17 +25,22 @@ function domToObj(dom: Element) {
     obj.textContent = dom.textContent
     if (obj.id) {
         obj.r_id = obj.id
-    } else if (obj.property) {
+    }
+    else if (obj.property) {
         if (obj.refines) {
             obj.r_id = obj.refines + obj.property
-        } else {
+        }
+        else {
             obj.r_id = obj.property
         }
-    } else if (obj.textContent?.trim() !== '') {
+    }
+    else if (obj.textContent?.trim() !== '') {
         obj.r_id = obj.textContent
-    } else if (obj.content) {
+    }
+    else if (obj.content) {
         obj.r_id = obj.content
-    } else if (obj.name) {
+    }
+    else if (obj.name) {
         obj.r_id = obj.name
     } 
 
@@ -68,7 +73,8 @@ function check_xml(xml: string) {
         }
 
         return true
-    } catch (_) {
+    }
+    catch (_) {
         return false
     }
 }

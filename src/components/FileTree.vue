@@ -37,25 +37,32 @@ async function add_file(node: FileNode) {
     if (node.name === 'Text' || node.type === 'html') {
         extensions = ['xhtml', 'html', 'htm']
         name = 'HTML'
-    } else if (node.name === 'Styles' || node.type === 'style') {
+    }
+    else if (node.name === 'Styles' || node.type === 'style') {
         extensions = ['css']
         name = 'CSS'
-    } else if (node.name === 'Images' || node.type === 'image') {
+    }
+    else if (node.name === 'Images' || node.type === 'image') {
         extensions = ['jpg', 'png', 'svg', 'webp', 'avif', 'gif', 'ico', 'bmp', 'tif', 'tiff', 'svgz']
         name = '图片'
-    } else if (node.name === 'Audio' || node.type === 'audio') {
+    }
+    else if (node.name === 'Audio' || node.type === 'audio') {
         extensions = ['mp3', 'wav', 'ogg', 'flac', 'aac', 'wma', 'ape']
         name = '音频'
-    } else if (node.name === 'Video' || node.type === 'video') {
+    }
+    else if (node.name === 'Video' || node.type === 'video') {
         extensions = ['mp4', 'webm', 'mkv', 'mpg', 'mpeg', 'm4v', 'mov', 'wmv', 'avi', '3gp', '3g2']
         name = '视频'
-    } else if (node.name === 'Fonts' || node.type === 'font') {
+    }
+    else if (node.name === 'Fonts' || node.type === 'font') {
         extensions = ['ttf', 'otf', 'woff', 'woff2']
         name = '字体'
-    } else if (node.name === 'Scripts' || node.type === 'js') {
+    }
+    else if (node.name === 'Scripts' || node.type === 'js') {
         extensions = ['js']
         name = '脚本'
-    } else {
+    }
+    else {
         extensions = ['*']
         name = '所有'
     }
@@ -80,71 +87,86 @@ async function add_file(node: FileNode) {
                 const node = status.nodes[TREE.IMAGE].children!.find(n => n.name === file)
                 if (node) {
                     has = true
-                } else {
+                }
+                else {
                     status.add_image(file)
                 }
-            } else if (is_font(_name)) {
+            }
+            else if (is_font(_name)) {
                 asset_path = status.font_path
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.FONT].children!.find(n => n.name === file)
                 if (node) {
                     has = true
-                } else {
+                }
+                else {
                     status.add_font(file)
                 }
-            } else if (is_style(_name)) {
+            }
+            else if (is_style(_name)) {
                 asset_path = status.style_path
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.STYLE].children!.find(n => n.name === file)
                 if (node) {
                     has = true
-                } else {
+                }
+                else {
                     status.add_css(file)
                 }
-            } else if (is_html(_name)) {
+            }
+            else if (is_html(_name)) {
                 asset_path = status.text_path
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.HTML].children!.find(n => n.name === file)
                 if (node) {
                     has = true
-                } else {
+                }
+                else {
                     status.add_html(file)
                 }
-            } else if (is_audio(_name)) {
+            }
+            else if (is_audio(_name)) {
                 asset_path = status.audio_path
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.AUDIO].children!.find(n => n.name === file)
                 if (node) {
                     has = true
-                } else {
+                }
+                else {
                     status.add_audio(file)
                 }
-            } else if (is_video(_name)) {
+            }
+            else if (is_video(_name)) {
                 asset_path = status.video_path
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.VIDEO].children!.find(n => n.name === file)
                 if (node) {
                     has = true
-                } else {
+                }
+                else {
                     status.add_video(file)
                 }
-            } else if (is_scripts(_name)) {
+            }
+            else if (is_scripts(_name)) {
                 asset_path = status.script_path
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.JS].children!.find(n => n.name === file)
                 if (node) {
                     has = true
-                } else {
+                }
+                else {
                     status.add_js(file)
                 }
 
-            } else {
+            }
+            else {
                 asset_path = status.other_path
                 const file = status.manifest_path + asset_path + name
                 const node = status.nodes[TREE.OTHER].children!.find(n => n.name === file)
                 if (node) {
                     has = true
-                } else {
+                }
+                else {
                     status.add_other(file)
                 }
             }
@@ -220,7 +242,8 @@ function rename_over() {
                 _rinput.value?.select()
 
                 return
-            } else {
+            }
+            else {
                 const id = temp_node.id.replace(name, rn.value)
                 if (parent.children!.some(n => n.id === id)) {
                     notif_warning('不能与已有文件重名！')
@@ -228,7 +251,8 @@ function rename_over() {
                     _rinput.value?.select()
 
                     return
-                } else {
+                }
+                else {
   
                     invoke_rename_file(status.dir, temp_node.id, id).then(() => {
                       
@@ -241,7 +265,8 @@ function rename_over() {
                     })
                 }
             }
-        } else{
+        }
+        else{
             turn_back()
         }
     }
@@ -260,7 +285,8 @@ function add_nav_to_spine(node: FileNode) {
     if (status.nav_in_spine) {
         status.nodes.push(node)
         arr_remove(status.nodes[0].children!, node)
-    } else {
+    }
+    else {
         arr_remove(status.nodes, node)
         status.nodes[0].children!.unshift(node)
     }

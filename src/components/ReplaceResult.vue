@@ -20,7 +20,8 @@ const computed_result = computed<[string, boolean?][]>(() => {
     try {
         if (props.replace.trim() === '') {
             replace_result = [[props.text]]
-        } else if (props.regexp) {
+        }
+        else if (props.regexp) {
             const reg = new RegExp(props.patten, props.fixed ? 'g' : 'gi')
             const matches = reg.exec(props.text)
             if (matches) {
@@ -28,36 +29,43 @@ const computed_result = computed<[string, boolean?][]>(() => {
                     .map((m, i) => {
                         if (i % 2 === 1) {
                             return [m, true]
-                        } else {
+                        }
+                        else {
                             return [m]
                         }
                     })
-            } else {
+            }
+            else {
                 replace_result = [[props.text]]
             }
         
-        } else if (props.fixed) {
+        }
+        else if (props.fixed) {
             replace_result = props.text.replaceAll(props.patten, `${S}${props.patten}${S}${props.replace}`).split(S)
                 .map((m, i) => {
                     if (i % 2 === 1) {
                         return [m, true]
-                    } else {
+                    }
+                    else {
                         return [m]
                     }
                 })
-        } else {
+        }
+        else {
             const reg = new RegExp(escape_regexp(props.patten), 'gi')
         
             replace_result = props.text.replace(reg, `${S}${props.patten}${S}${escape_regexp(props.replace)}`).split(S)
                 .map((m, i) => {
                     if (i % 2 === 1) {
                         return [m, true]
-                    } else {
+                    }
+                    else {
                         return [m]
                     }
                 })
         }
-    } catch(_) {
+    }
+    catch(_) {
         emit('regexp-error', props.patten)
     }
 

@@ -33,7 +33,8 @@ const activity_files = {
         if (node.children && node.expanded) {
             node.active = true
             this.expanded_node = node
-        } else if (node.parent) {
+        }
+        else if (node.parent) {
             node.parent.active = true
             this.expanded_node = node.parent
         }

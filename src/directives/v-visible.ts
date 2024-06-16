@@ -4,7 +4,8 @@ const vVisible: Directive = (el: HTMLElement, bind) => {
     
     if (bind.value) {
         el.style.visibility = 'visible'
-    } else {
+    }
+    else {
         el.style.visibility = 'hidden'
     }
 }

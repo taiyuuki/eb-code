@@ -73,7 +73,7 @@ const invoke_save_epub = function() {
     return function(input_dir: string, output_dir: string) {
         changed.dirty = false
 
-        return ir.invoke('save_epub', { saveOptions: { input_dir, output_dir } })
+        return ir.invoke('save_epub', { saveOption: { input_dir, output_dir } })
     }
 }()
 

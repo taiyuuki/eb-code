@@ -12,8 +12,9 @@ export default tyk({
         '**.eslintrc.js',
         '**/src-ssr',
         '**/src-tauri',
+        '**/public/ses',
     ],
 }, {
     files: ['quasar.config.ts'],
     rules: { '@stylistic/object-curly-newline': 'off' },
-})
+}, { rules: { 'no-undef': 'off' } })

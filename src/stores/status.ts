@@ -20,7 +20,7 @@ import { usePreview } from '@/stores/preview'
  * TODO: 统一变量命名
  * dir: 缓存文件夹名称
  * id: EPUB内文件路径
- * $id: manifest中的id
+ * manifest_id: manifest中的id
  * href: EPUB内文件相对opf的路径
  */
 
@@ -70,7 +70,7 @@ const useStatus = defineStore('status', {
         nodes: [] as FileNode[],
         opf_id: '', // opf文件路径，即container.xml里的filepath
         nav_href: '', // 导航文件路径
-        nav_id: '', // 导航文件id
+        nav_manifest_id: '', // 导航文件id
         tabs: [] as FileNode[], // 打开的标签
         image_srces: {} as Record<string, string>, // 图片src
         current: {
@@ -92,6 +92,7 @@ const useStatus = defineStore('status', {
         epub_version: '2.0', // EPUB版本
         metadata: [] as Record<string, any>[], // EPUB元数据
         meta_is_dirty: false,
+        opf_is_dirty: false,
         cover_src: '',
         manifest_path: 'OEBPS/',
         image_path: 'Images/',
@@ -313,7 +314,7 @@ const useStatus = defineStore('status', {
             if (this.epub_version.startsWith('3')) {
                 const item = opf.dom?.querySelector('item[properties="nav"]')
                 this.nav_href = item?.getAttribute('href') || ''
-                this.nav_id = item?.getAttribute('id') || ''
+                this.nav_manifest_id = item?.getAttribute('id') || ''
                 this.nav_version = 3
             }
             if (this.nav_href === '') { // 2.0
@@ -640,27 +641,21 @@ const useStatus = defineStore('status', {
             // item.children = item.children.filter(c => c !== child)
             arr_remove(item.children, child)
         },
-        async add_file(from: string, id: string, href: string, media_type: string, has?: boolean) {
+        async add_file(from: string, manifest_id: string, href: string, mimetype: string, has?: boolean) {
             if (has) {
                 delete this.image_srces[this.manifest_path + href]
-                
             }
             else {
                 const item = document.createElementNS(opf.namespaceURI, 'item')
-                item.setAttribute('id', id.replace(/\s/g, '_'))
+                item.setAttribute('id', manifest_id.replace(/\s/g, '_'))
                 item.setAttribute('href', href)
-                item.setAttribute('media-type', media_type)
+                item.setAttribute('media-type', mimetype)
     
                 const manifest_node = opf.dom?.querySelector('manifest')
                 manifest_node?.appendChild(item)
                 manifest_node?.appendChild(document.createTextNode('\n'))
                 if (is_html(href)) {
-                    const spine_node = opf.dom?.querySelector('spine')
-                    const itemref = document.createElementNS(opf.namespaceURI, 'itemref')
-                    itemref.setAttribute('idref', id.replace(/\s/g, '_'))
-                    itemref.setAttribute('linear', 'yes')
-                    spine_node?.appendChild(itemref)
-                    spine_node?.appendChild(document.createTextNode('\n'))
+                    this.spine_insert_before(0, manifest_id.replace(/\s/g, '_'), true)
                 }
                 this.save_opf()
             }
@@ -671,9 +666,9 @@ const useStatus = defineStore('status', {
             if (manifest_node) {
                 const item = manifest_node.querySelector(`item[href="${id.replace(this.manifest_path, '')}"]`)
                 if (item) {
-                    const ref_id = item.id
+                    const manifest_id = item.getAttribute('id')
 
-                    return opf.dom?.querySelector(`itemref[idref="${ref_id}"]`)
+                    return opf.dom?.querySelector(`itemref[idref="${manifest_id}"]`)
                 }
             }  
         },
@@ -683,10 +678,10 @@ const useStatus = defineStore('status', {
             if (manifest_node) {
                 const item = manifest_node.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
                 if (item) {
-                    const _$id = item.id
+                    const manifest_id = item.getAttribute('id')
                     manifest_node.removeChild(item)
                     if (spine_node) {
-                        const itemref = spine_node.querySelector(`itemref[idref="${_$id}"]`)
+                        const itemref = spine_node.querySelector(`itemref[idref="${manifest_id}"]`)
                         if (itemref) {
                             spine_node.removeChild(itemref)
                         }
@@ -694,7 +689,7 @@ const useStatus = defineStore('status', {
 
                     // 如果是封面
                     const meta_cover = opf.dom?.querySelector('meta[name="cover"]')
-                    if (meta_cover && meta_cover.getAttribute('content') === _$id) {
+                    if (meta_cover && meta_cover.getAttribute('content') === manifest_id) {
                         const meta = opf.dom?.querySelector('metadata')
                         meta?.removeChild(meta_cover)
                     }
@@ -721,37 +716,36 @@ const useStatus = defineStore('status', {
             })
 
         },
-        rename_file(node: FileNode, new_name: string) {
+        async rename_file(node: FileNode, new_name: string) {
             const item = opf.dom?.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
             if (item) {
-                const old_id = item?.getAttribute('id')
+                const old_manifest_id = item?.getAttribute('id')
+                const new_manifest_id = new_name.replace(/\s/g, '_')
                 const old_name = node.id.replace(this.manifest_path, '')
-                const new_id = new_name.replace(/\s/g, '_')
                     
-                item.setAttribute('href', new_id)
-                item.setAttribute('id', new_id)
+                item.setAttribute('href', new_manifest_id)
+                item.setAttribute('id', new_manifest_id)
 
                 // 重命名书脊
-                const itemref = opf.dom?.querySelector(`itemref[idref="${old_id}"]`)
+                const itemref = opf.dom?.querySelector(`itemref[idref="${old_manifest_id}"]`)
                 if (itemref) {
-                    itemref.setAttribute('idref', new_id)
+                    itemref.setAttribute('idref', new_manifest_id)
                 }
 
                 // 重命名封面
-                const cover_meta = opf.dom?.querySelector(`meta[content="${old_id}"]`)
+                const cover_meta = opf.dom?.querySelector(`meta[content="${old_manifest_id}"]`)
                 if (cover_meta) {
-                    cover_meta.setAttribute('content', new_id)
+                    cover_meta.setAttribute('content', new_manifest_id)
                 }
 
                 this.save_opf()
 
                 // 重命名XHTML里的资源
                 if (is_image(old_name) || is_font(old_name)) {
-                    invoke_replace(this.dir, old_name, false, false, false, new_name).then(() => {
-                        if (this.display === DISPLAY.CODE && is_html(this.current.id)) {
-                            this.reload_current()
-                        }
-                    })
+                    await invoke_replace(this.dir, old_name, false, false, false, new_name)
+                    if (this.display === DISPLAY.CODE && is_html(this.current.id)) {
+                        await this.reload_current()
+                    }
                 }
             }
             if (this.has_src(node.id)) {
@@ -776,24 +770,95 @@ const useStatus = defineStore('status', {
                 this.save_opf()
             }
         },
+        add_spine(manifest_id: string, linear: boolean) {
+            const spine_node = opf.dom!.querySelector('spine')
+            const itemref = document.createElementNS(opf.namespaceURI, 'itemref')
+            itemref.setAttribute('idref', manifest_id)
+            itemref.setAttribute('linear', linear ? 'yes' : 'no')
+            spine_node?.appendChild(itemref)
+            spine_node?.appendChild(document.createTextNode('\n'))
+            this.opf_is_dirty = true
+        },
+        spine_insert_before(position: number, manifest_id: string, linear: boolean, properties?: Record<string, string>) {
+            const spine_node = opf.dom!.querySelector('spine')
+            const itemref = document.createElementNS(opf.namespaceURI, 'itemref')
+            itemref.setAttribute('idref', manifest_id)
+            itemref.setAttribute('linear', linear ? 'yes' : 'no')
+            if (properties) {
+                for (const [key, value] of Object.entries(properties)) {
+                    itemref.setAttribute(key, value)
+                }
+            }
+            const children = spine_node?.children
+            if (children && position < children.length) {
+                spine_node?.insertBefore(itemref, children[position])
+                spine_node?.insertBefore(document.createTextNode('\n'), children[position + 1])
+            }
+            else {
+                spine_node?.appendChild(itemref)
+                spine_node?.appendChild(document.createTextNode('\n'))
+            }
+            this.opf_is_dirty = true
+        },
+        get_spine() {
+            const spine_node = opf.dom!.querySelector('spine')
+            const list: { manifest_id: string, linear: boolean }[] = []
+            spine_node?.querySelectorAll('itemref').forEach(item => {
+                const manifest_id = item.getAttribute('idref')
+                if (manifest_id) {
+                    list.push({ manifest_id, linear: item.getAttribute('linear') === 'yes' })
+                }
+            })
+
+            return list
+        },
+        get_spine_ppd() {
+            return opf.dom?.querySelector('spine')?.getAttribute('page-progression-direction') ?? null
+        },
+        set_spine_ppd(value: string) {
+            const spine_node = opf.dom!.querySelector('spine')
+            if (spine_node) {
+                spine_node.setAttribute('page-progression-direction', value)
+            }
+            this.opf_is_dirty = true
+        },
+        get_metadata_xml() {
+            return opf.dom?.querySelector('metadata')?.innerHTML
+        },
+        set_metadata_xml(xml: string) {
+            const metadata = opf.dom!.querySelector('metadata')
+            if (metadata) {
+                metadata.innerHTML = xml
+            }
+            this.opf_is_dirty = true
+        },
+        get_package_tag() {
+            const pkg_el = opf.dom?.querySelector('package')
+            const pkg_tag: Record<string, string> = {}
+            if (pkg_el) {
+                for (let i = 0; i < pkg_el.attributes.length; i++) {
+                    pkg_tag[pkg_el.attributes[i].name] = pkg_el.attributes[i].value
+                }
+            }
+
+            return pkg_tag
+        },
+        set_package_tag(new_tag: Record<string, string>) {
+            const package_node = opf.dom!.querySelector('package')
+            if (package_node) {
+                for (const [key, value] of Object.entries(new_tag)) {
+                    package_node.setAttribute(key, value)
+                }
+            }
+            this.opf_is_dirty = true
+        },
         add_nav_to_spine() {
             const spine_node = opf.dom!.querySelector('spine')
             if (this.nav_in_spine) {
-                const nav_item = document.createElementNS(opf.namespaceURI, 'itemref')
-                nav_item.setAttribute('idref', this.nav_id)
-                nav_item.setAttribute('linear', 'yes')
-                const children = spine_node?.children
-                if (children?.length) {
-                    spine_node?.insertBefore(nav_item, children[0])
-                    spine_node?.insertBefore(document.createTextNode('\n'), children[1])
-                }
-                else {
-                    spine_node?.appendChild(nav_item)
-                }
-
+                this.spine_insert_before(0, this.nav_manifest_id, true, { properties: 'nav' })
             }
             else {
-                const nav_item = opf.dom!.querySelector(`itemref[idref="${this.nav_id}"]`)
+                const nav_item = opf.dom!.querySelector(`itemref[idref="${this.nav_manifest_id}"]`)
                 if (nav_item) {
                     spine_node?.removeChild(nav_item)
                 }
@@ -861,23 +926,23 @@ const useStatus = defineStore('status', {
                 meta_cover.setAttribute('content', content ?? filename(path))
             }
 
-            const $id = `${this.text_path}cover.xhtml`
-            let item_xhtml = opf.dom?.querySelector(`item[href="${$id}"]`)
+            let manifest_id = `${this.text_path}cover.xhtml`
+            let item_xhtml = opf.dom?.querySelector(`item[href="${manifest_id}"]`)
             const manifest = opf.dom?.querySelector('manifest')
             if (!item_xhtml) {
                 item_xhtml = document.createElementNS(opf.namespaceURI, 'item')
                 manifest?.appendChild(document.createTextNode('\n'))
                 manifest?.appendChild(item_xhtml)
-                item_xhtml.setAttribute('id', $id)
-                item_xhtml.setAttribute('href', $id)
+                item_xhtml.setAttribute('id', manifest_id)
+                item_xhtml.setAttribute('href', manifest_id)
                 item_xhtml.setAttribute('media-type', 'application/xhtml+xml')
             }
-            const idref = item_xhtml.getAttribute('id') || $id
+            manifest_id = item_xhtml.getAttribute('id') || manifest_id
 
-            let itemref_cover = opf.dom?.querySelector(`itemref[idref="${idref}"]`)
+            let itemref_cover = opf.dom?.querySelector(`itemref[idref="${manifest_id}"]`)
             if(!itemref_cover) {
                 itemref_cover = document.createElementNS(opf.namespaceURI, 'itemref')
-                itemref_cover.setAttribute('idref', idref)
+                itemref_cover.setAttribute('idref', manifest_id)
                 itemref_cover.setAttribute('linear', 'yes')
                 const spine = opf.dom?.querySelector('spine')
                 const first_child = spine?.children[0]
@@ -944,31 +1009,17 @@ const useStatus = defineStore('status', {
             this.open(this.nodes[TREE.HTML].children![i + 1])
 
             const manifest_node = opf.dom?.querySelector('manifest')
-            const $id = basename(id).replace(/\s/g, '_')
+            const manifest_id = basename(id).replace(/\s/g, '_')
             if (manifest_node) {
                 const item = document.createElementNS(opf.namespaceURI, 'item')
                 manifest_node.appendChild(document.createTextNode('\n'))
-                item.setAttribute('id', $id)
+                item.setAttribute('id', manifest_id)
                 item.setAttribute('href', relative(id, this.opf_id))
                 item.setAttribute('media-type', 'application/xhtml+xml')
                 manifest_node.appendChild(item)
             }
-            const spine_node = opf.dom?.querySelector('spine')
-            if (spine_node) {
-                const itemref = document.createElementNS(opf.namespaceURI, 'itemref')
-                itemref.setAttribute('idref', $id)
-                itemref.setAttribute('linear', 'yes')
-                const children = spine_node.children!
-                if (i + 1 < children.length) {
-                    spine_node.insertBefore(itemref, children[i + 1])
-                    spine_node.insertBefore(document.createTextNode('\n'), children[i + 1])
-                }
-                else {
-                    spine_node.appendChild(itemref)
-                    spine_node.appendChild(document.createTextNode('\n'))
-                }
-            }
-            this.save_opf()
+            this.spine_insert_before(i + 1, manifest_id, true)
+            await this.save_opf()
         },
         async new_css(id: string) {
             const css = '@charset "UTF-8";\n'
@@ -1003,8 +1054,9 @@ const useStatus = defineStore('status', {
             }
             await invoke_write_text(this.dir, this.opf_id, code)
             if (this.display === DISPLAY.CODE && this.current.id === this.opf_id) {
-                this.reload_current()
+                await this.reload_current()
             }
+            this.opf_is_dirty = false
         },
         init_tree() {
             this.nodes = [{
@@ -1091,6 +1143,11 @@ const useStatus = defineStore('status', {
         },
         clean_tree() {
             this.nodes.length = 0
+        },
+        get_id(manifest_id: string) {
+            const id = opf.dom?.querySelector(`item[id="${manifest_id}"]`)?.getAttribute('href')
+
+            return id ? this.manifest_path + id : null
         },
         add_html(name: string) {
             const item = { 
@@ -1271,7 +1328,7 @@ const useStatus = defineStore('status', {
             this.current.id = id
             this.is_reading = false
         },
-        open(node: FileNode, lnum?: number, hash?: string) {
+        async open(node: FileNode, lnum?: number, hash?: string) {
             if (is_html(node.id)) {
                 preview.id = ''
                 preview.id = node.id + (hash ?? '')
@@ -1296,7 +1353,8 @@ const useStatus = defineStore('status', {
             // 分情况打开标签
             if (is_text(node.id)) {
                 this.is_reading = true
-                invoke_get_text(node.id, this.dir).then(payload => {
+                try {
+                    const payload = await invoke_get_text(node.id, this.dir)
                     this.set_text(payload[0], payload[1], node.id)
                     this.display = DISPLAY.CODE
                     if (lnum) {
@@ -1305,9 +1363,11 @@ const useStatus = defineStore('status', {
                     else {
                         scroll_top_to(this.get_top(node.id))
                     }
-                }, () => {
+                }
+                catch (e) {
+                    console.error(e)
                     notif_negative('缓存文件被删除，请重新打开EPUB。')
-                })
+                }
             }
             else if (is_image(node.id)) {
                 this.set_src(node.id)
@@ -1320,13 +1380,13 @@ const useStatus = defineStore('status', {
                 this.display = DISPLAY.METADATA
             }
         },
-        reload_current() {
-            this.open_by_id(this.current.id, 1)
+        async reload_current() {
+            await this.open_by_id(this.current.id, 1)
         },
-        open_by_id(id: string, lnum?: number, hash?: string) {
+        async open_by_id(id: string, lnum?: number, hash?: string) {
             const node = this.nodes[TREE.HTML].children!.find(n => n.id === id) ?? this.nodes.find(n => n.id === id)
             if (node) {
-                this.open(node, lnum, hash)
+                await this.open(node, lnum, hash)
                 this.add_tab(node)
             }
         },
@@ -1340,6 +1400,7 @@ const useStatus = defineStore('status', {
             this.image_srces = {}
             this.scroll_tops = {}
             this.meta_is_dirty = false
+            this.opf_is_dirty = false
             this.is_toogle = false
             this.current.save_path = ''
             this.metadata.length = 0    

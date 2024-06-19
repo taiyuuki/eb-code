@@ -1,36 +1,36 @@
+use crate::async_proc::AsyncProcInputTx;
 use crate::open::directory;
+use crate::Input;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
-use tauri::Manager;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CopyOption {
-    dir: String,
-    from: String,
-    to_id: String,
+    pub dir: String,
+    pub from: String,
+    pub to_id: String,
 }
 
-pub fn copy(from: &str, to: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let path = Path::new(to);
+pub fn copy_to(copy_option: CopyOption) -> Result<(), Box<dyn std::error::Error>> {
+    let to = directory::format_dir(&copy_option.dir, &copy_option.to_id);
+    let path = Path::new(&to);
     let folder = path.parent().unwrap();
     if !folder.exists() {
         fs::create_dir_all(folder)?;
     }
-    let _ = fs::copy(from, path)?;
+    let _ = fs::copy(&copy_option.from, path)?;
     Ok(())
 }
 
 #[tauri::command]
-pub fn copy_file(copy_option: CopyOption, app_handle: tauri::AppHandle) {
-    let to = directory::format_dir(&copy_option.dir, &copy_option.to_id);
-
-    match copy(&copy_option.from, &to) {
-        Ok(_) => {
-            app_handle.emit("file-copied", copy_option).unwrap();
-        }
-        Err(_) => {
-            app_handle.emit("file-copy-error", "复制失败").unwrap();
-        }
-    }
+pub async fn copy_file(
+    copy_option: CopyOption,
+    state: tauri::State<'_, AsyncProcInputTx<Input>>,
+) -> Result<(), String> {
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send(Input::Copy(copy_option))
+        .await
+        .map_err(|e| e.to_string())
 }

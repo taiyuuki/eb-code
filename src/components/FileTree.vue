@@ -76,14 +76,14 @@ async function add_file(node: FileNode) {
 
     if (files) {
         for await (const file of files) {
-            const name = file.name!
-            const _name = name.toLowerCase()
-            const media_type = mimetype(name)
+            const manifest_id = file.name!
+            const _name = manifest_id.toLowerCase()
+            const media_type = mimetype(manifest_id)
             let has = false
             let asset_path = ''
             if (is_image(_name)) {
                 asset_path = status.image_path
-                const file = status.manifest_path + asset_path + name
+                const file = status.manifest_path + asset_path + manifest_id
                 const node = status.nodes[TREE.IMAGE].children!.find(n => n.name === file)
                 if (node) {
                     has = true
@@ -94,7 +94,7 @@ async function add_file(node: FileNode) {
             }
             else if (is_font(_name)) {
                 asset_path = status.font_path
-                const file = status.manifest_path + asset_path + name
+                const file = status.manifest_path + asset_path + manifest_id
                 const node = status.nodes[TREE.FONT].children!.find(n => n.name === file)
                 if (node) {
                     has = true
@@ -105,7 +105,7 @@ async function add_file(node: FileNode) {
             }
             else if (is_style(_name)) {
                 asset_path = status.style_path
-                const file = status.manifest_path + asset_path + name
+                const file = status.manifest_path + asset_path + manifest_id
                 const node = status.nodes[TREE.STYLE].children!.find(n => n.name === file)
                 if (node) {
                     has = true
@@ -116,7 +116,7 @@ async function add_file(node: FileNode) {
             }
             else if (is_html(_name)) {
                 asset_path = status.text_path
-                const file = status.manifest_path + asset_path + name
+                const file = status.manifest_path + asset_path + manifest_id
                 const node = status.nodes[TREE.HTML].children!.find(n => n.name === file)
                 if (node) {
                     has = true
@@ -127,7 +127,7 @@ async function add_file(node: FileNode) {
             }
             else if (is_audio(_name)) {
                 asset_path = status.audio_path
-                const file = status.manifest_path + asset_path + name
+                const file = status.manifest_path + asset_path + manifest_id
                 const node = status.nodes[TREE.AUDIO].children!.find(n => n.name === file)
                 if (node) {
                     has = true
@@ -138,7 +138,7 @@ async function add_file(node: FileNode) {
             }
             else if (is_video(_name)) {
                 asset_path = status.video_path
-                const file = status.manifest_path + asset_path + name
+                const file = status.manifest_path + asset_path + manifest_id
                 const node = status.nodes[TREE.VIDEO].children!.find(n => n.name === file)
                 if (node) {
                     has = true
@@ -149,7 +149,7 @@ async function add_file(node: FileNode) {
             }
             else if (is_scripts(_name)) {
                 asset_path = status.script_path
-                const file = status.manifest_path + asset_path + name
+                const file = status.manifest_path + asset_path + manifest_id
                 const node = status.nodes[TREE.JS].children!.find(n => n.name === file)
                 if (node) {
                     has = true
@@ -161,7 +161,7 @@ async function add_file(node: FileNode) {
             }
             else {
                 asset_path = status.other_path
-                const file = status.manifest_path + asset_path + name
+                const file = status.manifest_path + asset_path + manifest_id
                 const node = status.nodes[TREE.OTHER].children!.find(n => n.name === file)
                 if (node) {
                     has = true
@@ -170,7 +170,7 @@ async function add_file(node: FileNode) {
                     status.add_other(file)
                 }
             }
-            status.add_file(file.path, name, asset_path + name, media_type, has)
+            status.add_file(file.path, manifest_id, asset_path + manifest_id, media_type, has)
         }
         status.save_opf()
     }

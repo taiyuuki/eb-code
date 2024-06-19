@@ -56,7 +56,7 @@ async function link_to_style() {
     await invoke_write_text(status.dir, props.node.id, domToXml(dom).replace(/\n\s*\n\s*\n/g, '\n\n'))
     if (status.current.id === props.node.id) {
         if (status.display === DISPLAY.CODE) {
-            status.reload_current()
+            await status.reload_current()
         }
         preview.reload_iframe()
     }

@@ -1,7 +1,8 @@
+use crate::async_proc::AsyncProcInputTx;
+use crate::Input;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::{fs, io::Write};
-use tauri::Manager;
 
 use crate::open::directory;
 
@@ -12,26 +13,25 @@ pub struct TextContents {
     content: String,
 }
 
-pub fn write_to_cache(path: &str, content: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let folder = Path::new(path).parent().unwrap();
+pub fn write_to_cache(text_contents: TextContents) -> Result<(), Box<dyn std::error::Error>> {
+    let dir = directory::format_dir(&text_contents.dir, &text_contents.path);
+    let folder = Path::new(&dir).parent().unwrap();
     if !folder.exists() {
         fs::create_dir_all(folder)?;
     }
-    let mut file = fs::File::create(path)?;
-    file.write_all(content.as_bytes())?;
+    let mut file = fs::File::create(&dir)?;
+    file.write_all(text_contents.content.as_bytes())?;
     Ok(())
 }
 
 #[tauri::command]
-pub fn write_text(text_contents: TextContents, app_handle: tauri::AppHandle) {
-    let dir = directory::format_dir(&text_contents.dir, &text_contents.path);
-
-    match write_to_cache(&dir, &text_contents.content) {
-        Ok(_) => {
-            app_handle.emit("write-success", "写入成功").unwrap();
-        }
-        Err(_) => {
-            app_handle.emit("write-error", "写入失败").unwrap();
-        }
-    }
+pub async fn write_text(
+    text_contents: TextContents,
+    state: tauri::State<'_, AsyncProcInputTx<Input>>,
+) -> Result<(), String> {
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send(Input::Write(text_contents))
+        .await
+        .map_err(|e| e.to_string())
 }

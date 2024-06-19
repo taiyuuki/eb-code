@@ -1,15 +1,16 @@
+use crate::async_proc::AsyncProcInputTx;
 use crate::open::directory::format_dir;
+use crate::Input;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{Read, Write};
 use std::path::Path;
-use tauri::Manager;
 use walkdir::WalkDir;
 use zip::write::FileOptions;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct SaveOptions {
+pub struct SaveOption {
     pub input_dir: String,
     pub output_dir: String,
 }
@@ -68,13 +69,13 @@ pub fn save_to(input_dir: &str, output_dir: &str) -> Result<(), Box<dyn std::err
 }
 
 #[tauri::command]
-pub fn save_epub(save_options: SaveOptions, app: tauri::AppHandle) {
-    match save_to(&save_options.input_dir, &save_options.output_dir) {
-        Ok(_) => {
-            app.emit("epub-saved", &save_options.output_dir).unwrap();
-        }
-        Err(_) => app
-            .emit("epub-save-error", &save_options.output_dir)
-            .unwrap(),
-    };
+pub async fn save_epub(
+    save_option: SaveOption,
+    state: tauri::State<'_, AsyncProcInputTx<Input>>,
+) -> Result<(), String> {
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send(Input::Save(save_option))
+        .await
+        .map_err(|e| e.to_string())
 }

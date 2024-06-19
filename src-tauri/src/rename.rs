@@ -1,8 +1,9 @@
+use crate::async_proc::AsyncProcInputTx;
 use crate::open::directory;
+use crate::Input;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
-use tauri::Manager;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RenameOption {
@@ -11,24 +12,24 @@ pub struct RenameOption {
     pub new_name: String,
 }
 
-pub fn rename(from: &str, to: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn rename_to(rename_option: RenameOption) -> Result<(), Box<dyn std::error::Error>> {
+    let from = directory::format_dir(&rename_option.path, &rename_option.id);
+    let to = directory::format_dir(&rename_option.path, &rename_option.new_name);
     let path = Path::new(&from);
     if path.exists() {
-        fs::rename(from, to)?;
+        fs::rename(&from, &to)?;
     }
     Ok(())
 }
 
 #[tauri::command]
-pub fn rename_file(rename_option: RenameOption, app_handle: tauri::AppHandle) {
-    let from = directory::format_dir(&rename_option.path, &rename_option.id);
-    let to = directory::format_dir(&rename_option.path, &rename_option.new_name);
-    match rename(&from, &to) {
-        Ok(_) => {
-            app_handle.emit("rename-success", rename_option).unwrap();
-        }
-        Err(_) => {
-            app_handle.emit("rename-error", "重命名失败").unwrap();
-        }
-    }
+pub async fn rename_file(
+    rename_option: RenameOption,
+    state: tauri::State<'_, AsyncProcInputTx<Input>>,
+) -> Result<(), String> {
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send(Input::Rename(rename_option))
+        .await
+        .map_err(|e| e.to_string())
 }

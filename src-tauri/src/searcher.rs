@@ -1,4 +1,6 @@
+use crate::async_proc::AsyncProcInputTx;
 use crate::open::directory::format_dir;
+use crate::Input;
 use grep::{
     matcher::{Captures, Matcher},
     regex::{self, RegexMatcher},
@@ -9,7 +11,6 @@ use std::{
     error::Error,
     io::{Read, Write},
 };
-use tauri::Manager;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SearchOption {
@@ -82,8 +83,7 @@ pub fn matcher_replace(
     Ok(())
 }
 
-#[tauri::command]
-pub fn find(search_option: SearchOption, app_handle: tauri::AppHandle) {
+pub fn search(search_option: SearchOption) -> Result<Vec<(String, Vec<SearchResult>)>, String> {
     let path = format_dir(&search_option.dir, "");
     let mut payload = vec![];
     match regex::RegexMatcherBuilder::new()
@@ -118,10 +118,24 @@ pub fn find(search_option: SearchOption, app_handle: tauri::AppHandle) {
                         }
                     }
                 });
-            app_handle.emit("search", payload).unwrap();
+            Ok(payload)
         }
-        Err(_) => app_handle.emit("search-error", "正则表达式错误").unwrap(),
+        Err(_) => Err("正则表达式错误".to_string()),
+        // app_handle.emit("search", payload).unwrap();
+        // app_handle.emit("search-error", "正则表达式错误").unwrap()
     }
+}
+
+#[tauri::command]
+pub async fn find(
+    search_option: SearchOption,
+    state: tauri::State<'_, AsyncProcInputTx<Input>>,
+) -> Result<(), String> {
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send(Input::Search(search_option))
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -134,8 +148,7 @@ pub struct ReplaceOption {
     replacement: String,
 }
 
-#[tauri::command]
-pub fn replace(replace_option: ReplaceOption, app_handle: tauri::AppHandle) {
+pub fn replace_file(replace_option: ReplaceOption) -> Result<(), String> {
     let path = format_dir(&replace_option.dir, "");
     match regex::RegexMatcherBuilder::new()
         .case_insensitive(!replace_option.case_sensitive)
@@ -164,8 +177,22 @@ pub fn replace(replace_option: ReplaceOption, app_handle: tauri::AppHandle) {
                         println!("{}", _e);
                     }
                 });
-            app_handle.emit("replace", "替换完成").unwrap();
+            Ok(())
         }
-        Err(_) => app_handle.emit("replace-error", "正则表达式错误").unwrap(),
+        Err(e) => Err(e.to_string()),
+        // app_handle.emit("replace-error", "正则表达式错误").unwrap()
+        // app_handle.emit("replace", "替换完成").unwrap();
     }
+}
+
+#[tauri::command]
+pub async fn replace(
+    replace_option: ReplaceOption,
+    state: tauri::State<'_, AsyncProcInputTx<Input>>,
+) -> Result<(), String> {
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send(Input::Replace(replace_option))
+        .await
+        .map_err(|e| e.to_string())
 }

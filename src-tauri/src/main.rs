@@ -2,11 +2,14 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use lazy_static::lazy_static;
+use open::EpubContent;
 use std::env::args;
 use std::path::{self, Path, PathBuf};
 use tauri::Manager;
+use tokio::sync::mpsc::{channel, Receiver, Sender};
 use warp::Filter;
 
+mod async_proc;
 mod clean;
 mod copy;
 mod open;
@@ -14,23 +17,63 @@ mod read;
 mod remove;
 mod rename;
 mod save;
-mod search;
+mod searcher;
+mod send;
 mod write;
 
-#[tauri::command]
-fn open_epub_on_setup(app_handle: tauri::AppHandle) {
+use read::TextDirectory;
+
+use async_proc::AsyncProcInputTx;
+
+pub enum Input {
+    Setup(()),
+    Read(TextDirectory),
+    Open(String),
+    Create(usize),
+    Clean(String),
+    Copy(copy::CopyOption),
+    Remove(remove::RemoveOption),
+    Rename(rename::RenameOption),
+    Save(save::SaveOption),
+    Search(searcher::SearchOption),
+    Replace(searcher::ReplaceOption),
+    Write(write::TextContents),
+}
+
+pub type OutputResult<T> = Result<T, String>;
+
+pub enum Output {
+    Setup(OutputResult<EpubContent>),
+    Read(OutputResult<[String; 3]>),
+    Open(OutputResult<EpubContent>),
+    Create(OutputResult<EpubContent>),
+    Clean(OutputResult<()>),
+    Copy(OutputResult<()>),
+    Remove(OutputResult<()>),
+    Rename(OutputResult<()>),
+    Save(OutputResult<String>),
+    Search(OutputResult<Vec<(String, Vec<searcher::SearchResult>)>>),
+    Replace(OutputResult<()>),
+    Write(OutputResult<()>),
+}
+
+fn open_from_args() -> Result<EpubContent, String> {
     if let Some(path) = args().nth(1) {
-        match open::un_zip(path.as_str()) {
-            Ok(epub_content) => {
-                app_handle.emit("setup-open", epub_content).unwrap();
-            }
-            Err(_e) => {
-                app_handle.emit("setup-error", &path).unwrap();
-            }
-        };
+        open::unzip(path.as_str()).map_err(move |_| path)
     } else {
-        app_handle.emit("setup-error", "0").unwrap();
+        Err("0".to_string())
     }
+}
+
+#[tauri::command]
+async fn open_epub_on_setup(
+    state: tauri::State<'_, AsyncProcInputTx<Input>>,
+) -> Result<(), String> {
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send(Input::Setup(()))
+        .await
+        .map_err(|e| e.to_string())
 }
 
 fn get_available_port() -> u16 {
@@ -59,14 +102,20 @@ lazy_static! {
 }
 
 #[tauri::command]
-fn get_port(app_handle: tauri::AppHandle) {
+fn get_port(app_handle: tauri::AppHandle) -> u16 {
     app_handle.emit("port", *PORT).unwrap();
+    *PORT
 }
 
 #[tokio::main]
 async fn main() {
+    let (async_proc_input_tx, async_proc_input_rx) = channel::<Input>(1);
+    let (async_proc_output_tx, mut async_proc_output_rx) = channel(1);
+
     tauri::Builder::default()
-        .setup(|_app| {
+        .manage(AsyncProcInputTx::new(async_proc_input_tx))
+        .setup(|app| {
+            let app_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 let cors = warp::cors().allow_any_origin();
                 let api = warp::path("static")
@@ -76,13 +125,24 @@ async fn main() {
                 let server = warp::serve(api);
                 server.run(([127, 0, 0, 1], *PORT as u16)).await;
             });
+
+            // 异步线程
+            tauri::async_runtime::spawn(async move {
+                async_process_model(async_proc_input_rx, async_proc_output_tx).await
+            });
+
+            tauri::async_runtime::spawn(async move {
+                while let Some(output) = async_proc_output_rx.recv().await {
+                    send::rs2js(output, &app_handle);
+                }
+            });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             get_port,
             open_epub_on_setup,
             open::open_epub,
-            open::create_epub,
+            open::create,
             read::get_text,
             write::write_text,
             clean::clean_cache,
@@ -90,12 +150,60 @@ async fn main() {
             remove::remove_file,
             copy::copy_file,
             rename::rename_file,
-            search::find,
-            search::replace,
+            searcher::find,
+            searcher::replace,
         ])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
     ebcode_lib::run();
+}
+
+async fn async_process_model(
+    mut input_rx: Receiver<Input>,
+    output_tx: Sender<Output>,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    while let Some(input) = input_rx.recv().await {
+        let output = match input {
+            Input::Setup(_) => Output::Setup(open_from_args()),
+            Input::Read(text_directory) => Output::Read(read::read_file(text_directory)),
+            Input::Open(path) => match open::unzip(&path) {
+                Ok(epub_content) => Output::Open(Ok(epub_content)),
+                Err(e) => Output::Open(Err(e.to_string())),
+            },
+            Input::Create(version) => open::create_epub(version)
+                .map(|epub_content| Output::Create(Ok(epub_content)))
+                .unwrap_or_else(|e| Output::Create(Err(e.to_string()))),
+            Input::Clean(dir) => clean::clean_dir(&dir)
+                .map(|_| Output::Clean(Ok(())))
+                .unwrap_or_else(|e| Output::Clean(Err(e.to_string()))),
+            Input::Copy(copy_option) => copy::copy_to(copy_option)
+                .map(|_| Output::Copy(Ok(())))
+                .unwrap_or_else(|e| Output::Copy(Err(e.to_string()))),
+            Input::Remove(remove_option) => remove::remove(remove_option)
+                .map(|_| Output::Remove(Ok(())))
+                .unwrap_or_else(|e| Output::Remove(Err(e.to_string()))),
+            Input::Rename(rename_option) => rename::rename_to(rename_option)
+                .map(|_| Output::Rename(Ok(())))
+                .unwrap_or_else(|e| Output::Rename(Err(e.to_string()))),
+            Input::Save(save_options) => {
+                save::save_to(&save_options.input_dir, &save_options.output_dir)
+                    .map(|_| Output::Save(Ok(save_options.output_dir.clone())))
+                    .unwrap_or_else(|_| Output::Save(Err(save_options.output_dir)))
+            }
+            Input::Search(search_options) => searcher::search(search_options)
+                .map(|result| Output::Search(Ok(result)))
+                .unwrap_or_else(|e| Output::Search(Err(e.to_string()))),
+            Input::Replace(replace_options) => searcher::replace_file(replace_options)
+                .map(|result| Output::Replace(Ok(result)))
+                .unwrap_or_else(|e| Output::Replace(Err(e.to_string()))),
+            Input::Write(text_contents) => write::write_to_cache(text_contents)
+                .map(|_| Output::Write(Ok(())))
+                .unwrap_or_else(|e| Output::Write(Err(e.to_string()))),
+        };
+        output_tx.send(output).await.unwrap();
+    }
+
+    Ok(())
 }

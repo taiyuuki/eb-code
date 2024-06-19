@@ -1,7 +1,8 @@
+use crate::async_proc::AsyncProcInputTx;
+use crate::Input;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{self, Path};
-use tauri::Manager;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TextDirectory {
@@ -9,8 +10,7 @@ pub struct TextDirectory {
     path: String,
 }
 
-#[tauri::command]
-pub fn get_text(text_directory: TextDirectory, app_handle: tauri::AppHandle) {
+pub fn read_file(text_directory: TextDirectory) -> Result<[String; 3], String> {
     let dir = format!(
         "{}{}.EBCode{}cache{}{}{}{}",
         dirs::home_dir().unwrap().to_str().unwrap(),
@@ -40,10 +40,19 @@ pub fn get_text(text_directory: TextDirectory, app_handle: tauri::AppHandle) {
     };
     if p.exists() {
         let text = fs::read_to_string(p).unwrap();
-        app_handle
-            .emit("get-text", [&text, lang, &text_directory.path])
-            .unwrap();
-    } else {
-        app_handle.emit("get-text-error", "获取失败").unwrap();
+        return Ok([text, lang.to_string(), dir]);
     }
+    Err("文件不存在".to_string())
+}
+
+#[tauri::command]
+pub async fn get_text(
+    text_directory: TextDirectory,
+    state: tauri::State<'_, AsyncProcInputTx<Input>>,
+) -> Result<(), String> {
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send(Input::Read(text_directory))
+        .await
+        .map_err(|e| e.to_string())
 }

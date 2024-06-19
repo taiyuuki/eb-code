@@ -7,6 +7,8 @@ import type { EpubContent, SearchResult } from '@/components/types'
 
 const changed = reactive({ dirty: false })
 
+let is_invoked = true
+
 class InvokeRequest<Payload, Error = string> {
     resolve: (value: Payload | PromiseLike<Payload>)=> void
     reject: (reason?: Error)=> void
@@ -16,24 +18,29 @@ class InvokeRequest<Payload, Error = string> {
         this.reject = () => {}
         listen(sucess_type, (event: Event<Payload>) => {
             this.resolve(event.payload)
+            is_invoked = true
         })
         listen(error_type, (event: Event<Error>) => {
             this.reject(event.payload)
+            is_invoked = true
         })
     }
 
     invoke(type: string, args?: InvokeArgs, option?: InvokeOptions) {
         return new Promise<Payload>((resolve, reject) => {
-            this.resolve = resolve
-            this.reject = reject        
-            invoke(type, args, option) 
+            if (is_invoked) {
+                this.resolve = resolve
+                this.reject = reject        
+                is_invoked = false
+                invoke(type, args, option)
+            } 
         })
     }
 }
 
 // 启动时打开文件
 const invoke_setup = function() {
-    const ir = new InvokeRequest<EpubContent>('setup-open', 'setup-error')
+    const ir = new InvokeRequest<EpubContent>('setup', 'setup-error')
  
     return function() {
         return ir.invoke('open_epub_on_setup')
@@ -54,7 +61,7 @@ const invoke_create_epub = function() {
     const ir = new InvokeRequest<EpubContent>('epub-created', 'epub-create-error')
 
     return function(version: number) {
-        return ir.invoke('create_epub', { version })
+        return ir.invoke('create', { version })
     }
 }()
 
@@ -84,7 +91,7 @@ const invoke_get_text = function() {
 // 写入文本
 const invoke_write_text = function() {
     type Payload = string
-    const ir = new InvokeRequest<Payload>('write-success', 'write-error')
+    const ir = new InvokeRequest<Payload>('text-written', 'text-write-error')
 
     return function(dir: string, path: string, content: string) {
         if (!changed.dirty) {
@@ -98,7 +105,7 @@ const invoke_write_text = function() {
 // 清除EPUB缓存
 const invoke_clean_cache = function() {
     type Payload = string
-    const ir = new InvokeRequest<Payload>('clean-success', 'clean-error')
+    const ir = new InvokeRequest<Payload>('cleaned', 'clean-error')
 
     return function(dir: string) {
         return ir.invoke('clean_cache', { dir })
@@ -122,7 +129,7 @@ const invoke_copy_file = function() {
 // 删除文件
 const invoke_remove_file = function() {
     type Payload = string
-    const ir = new InvokeRequest<Payload>('remove-success', 'remove-error')
+    const ir = new InvokeRequest<Payload>('file-removed', 'file-remove-error')
 
     return function(dir: string, id: string) {
         if (!changed.dirty) {
@@ -136,7 +143,7 @@ const invoke_remove_file = function() {
 // 文件重命名
 const invoke_rename_file = function() {
     type Payload = string
-    const ir = new InvokeRequest<Payload>('rename-success', 'rename-error')
+    const ir = new InvokeRequest<Payload>('file-renamed', 'file-rename-error')
 
     return function(dir: string, id: string, new_name: string) {
         if (!changed.dirty) {
@@ -151,7 +158,7 @@ const invoke_rename_file = function() {
 const invoke_search = function() {
     type Payload = [string, SearchResult[]][]
 
-    const ir = new InvokeRequest<Payload>('search', 'search-error')
+    const ir = new InvokeRequest<Payload>('searched', 'search-error')
 
     return function(
         dir: string, 
@@ -168,7 +175,7 @@ const invoke_search = function() {
 // 替换
 const invoke_replace = function() {
     type Payload = string
-    const ir = new InvokeRequest<Payload>('replace', 'replace-error')
+    const ir = new InvokeRequest<Payload>('replaced', 'replace-error')
 
     return function(
         dir: string,

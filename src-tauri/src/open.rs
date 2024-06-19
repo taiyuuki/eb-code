@@ -1,3 +1,4 @@
+use crate::Input;
 use anyhow::Context;
 use epub::archive::EpubArchive;
 use epub::doc::EpubDoc;
@@ -6,12 +7,13 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{self, Path};
 use std::{fs, io::Write};
-use tauri::Manager;
 
 pub mod directory;
 mod epub2_template;
 mod epub3_template;
 mod template;
+
+use crate::async_proc::AsyncProcInputTx;
 
 use self::directory::format_dir;
 
@@ -85,7 +87,7 @@ impl EpubContent {
     }
 }
 
-pub fn un_zip(path: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
+pub fn unzip(path: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
     let epub_archive = EpubArchive::new(path)?;
     let mut epub = EpubDoc::new(path)?;
 
@@ -144,15 +146,15 @@ pub fn un_zip(path: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
 }
 
 #[tauri::command]
-pub fn open_epub(path: &str, app_handle: tauri::AppHandle) {
-    match un_zip(path) {
-        Ok(epub_content) => {
-            let _ = app_handle.emit("epub-opened", epub_content);
-        }
-        Err(_e) => {
-            let _ = app_handle.emit("epub-open-error", "打开失败");
-        }
-    };
+pub async fn open_epub(
+    path: String,
+    state: tauri::State<'_, AsyncProcInputTx<Input>>,
+) -> Result<(), String> {
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send(Input::Open(path))
+        .await
+        .map_err(|e| e.to_string())
 }
 
 pub fn create_epub2(dir: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
@@ -180,8 +182,9 @@ pub fn create_epub2(dir: &str) -> Result<EpubContent, Box<dyn std::error::Error>
         }
         fs::write(&path, value)?;
     }
-
-    Ok(EpubContent::epub2(dir))
+    let mut epub_content = EpubContent::epub2(dir);
+    epub_content.set_container(template::CONTAINER.to_string());
+    Ok(epub_content)
 }
 
 fn create_epub3(dir: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
@@ -211,12 +214,12 @@ fn create_epub3(dir: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
         }
         fs::write(&path, value)?;
     }
-
-    Ok(EpubContent::epub3(dir))
+    let mut epub_content = EpubContent::epub3(dir);
+    epub_content.set_container(template::CONTAINER.to_string());
+    Ok(epub_content)
 }
 
-#[tauri::command]
-pub fn create_epub(version: usize, app_handle: tauri::AppHandle) {
+pub fn create_epub(version: usize) -> Result<EpubContent, Box<dyn std::error::Error>> {
     let mut rng = rand::thread_rng();
     let rand_dir: String = Alphanumeric
         .sample_iter(&mut rng)
@@ -224,15 +227,21 @@ pub fn create_epub(version: usize, app_handle: tauri::AppHandle) {
         .map(char::from)
         .collect();
 
-    match match version {
+    match version {
         2 => create_epub2(&rand_dir),
         3 => create_epub3(&rand_dir),
         _ => create_epub2(&rand_dir),
-    } {
-        Ok(mut epub_content) => {
-            epub_content.set_container(template::CONTAINER.to_string());
-            app_handle.emit("epub-created", epub_content).unwrap()
-        }
-        Err(_) => app_handle.emit("epub-create-error", "创建失败").unwrap(),
-    };
+    }
+}
+
+#[tauri::command]
+pub async fn create(
+    version: usize,
+    state: tauri::State<'_, AsyncProcInputTx<Input>>,
+) -> Result<(), String> {
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send(Input::Create(version))
+        .await
+        .map_err(|e| e.to_string())
 }

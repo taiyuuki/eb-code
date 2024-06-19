@@ -40,8 +40,8 @@ async function open_cover() {
         ],
     })
     if (file) {
-        const name = file.name!
-        const path = status.manifest_path + status.image_path + name
+        const manifest_id = file.name!
+        const path = status.manifest_path + status.image_path + manifest_id
         const node = status.nodes[TREE.IMAGE].children!.find(n => n.name === path)
         let has = false
         if (node) {
@@ -50,8 +50,8 @@ async function open_cover() {
         else {
             status.add_image(path)
         }
-        await status.add_file(file.path, name, status.image_path + name, mimetype(file.path), has)
-        status.set_cover(status.manifest_path + status.image_path + name)
+        await status.add_file(file.path, manifest_id, status.image_path + manifest_id, mimetype(file.path), has)
+        status.set_cover(status.manifest_path + status.image_path + manifest_id)
     }
     else {
         return

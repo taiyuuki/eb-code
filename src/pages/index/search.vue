@@ -60,11 +60,12 @@ async function replace() {
     try {
         await invoke_replace(status.dir, keyword.value, regex.value, case_sensitive.value, word.value, replacement.value)
         if (status.display === DISPLAY.CODE && is_html(status.current.id)) {
-            status.reload_current()
+            await status.reload_current()
         }
         await trigger_search()
     }
-    catch(_) {
+    catch(e) {
+        console.error(e)
         has_error.value = true
     }
 }

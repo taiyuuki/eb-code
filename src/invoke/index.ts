@@ -7,8 +7,6 @@ import type { EpubContent, SearchResult } from '@/components/types'
 
 const changed = reactive({ dirty: false })
 
-let is_invoked = true
-
 class InvokeRequest<Payload, Error = string> {
     resolve: (value: Payload | PromiseLike<Payload>)=> void
     reject: (reason?: Error)=> void
@@ -18,22 +16,17 @@ class InvokeRequest<Payload, Error = string> {
         this.reject = () => {}
         listen(sucess_type, (event: Event<Payload>) => {
             this.resolve(event.payload)
-            is_invoked = true
         })
         listen(error_type, (event: Event<Error>) => {
             this.reject(event.payload)
-            is_invoked = true
         })
     }
 
     invoke(type: string, args?: InvokeArgs, option?: InvokeOptions) {
         return new Promise<Payload>((resolve, reject) => {
-            if (is_invoked) {
-                this.resolve = resolve
-                this.reject = reject        
-                is_invoked = false
-                invoke(type, args, option)
-            } 
+            this.resolve = resolve
+            this.reject = reject   
+            invoke(type, args, option)
         })
     }
 }

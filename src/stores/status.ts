@@ -9,7 +9,7 @@ import { basename, dirname, filename, join, relative } from '@/utils/path'
 import { is_audio, is_font, is_html, is_image, is_scripts, is_style, is_text, is_video } from '@/utils/is'
 import { get_scroll_top, scroll_to_line, scroll_top_to } from '@/editor'
 import { useActivity } from '@/composables/useActivity'
-import { notif_negative, notif_positive } from '@/notif'
+import { notif_negative, notif_positive, notif_warning } from '@/notif'
 import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
 import { DISPLAY, TREE } from '@/static'
 import { cover_template, ncx_template, xhtml_template } from '@/template/xhtml'
@@ -1334,9 +1334,16 @@ const useStatus = defineStore('status', {
             }
 
             // 如果是同一个节点，不操作
-            if ((activity_nodes.opened_node === node || this.is_reading) && !lnum) {
+            if (this.is_reading || this.is_opening || this.is_saving) {
+                notif_warning('程序繁忙, 请稍等片刻后再试！')
+
                 return
             }
+            if (activity_nodes.opened_node === node && !lnum) {
+
+                return
+            }
+            this.add_tab(node)
 
             // 如果有已打开的节点且是文本文件，记录它的滚动位置
             if (activity_nodes.opened_node) {

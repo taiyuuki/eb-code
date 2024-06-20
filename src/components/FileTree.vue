@@ -27,7 +27,6 @@ const line_width = computed(() => {
 const status = useStatus()
 
 function toggle(node: FileNode) {
-    status.add_tab(node)
     status.open(node)
 }
 

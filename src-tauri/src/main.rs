@@ -155,7 +155,6 @@ async fn async_process_model(
     output_tx: Sender<Output>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     while let Some(input) = input_rx.recv().await {
-        println!("setup");
         let output = match input {
             Input::Setup(_) => Output::Setup(open_from_args()),
             Input::Read(text_directory) => Output::Read(read::read_file(text_directory)),

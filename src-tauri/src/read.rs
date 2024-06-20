@@ -1,5 +1,3 @@
-use crate::async_proc::AsyncProcInputTx;
-use crate::Input;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{self, Path};
@@ -43,16 +41,4 @@ pub fn read_file(text_directory: TextDirectory) -> Result<[String; 3], String> {
         return Ok([text, lang.to_string(), dir]);
     }
     Err("文件不存在".to_string())
-}
-
-#[tauri::command]
-pub async fn get_text(
-    text_directory: TextDirectory,
-    state: tauri::State<'_, AsyncProcInputTx<Input>>,
-) -> Result<(), String> {
-    let async_proc_input_tx = state.inner.lock().await;
-    async_proc_input_tx
-        .send(Input::Read(text_directory))
-        .await
-        .map_err(|e| e.to_string())
 }

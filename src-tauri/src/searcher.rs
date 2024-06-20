@@ -1,6 +1,4 @@
-use crate::async_proc::AsyncProcInputTx;
 use crate::open::directory::format_dir;
-use crate::Input;
 use grep::{
     matcher::{Captures, Matcher},
     regex::{self, RegexMatcher},
@@ -126,18 +124,6 @@ pub fn search(search_option: SearchOption) -> Result<Vec<(String, Vec<SearchResu
     }
 }
 
-#[tauri::command]
-pub async fn find(
-    search_option: SearchOption,
-    state: tauri::State<'_, AsyncProcInputTx<Input>>,
-) -> Result<(), String> {
-    let async_proc_input_tx = state.inner.lock().await;
-    async_proc_input_tx
-        .send(Input::Search(search_option))
-        .await
-        .map_err(|e| e.to_string())
-}
-
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ReplaceOption {
     dir: String,
@@ -183,16 +169,4 @@ pub fn replace_file(replace_option: ReplaceOption) -> Result<(), String> {
         // app_handle.emit("replace-error", "正则表达式错误").unwrap()
         // app_handle.emit("replace", "替换完成").unwrap();
     }
-}
-
-#[tauri::command]
-pub async fn replace(
-    replace_option: ReplaceOption,
-    state: tauri::State<'_, AsyncProcInputTx<Input>>,
-) -> Result<(), String> {
-    let async_proc_input_tx = state.inner.lock().await;
-    async_proc_input_tx
-        .send(Input::Replace(replace_option))
-        .await
-        .map_err(|e| e.to_string())
 }

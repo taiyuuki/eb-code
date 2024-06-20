@@ -1,6 +1,4 @@
-use crate::async_proc::AsyncProcInputTx;
 use crate::open::directory;
-use crate::Input;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
@@ -21,16 +19,4 @@ pub fn copy_to(copy_option: CopyOption) -> Result<(), Box<dyn std::error::Error>
     }
     let _ = fs::copy(&copy_option.from, path)?;
     Ok(())
-}
-
-#[tauri::command]
-pub async fn copy_file(
-    copy_option: CopyOption,
-    state: tauri::State<'_, AsyncProcInputTx<Input>>,
-) -> Result<(), String> {
-    let async_proc_input_tx = state.inner.lock().await;
-    async_proc_input_tx
-        .send(Input::Copy(copy_option))
-        .await
-        .map_err(|e| e.to_string())
 }

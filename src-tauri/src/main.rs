@@ -11,6 +11,7 @@ use warp::Filter;
 
 mod async_proc;
 mod clean;
+mod command;
 mod copy;
 mod open;
 mod read;
@@ -63,18 +64,6 @@ fn open_from_args() -> Result<EpubContent, String> {
     } else {
         Err("0".to_string())
     }
-}
-
-#[tauri::command]
-async fn open_epub_on_setup(
-    state: tauri::State<'_, AsyncProcInputTx<Input>>,
-) -> Result<(), String> {
-    println!("Open epub on setup");
-    let async_proc_input_tx = state.inner.lock().await;
-    async_proc_input_tx
-        .send(Input::Setup(()))
-        .await
-        .map_err(|e| e.to_string())
 }
 
 fn get_available_port() -> u16 {
@@ -141,18 +130,18 @@ async fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             get_port,
-            open_epub_on_setup,
-            open::open_epub,
-            open::create,
-            read::get_text,
-            write::write_text,
-            clean::clean_cache,
-            save::save_epub,
-            remove::remove_file,
-            copy::copy_file,
-            rename::rename_file,
-            searcher::find,
-            searcher::replace,
+            command::open_epub_on_setup,
+            command::open_epub,
+            command::create,
+            command::get_text,
+            command::write_text,
+            command::clean_cache,
+            command::save_epub,
+            command::remove_file,
+            command::copy_file,
+            command::rename_file,
+            command::find,
+            command::replace,
         ])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())

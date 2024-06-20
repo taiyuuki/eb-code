@@ -1,6 +1,4 @@
-use crate::async_proc::AsyncProcInputTx;
 use crate::open::directory;
-use crate::Input;
 use std::fs;
 use std::io;
 use std::path;
@@ -12,16 +10,4 @@ pub fn clean_dir(dir: &str) -> io::Result<()> {
         fs::remove_dir_all(cache_dir)?;
     }
     Ok(())
-}
-
-#[tauri::command]
-pub async fn clean_cache(
-    dir: String,
-    state: tauri::State<'_, AsyncProcInputTx<Input>>,
-) -> Result<(), String> {
-    let async_proc_input_tx = state.inner.lock().await;
-    async_proc_input_tx
-        .send(Input::Clean(dir))
-        .await
-        .map_err(|e| e.to_string())
 }

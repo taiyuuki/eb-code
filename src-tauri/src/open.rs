@@ -1,4 +1,3 @@
-use crate::Input;
 use anyhow::Context;
 use epub::archive::EpubArchive;
 use epub::doc::EpubDoc;
@@ -12,8 +11,6 @@ pub mod directory;
 mod epub2_template;
 mod epub3_template;
 mod template;
-
-use crate::async_proc::AsyncProcInputTx;
 
 use self::directory::format_dir;
 
@@ -145,18 +142,6 @@ pub fn unzip(path: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
     Ok(epub_content)
 }
 
-#[tauri::command]
-pub async fn open_epub(
-    path: String,
-    state: tauri::State<'_, AsyncProcInputTx<Input>>,
-) -> Result<(), String> {
-    let async_proc_input_tx = state.inner.lock().await;
-    async_proc_input_tx
-        .send(Input::Open(path))
-        .await
-        .map_err(|e| e.to_string())
-}
-
 pub fn create_epub2(dir: &str) -> Result<EpubContent, Box<dyn std::error::Error>> {
     let uid = uuid::Uuid::new_v4().to_string();
     let mut epub = HashMap::new();
@@ -232,16 +217,4 @@ pub fn create_epub(version: usize) -> Result<EpubContent, Box<dyn std::error::Er
         3 => create_epub3(&rand_dir),
         _ => create_epub2(&rand_dir),
     }
-}
-
-#[tauri::command]
-pub async fn create(
-    version: usize,
-    state: tauri::State<'_, AsyncProcInputTx<Input>>,
-) -> Result<(), String> {
-    let async_proc_input_tx = state.inner.lock().await;
-    async_proc_input_tx
-        .send(Input::Create(version))
-        .await
-        .map_err(|e| e.to_string())
 }

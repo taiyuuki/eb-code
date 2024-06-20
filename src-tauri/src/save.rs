@@ -1,6 +1,4 @@
-use crate::async_proc::AsyncProcInputTx;
 use crate::open::directory::format_dir;
-use crate::Input;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -66,16 +64,4 @@ pub fn save_to(input_dir: &str, output_dir: &str) -> Result<(), Box<dyn std::err
     zip.finish()?;
 
     Ok(())
-}
-
-#[tauri::command]
-pub async fn save_epub(
-    save_option: SaveOption,
-    state: tauri::State<'_, AsyncProcInputTx<Input>>,
-) -> Result<(), String> {
-    let async_proc_input_tx = state.inner.lock().await;
-    async_proc_input_tx
-        .send(Input::Save(save_option))
-        .await
-        .map_err(|e| e.to_string())
 }

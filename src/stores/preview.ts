@@ -11,10 +11,8 @@ const usePreview = defineStore('preview', {
         width: 0,
     }),
     actions: {
-        get_port() {
-            invoke_get_port().then(port => {
-                this.port = port
-            })
+        async get_port() {
+            this.port = await invoke_get_port()
         },
         clean() {
             this.id = ''

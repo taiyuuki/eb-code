@@ -43,6 +43,7 @@ const invoke_setup = function() {
     const ir = new InvokeRequest<EpubContent>('setup', 'setup-error')
  
     return function() {
+
         return ir.invoke('open_epub_on_setup')
     }
 }()

@@ -28,7 +28,6 @@ const activity_nodes = useActivity()
 
 const preview = usePreview(stores)
 
-preview.get_port()
 function tree_index(name: string) {
     if (is_html(name)) {
         return TREE.HTML

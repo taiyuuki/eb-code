@@ -69,6 +69,7 @@ fn open_from_args() -> Result<EpubContent, String> {
 async fn open_epub_on_setup(
     state: tauri::State<'_, AsyncProcInputTx<Input>>,
 ) -> Result<(), String> {
+    println!("Open epub on setup");
     let async_proc_input_tx = state.inner.lock().await;
     async_proc_input_tx
         .send(Input::Setup(()))
@@ -165,6 +166,7 @@ async fn async_process_model(
     output_tx: Sender<Output>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     while let Some(input) = input_rx.recv().await {
+        println!("setup");
         let output = match input {
             Input::Setup(_) => Output::Setup(open_from_args()),
             Input::Read(text_directory) => Output::Read(read::read_file(text_directory)),

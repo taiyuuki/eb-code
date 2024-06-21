@@ -44,14 +44,9 @@
     "active": true,
     "targets": "all",
     "icon": [
-      "icons/16x16.png",
       "icons/32x32.png",
-      "icons/70x70.png",
-      "icons/144x144.png",
-      "icons/150x150.png",
-      "icons/180x180.png",
-      "icons/192x192.png",
-      "icons/310x310.png",
+      "icons/128x128.png",
+      "icons/256x256.png",
       "icons/512x512.png",
       "icons/icon.ico"
     ],
@@ -77,7 +72,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENBRDgyNjM1NTBDNDg4RTEKUldUaGlNUlFOU2JZeWtJcEplRUlQVFcyQzNYQmE1aU8xVWJLTVVkRlNlbU9XcVF2T3hWa000SnkK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE4MUUwQTA1RThCMjc2QzIKUldUQ2RyTG9CUW9lR09ONEtxamVpZXR4aVphTlFzSHNmb0F2M01pSHFSV0hFWGNwZllWQ3hFamIK",
       "endpoint": [
         "https://github.com/taiyuuki/eb-code/releases/latest/download/latest.json"
       ],

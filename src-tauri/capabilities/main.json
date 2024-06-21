@@ -30,6 +30,7 @@
     "dialog:allow-open",
     "dialog:allow-save",
     "dialog:allow-ask",
-    "dialog:default"
+    "dialog:default",
+    "updater:default"
   ]
 }

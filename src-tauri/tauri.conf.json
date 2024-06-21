@@ -58,7 +58,12 @@
     "windows": {
       "allowDowngrades": true,
       "nsis": {
-        "compression": "lzma"
+        "compression": "lzma",
+        "languages": [
+          "SimpChinese",
+          "TradChinese",
+          "English"
+        ]
       },
       "tsp": false,
       "webviewInstallMode": {
@@ -67,6 +72,17 @@
       },
       "wix": {
         "language": "zh-CN"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENBRDgyNjM1NTBDNDg4RTEKUldUaGlNUlFOU2JZeWtJcEplRUlQVFcyQzNYQmE1aU8xVWJLTVVkRlNlbU9XcVF2T3hWa000SnkK",
+      "endpoint": [
+        "https://github.com/taiyuuki/eb-code/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
       }
     }
   }

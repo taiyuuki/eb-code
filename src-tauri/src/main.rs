@@ -103,6 +103,7 @@ async fn main() {
     let (async_proc_output_tx, mut async_proc_output_rx) = channel(1);
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AsyncProcInputTx::new(async_proc_input_tx))
         .setup(|app| {
             let app_handle = app.handle().clone();

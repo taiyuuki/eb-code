@@ -44,14 +44,9 @@
     "active": true,
     "targets": "all",
     "icon": [
-      "icons/16x16.png",
       "icons/32x32.png",
-      "icons/70x70.png",
-      "icons/144x144.png",
-      "icons/150x150.png",
-      "icons/180x180.png",
-      "icons/192x192.png",
-      "icons/310x310.png",
+      "icons/128x128.png",
+      "icons/256x256.png",
       "icons/512x512.png",
       "icons/icon.ico"
     ],

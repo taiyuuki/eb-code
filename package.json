@@ -1,6 +1,6 @@
 {
   "name": "eb-code",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "EPUB editor",
   "productName": "Ebook Code",
   "author": "taiyuuki <taiyuuki@qq.com>",
@@ -10,9 +10,10 @@
     "dev": "quasar dev",
     "build": "quasar build",
     "test": "vitest",
-    "clean": "quasar clean",
+    "clean": "quasar clean && cd src-tauri && cargo clean",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
+    "tauri:build-pwd": "esno ./scripts/tauri-build.ts",
     "get-themes": "esno ./scripts/get-themes.ts && eslint src/editor/themes.ts --fix",
     "gen-license": "esno ./scripts/gen-license.ts"
   },

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { invoke_clean_cache } from './invoke'
+import { check_update } from './notif/update'
 import { useStatus } from './stores/status'
 
 const status = useStatus()
@@ -17,6 +18,8 @@ window.addEventListener('beforeunload', e => {
 window.addEventListener('unload', () => {
     status.dir && invoke_clean_cache(status.dir)
 })
+
+check_update()
 </script>
 
 <template>

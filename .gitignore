@@ -34,3 +34,4 @@ yarn-error.log*
 
 #tauri
 /~/.tauri/myapp.key
+/~/.tauri/password.key

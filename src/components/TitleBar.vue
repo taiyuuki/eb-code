@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Window } from '@tauri-apps/api/window'
-import { ask, open, save } from '@tauri-apps/plugin-dialog'
+import { ask, message, open, save } from '@tauri-apps/plugin-dialog'
 import { TauriEvent, listen } from '@tauri-apps/api/event'
+import { getVersion } from '@tauri-apps/api/app'
 import { changed, invoke_clean_cache, invoke_create_epub, invoke_open_epub, invoke_save_epub } from '@/invoke'
 import { useTheme } from '@/stores/theme'
 import { useStatus } from '@/stores/status'
@@ -12,6 +13,7 @@ import { useActivity } from '@/composables/useActivity'
 import { dirty_meta } from '@/composables/dirty_meta'
 import { contents_setting } from '@/composables/contents_setting'
 import { usePreview } from '@/stores/preview'
+import { check_update } from '@/notif/update'
 
 const appWindow = new Window('main')
 const is_maximized = ref(false)
@@ -212,6 +214,12 @@ function edit_metadata() {
 
 function toggle_preview() {
     preview.toggle()
+}
+
+function about() {
+    getVersion().then(version => {
+        message(`Ebook Code v${version}\n作者：Taiyuuki\n项目主页：https://github.com/taiyuuki/eb-code`, { title: '关于' })
+    })
 }
 
 defineExpose({
@@ -416,6 +424,36 @@ defineExpose({
                 h="20"
                 w="20"
               />
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <q-btn
+      :ripple="false"
+      label="帮助"
+      unelevated
+      square
+      flat
+    >
+      <q-menu>
+        <q-list>
+          <q-item
+            v-close-popup
+            clickable
+            @click="check_update"
+          >
+            <q-item-section>
+              检查更新
+            </q-item-section>
+          </q-item>
+          <q-item
+            v-close-popup
+            clickable
+            @click="about"
+          >
+            <q-item-section>
+              关于
             </q-item-section>
           </q-item>
         </q-list>

@@ -19,7 +19,7 @@ window.addEventListener('unload', () => {
     status.dir && invoke_clean_cache(status.dir)
 })
 
-check_update()
+check_update(false)
 </script>
 
 <template>

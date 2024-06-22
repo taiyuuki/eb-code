@@ -1,6 +1,6 @@
 {
   "productName": "Ebook Code",
-  "version": "0.0.9",
+  "version": "0.2.0",
   "identifier": "com.tauri.ebcode",
   "build": {
     "beforeDevCommand": "pnpm dev",

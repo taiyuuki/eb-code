@@ -7,6 +7,7 @@ import { useStatus } from '@/stores/status'
 import { relative } from '@/utils/path'
 import { domToXml, xmlToDom } from '@/utils/xml'
 import { usePreview } from '@/stores/preview'
+import { vMove } from '@/directives/v-move'
 
 const props = defineProps<{ node: FileNode }>()
 const emit = defineEmits<{ (e: 'complate'): void }>()
@@ -72,7 +73,7 @@ async function link_to_style() {
     w="80vw"
     select-none
   >
-    <q-bar>
+    <q-bar v-move>
       <div>链接样式文件</div>
       <q-space />
 

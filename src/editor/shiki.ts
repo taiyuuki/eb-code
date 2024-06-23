@@ -1,5 +1,5 @@
 import type { LanguageRegistration, ThemeRegistrationRaw } from 'shiki/core'
-import { getHighlighterCore } from 'shiki/core'
+import { createHighlighterCore } from 'shiki/core'
 import getWasmInlined from 'shiki/wasm'
 import { NOT_SUPPORTED_THEMES } from '@/static'
 
@@ -12,7 +12,7 @@ async function getLighter() {
     const langs = await Promise.all(Object.values(langs_imports).map(t => t()))
     const themes = await Promise.all(Object.values(themes_imorts).map(t => t()))
 
-    const hightlighter = await getHighlighterCore({
+    const hightlighter = await createHighlighterCore({
         langs,
         themes: themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t.name!)),
         loadWasm: getWasmInlined, 

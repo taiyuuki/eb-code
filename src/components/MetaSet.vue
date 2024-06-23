@@ -3,6 +3,7 @@ import { arr_remove, object_keys } from '@taiyuuki/utils'
 import { useStatus } from '@/stores/status'
 import { cover_setting } from '@/composables/cover_setting'
 import { dirty_meta } from '@/composables/dirty_meta'
+import { vMove } from '@/directives/v-move'
 
 const _META_KEY: Record<string, string> = {
     'dc:title': '书名',
@@ -189,7 +190,9 @@ function meta_changed() {
       select-none
     >
       <q-bar>
-        <div>元数据设置</div>
+        <div v-move>
+          元数据设置
+        </div>
         <q-space />
         <q-btn
           v-close-popup
@@ -242,7 +245,7 @@ function meta_changed() {
       w="80vw"
       select-none
     >
-      <q-bar>
+      <q-bar v-move>
         <div>添加属性</div>
         <q-space />
         <q-btn

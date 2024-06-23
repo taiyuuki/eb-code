@@ -9,6 +9,7 @@ import { useTheme } from '@/stores/theme'
 import { TREE } from '@/static'
 import { notif_warning } from '@/notif'
 import { vScrollview } from '@/directives/v-scrollview'
+import { vMove } from '@/directives/v-move'
 
 const status = useStatus()
 const theme = useTheme()
@@ -275,7 +276,7 @@ function insert_after(node?: ContentsNode) {
       style="box-shadow:0 0 2px var(--eb-fg);"
       w="80vw"
     >
-      <q-bar>
+      <q-bar v-move>
         <div>目录编辑</div>
         <q-space />
 
@@ -376,6 +377,12 @@ function insert_after(node?: ContentsNode) {
       style="box-shadow:0 0 2px var(--eb-fg);"
       w="80vw"
     >
+      <q-bar
+        v-move
+        m="-10 b-10"
+      >
+        <div>选择目标</div>
+      </q-bar>
       <q-input
         v-model="input_value.name"
         dense
@@ -400,16 +407,13 @@ function insert_after(node?: ContentsNode) {
           {{ input_value.value }}
         </div>
       </q-field>
-      <div m="t-10">
-        选择目标
-      </div>
       <q-input
         v-model="filter_target"
         dense
         outlined
         label="过滤"
+        class="m-t-10"
         :dark="theme.dark"
-        m="t-10"
       />
       <q-scroll-area
         visible

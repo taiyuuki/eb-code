@@ -6,6 +6,7 @@ import { mimetype } from '@/utils/path'
 import { cover_setting } from '@/composables/cover_setting'
 import { TREE } from '@/static'
 import { useStatus } from '@/stores/status'
+import { vMove } from '@/directives/v-move'
 
 const cover_src = ref('')
 const status = useStatus()
@@ -74,8 +75,10 @@ async function open_cover() {
       select-none
       w="80vw"
     >
-      <q-bar>
-        <div>设置封面</div>
+      <q-bar v-move>
+        <div>
+          设置封面
+        </div>
         <q-space />
 
         <q-btn

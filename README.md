@@ -61,7 +61,7 @@ pnpm tauri:build
 
 ### 关于打包
 
-程序打包需要秘钥，参考 [tauri-plugin-updater](https://tauri.app/v1/api/js/tauri-plugin-updater)。
+程序打包需要秘钥，参考 [tauri-plugin-updater](https://v2.tauri.app/plugin/updater)。
 
 生成秘钥命令
 

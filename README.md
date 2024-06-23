@@ -19,6 +19,8 @@ EPUB文档编辑器，目前正在开发中。
 * 编辑元数据、封面、目录等等。
 * 内置几十种界面主题。
 * ePub3兼容ePub2。
+* 自动检测更新
+* 自动发布安装包
 
 ## TODO
 
@@ -30,7 +32,6 @@ EPUB文档编辑器，目前正在开发中。
 * 自定义主题颜色
 * 文件分割、合并
 * 代码片段
-* 自动检测更新
 
 ## Run the app
 
@@ -57,3 +58,25 @@ pnpm lint
 ```bash
 pnpm tauri:build
 ```
+
+### 关于打包
+
+程序打包需要秘钥，参考 [tauri-plugin-updater](https://tauri.app/v1/api/js/tauri-plugin-updater)。
+
+生成秘钥命令
+
+```bash
+pnpm gen-key
+```
+
+或者
+
+```bash
+pnpm tauri signer generate -w ./~/.tauri/myapp.key
+```
+
+生成秘钥过程中，会要求你输入一个密码，你可以选择输入密码，或者选择留空。
+
+然后创建~/.tauri/password.key，内容就是输入的那个密码，如果留空了，创建一个空白文件即可。
+
+最后运行`pnpm tauri:build`打包。

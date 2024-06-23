@@ -12,10 +12,10 @@
     "test": "vitest",
     "clean": "quasar clean && cd src-tauri && cargo clean",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
-    "tauri:build-pwd": "esno ./scripts/tauri-build.ts",
+    "tauri:build": "esno ./scripts/tauri-build.ts",
     "get-themes": "esno ./scripts/get-themes.ts && eslint src/editor/themes.ts --fix",
-    "gen-license": "esno ./scripts/gen-license.ts"
+    "gen-license": "esno ./scripts/gen-license.ts",
+    "gen-key": "pnpm tauri signer generate -w ./~/.tauri/myapp.key"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.11",

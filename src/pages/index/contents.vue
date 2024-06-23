@@ -24,6 +24,8 @@ function open(node: ContentsNode) {
         status.open_by_id(id, 1)
     }
 }
+
+onMounted(() => status.load_contents_link())
 </script>
 
 <template>

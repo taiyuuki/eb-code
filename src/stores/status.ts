@@ -216,6 +216,7 @@ const useStatus = defineStore('status', {
             }
 
             this.parse_opf()
+            this.load_contents_link()
         },
         async parse_opf() {
             if (this.opf_id !== '') {

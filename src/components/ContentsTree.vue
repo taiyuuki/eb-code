@@ -74,7 +74,6 @@ function expand(node: ContentsNode) {
   <div
     v-for="node in contents"
     :key="node.id"
-    p="l-20"
     select-none
   >
     <q-menu 

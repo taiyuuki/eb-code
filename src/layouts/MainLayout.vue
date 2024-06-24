@@ -30,12 +30,12 @@ onBeforeMount(() => {
 
     document.addEventListener('keydown', function(e: KeyboardEvent) {
         if (status.display === DISPLAY.CODE) {
-            if (e.key === '-' || e.key === '_' && e.ctrlKey) {
+            if ((e.key === '-' || e.key === '_') && e.ctrlKey) {
                 e.preventDefault()
                 font_size.size = Math.max(font_size.size - 2, 8)
                 set_font_size(font_size.size)
             }
-            else if (e.key === '+' || e.key === '=' && e.ctrlKey) {
+            else if ((e.key === '+' || e.key === '=') && e.ctrlKey) {
                 e.preventDefault()
                 font_size.size = Math.min(font_size.size + 2, 40)
                 set_font_size(font_size.size)

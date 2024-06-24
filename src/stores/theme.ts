@@ -6,7 +6,7 @@ const useTheme = defineStore('theme', {
         dark: false,
         background: '#24292e', 
         color: '#e1e4e8',
-        shiki: 'night-owl' as ShikiTheme,
+        shiki: 'dracula' as ShikiTheme,
     }),
 
     actions: {

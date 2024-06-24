@@ -6,6 +6,7 @@ import { useStatus } from '@/stores/status'
 import { useTheme } from '@/stores/theme'
 import { is_html } from '@/utils/is'
 import { DISPLAY } from '@/static'
+import { de_escape } from '@/utils'
 
 const theme = useTheme()
 const status = useStatus()
@@ -53,12 +54,21 @@ async function search() {
 
 const trigger_search = debounce(search, 500)
 
+const repl = computed(() => {
+    try {
+        return regex.value ? de_escape(replacement.value) : replacement.value
+    }
+    catch (_) {
+        return replacement.value
+    }
+})
+
 async function replace() {
     if (keyword.value.trim() === '') {
         return
     }
     try {
-        await invoke_replace(status.dir, keyword.value, regex.value, case_sensitive.value, word.value, replacement.value)
+        await invoke_replace(status.dir, keyword.value, regex.value, case_sensitive.value, word.value, repl.value)
         if (status.display === DISPLAY.CODE && is_html(status.current.id)) {
             await status.reload_current()
         }
@@ -102,7 +112,10 @@ function regexp_error_tips() {
       搜索
     </div>
   </TitleBanner>
-  <div p="r-10">
+  <div
+    p="x-10"
+    m="t-10"
+  >
     <q-input
       v-model="keyword"
       :dark="theme.dark"
@@ -164,8 +177,8 @@ function regexp_error_tips() {
     </q-input>
   </div>
   <div
-    p="r-10"
-    m="t-5"
+    p="x-10"
+    m="t-10"
   >
     <q-input
       v-model="replacement"
@@ -194,6 +207,7 @@ function regexp_error_tips() {
   </div>
   <div
     m="t-10"
+    p="5"
     cursor-default
     select-none
   >
@@ -239,7 +253,7 @@ function regexp_error_tips() {
         <ReplaceResult
           :text="item.line"
           :patten="keyword"
-          :replace="replacement"
+          :replace="repl"
           :regexp="regex"
           :fixed="case_sensitive"
           @regexp-error="regexp_error_tips"

@@ -70,6 +70,9 @@ const sandbox = {
     Set,
     WeakMap,
     WeakSet,
+    Blob,
+    File,
+    FileReader,
 }
 
 function create_plugin(plugin_code: string) {

@@ -30,17 +30,32 @@ pub fn find_file(file: &str, matcher: &RegexMatcher) -> Result<Vec<SearchResult>
 
     let mut search_result = vec![];
 
-    searcher::Searcher::new().search_file(
-        matcher,
-        &f,
-        searcher::sinks::UTF8(|lnum, line| {
-            search_result.push(SearchResult {
-                lnum: lnum as usize,
-                line: line.to_string(),
-            });
-            Ok(true)
-        }),
-    )?;
+    searcher::SearcherBuilder::new()
+        .multi_line(true)
+        .build()
+        .search_file(
+            matcher,
+            &f,
+            searcher::sinks::UTF8(|lnum, line| {
+                search_result.push(SearchResult {
+                    lnum: lnum as usize,
+                    line: line.to_string(),
+                });
+                Ok(true)
+            }),
+        )?;
+
+    // searcher::Searcher::new().search_file(
+    //     matcher,
+    //     &f,
+    //     searcher::sinks::UTF8(|lnum, line| {
+    //         search_result.push(SearchResult {
+    //             lnum: lnum as usize,
+    //             line: line.to_string(),
+    //         });
+    //         Ok(true)
+    //     }),
+    // )?;
 
     Ok(search_result)
 }
@@ -91,6 +106,7 @@ pub fn search(search_option: SearchOption) -> Result<Vec<(String, Vec<SearchResu
         .octal(true)
         .multi_line(true)
         .line_terminator(None)
+        .ignore_whitespace(false)
         .build(search_option.pattern.as_str())
     {
         Ok(matcher) => {

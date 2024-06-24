@@ -15,6 +15,9 @@
     "tauri:build": "esno ./scripts/tauri-build.ts",
     "get-themes": "esno ./scripts/get-themes.ts && eslint src/editor/themes.ts --fix",
     "gen-license": "esno ./scripts/gen-license.ts",
+    "bump:patch": "esno ./scripts/bump.ts patch",
+    "bump:minor": "esno ./scripts/bump.ts minor",
+    "bump:major": "esno ./scripts/bump.ts major",
     "gen-key": "pnpm tauri signer generate -w ./~/.tauri/myapp.key"
   },
   "dependencies": {

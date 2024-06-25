@@ -149,7 +149,6 @@ pub fn run() {
     let (async_proc_output_tx, mut async_proc_output_rx) = channel(1);
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AsyncProcInputTx::new(async_proc_input_tx))
         .setup(|app| {
             let app_handle = app.handle().clone();
@@ -190,8 +189,8 @@ pub fn run() {
             command::find,
             command::replace,
         ])
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

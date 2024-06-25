@@ -7,24 +7,12 @@ import { set_font_size } from '@/editor'
 import { useFontSize } from '@/stores/font-size'
 import { DISPLAY } from '@/static'
 import { useStatus } from '@/stores/status'
-import { create_plugin } from '@/sandbox'
-import 'ses'
+import { check_update } from '@/notif/update'
 
 const titlebar = useCompRef(TitleBar)
 const font_size = useFontSize()
 const status = useStatus()
 
-const plugin_code = `
-    async function run(bk, load) {
-        const package_tag = bk.get_package_tag()
-        console.log(package_tag)
-    }
-`
-
-const run_sandbox = create_plugin(plugin_code)
-function run_plugin() {
-    run_sandbox && run_sandbox()
-}
 onBeforeMount(() => {
     document.documentElement.classList.add('monaco-component')
 
@@ -72,6 +60,7 @@ onBeforeMount(() => {
 
         return false
     }, { capture: true })
+    check_update(false)
 })
 
 function open() {
@@ -100,7 +89,6 @@ function toggle_preview() {
     <q-page-container pst="abs t-37 r-0 l-0">
       <TitleBar
         ref="titlebar"
-        @run_plugins="run_plugin"
       />
       <ToolBar
         @open="open"

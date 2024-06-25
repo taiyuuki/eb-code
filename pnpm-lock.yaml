@@ -28,9 +28,6 @@ dependencies:
   '@tauri-apps/plugin-dialog':
     specifier: 2.0.0-beta.5
     version: 2.0.0-beta.5
-  '@tauri-apps/plugin-global-shortcut':
-    specifier: 2.0.0-beta.5
-    version: 2.0.0-beta.5
   '@tauri-apps/plugin-shell':
     specifier: '>=2.0.0-beta.6'
     version: 2.0.0-beta.6
@@ -1821,12 +1818,6 @@ packages:
 
   /@tauri-apps/plugin-dialog@2.0.0-beta.5:
     resolution: {integrity: sha512-jkaBCsx2v6WB6sB77fTMCeijuvT3FlzwschiHnPlD7aU6CHvQgRlpCv/FttPdTq4ih2t6MIlM4oX85hNYgfs6w==}
-    dependencies:
-      '@tauri-apps/api': 2.0.0-beta.13
-    dev: false
-
-  /@tauri-apps/plugin-global-shortcut@2.0.0-beta.5:
-    resolution: {integrity: sha512-j4/2dcKu7dNmI3gNWeq0j7M9HYeQn325/pE9M/DBfhL4rdfYPtEpY/4eJwGQfJB4ijlrBnDOVOn7KeUO+YVpHw==}
     dependencies:
       '@tauri-apps/api': 2.0.0-beta.13
     dev: false

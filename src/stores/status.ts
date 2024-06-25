@@ -538,17 +538,33 @@ const useStatus = defineStore('status', {
             if (!conf) return
             const dom = xmlToDom(ncx_template(this.book_id))
             const contents_xml = this.get_nav_epub2(dom, 'http://www.idpf.org/2007/ops')
-            const ncx_id = `${this.manifest_path}toc.ncx`
-            await invoke_write_text(this.dir, ncx_id, contents_xml)
-            opf.dom?.querySelector('spine')?.setAttribute('toc', 'ncx')
-            opf.dom?.querySelector('manifest')?.appendChild(document.createTextNode('\n'))
-            const item = opf.dom?.querySelector('item[id="ncx"]')
+
+            let ncx_manifest_id = join(this.manifest_path, 'toc.ncx')
+            const spine_node = opf.dom?.querySelector('spine')
+            const ncx_$id = spine_node?.getAttribute('toc') ?? 'ncx'
+            spine_node?.setAttribute('toc', ncx_$id)
+            
+            const item = opf.dom?.querySelector(`item[id="${ncx_$id}"]`)
             if (item) {
-                item.setAttribute('href', 'toc.ncx')
+                const href = item.getAttribute('href')
+                if (href) { 
+                    ncx_manifest_id = join(this.manifest_path, href)
+                }
+                else {
+                    item.setAttribute('href', 'toc.ncx')
+                }
             }
             else {
+                opf.dom?.querySelector('manifest')?.appendChild(document.createTextNode('\n'))
                 opf.dom?.querySelector('manifest')?.appendChild(objToDom({ 'tagName': 'item', 'id': 'ncx', 'href': 'toc.ncx', 'type': 'ncx', 'media-type': 'application/x-dtbncx+xml' }, opf.namespaceURI))
             }
+
+            await invoke_write_text(this.dir, ncx_manifest_id, contents_xml)
+
+            if (this.current.id === ncx_manifest_id) {
+                await this.reload_current()
+            }
+
             const navs = contents.dom?.querySelectorAll('nav')
             const ol = Array.from(navs ?? []).find(nav => nav.getAttribute('epub:type') === 'landmarks')
                 ?.querySelector('ol') 
@@ -578,13 +594,13 @@ const useStatus = defineStore('status', {
                 }
             }
             await this.save_opf()
-            const ncx_node = this.nodes.find(n => n.id === ncx_id)
+            const ncx_node = this.nodes.find(n => n.id === ncx_manifest_id)
             if (ncx_node) {
-                ncx_node.id = ncx_id
-                ncx_node.name = ncx_id
+                ncx_node.id = ncx_manifest_id
+                ncx_node.name = ncx_manifest_id
             }
             else {
-                this.nodes.push({ id: ncx_id, name: ncx_id, icon: 'i-vscode-icons:file-type-text', type: 'ncx' })
+                this.nodes.push({ id: ncx_manifest_id, name: ncx_manifest_id, icon: 'i-vscode-icons:file-type-text', type: 'ncx' })
             }
         },
         add_meta(tagName: string, value: string) {

@@ -45,18 +45,6 @@ pub fn find_file(file: &str, matcher: &RegexMatcher) -> Result<Vec<SearchResult>
             }),
         )?;
 
-    // searcher::Searcher::new().search_file(
-    //     matcher,
-    //     &f,
-    //     searcher::sinks::UTF8(|lnum, line| {
-    //         search_result.push(SearchResult {
-    //             lnum: lnum as usize,
-    //             line: line.to_string(),
-    //         });
-    //         Ok(true)
-    //     }),
-    // )?;
-
     Ok(search_result)
 }
 

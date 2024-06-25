@@ -7,7 +7,10 @@ const props = defineProps<{
     patten: string,
     replace: string,
     regexp: boolean,
-    fixed: boolean
+    sensitive: boolean,
+    dot: boolean,
+    multiline: boolean
+    greedy: boolean
 }>()
 const emit = defineEmits<{
     (e: 'regexp-error', text: string): void
@@ -16,13 +19,31 @@ const S = `#d#${str_random(5, 36)}`
 
 let replace_result: [string, boolean?][] = [[props.text]]
 
+const flag = computed(() => {
+    let flag = 'g'
+    if (props.sensitive) { 
+        flag += 'i'
+    }
+    if (props.dot) {
+        flag += 's'
+    }
+    if (props.multiline) {
+        flag += 'm'
+    }
+    if (props.greedy) {
+        flag += 'u'
+    }
+
+    return flag
+})
+
 const computed_result = computed<[string, boolean?][]>(() => {
     try {
         if (props.replace.trim() === '') {
             replace_result = [[props.text]]
         }
         else if (props.regexp) {
-            const reg = new RegExp(props.patten, props.fixed ? 'g' : 'gi')
+            const reg = new RegExp(props.patten, flag.value)
             const matches = reg.exec(props.text)
             if (matches) {
                 replace_result = props.text.replace(reg, `${S}${matches[0]}${S}${props.replace}`).split(S)
@@ -40,7 +61,7 @@ const computed_result = computed<[string, boolean?][]>(() => {
             }
         
         }
-        else if (props.fixed) {
+        else if (props.sensitive) {
             replace_result = props.text.replaceAll(props.patten, `${S}${props.patten}${S}${props.replace}`).split(S)
                 .map((m, i) => {
                     if (i % 2 === 1) {

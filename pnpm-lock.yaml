@@ -14,11 +14,11 @@ dependencies:
     specifier: ^1.16.11
     version: 1.16.11
   '@shikijs/core':
-    specifier: ^1.9.0
-    version: 1.9.0
+    specifier: ^1.9.1
+    version: 1.9.1
   '@shikijs/monaco':
-    specifier: ^1.9.0
-    version: 1.9.0
+    specifier: ^1.9.1
+    version: 1.9.1
   '@taiyuuki/utils':
     specifier: ^0.5.2
     version: 0.5.2
@@ -74,8 +74,8 @@ dependencies:
     specifier: ^1.5.0
     version: 1.5.0
   shiki:
-    specifier: ^1.9.0
-    version: 1.9.0
+    specifier: ^1.9.1
+    version: 1.9.1
   vue:
     specifier: ^3.4.30
     version: 3.4.30(typescript@5.5.2)
@@ -163,8 +163,8 @@ devDependencies:
     specifier: ^0.10.3
     version: 0.10.3
   unplugin-vue-components:
-    specifier: ^0.27.0
-    version: 0.27.0(vue@3.4.30)
+    specifier: ^0.27.1
+    version: 0.27.1(vue@3.4.30)
   vite-plugin-pages:
     specifier: ^0.32.2
     version: 0.32.2(vite@5.2.10)(vue-router@4.4.0)
@@ -1589,14 +1589,14 @@ packages:
     dev: true
     optional: true
 
-  /@shikijs/core@1.9.0:
-    resolution: {integrity: sha512-cbSoY8P/jgGByG8UOl3jnP/CWg/Qk+1q+eAKWtcrU3pNoILF8wTsLB0jT44qUBV8Ce1SvA9uqcM9Xf+u3fJFBw==}
+  /@shikijs/core@1.9.1:
+    resolution: {integrity: sha512-EmUful2MQtY8KgCF1OkBtOuMcvaZEvmdubhW0UHCGXi21O9dRLeADVCj+k6ZS+de7Mz9d2qixOXJ+GLhcK3pXg==}
     dev: false
 
-  /@shikijs/monaco@1.9.0:
-    resolution: {integrity: sha512-4hJCHFBRFuxMMdlWkUmmIk7/I+XdTMVzBBf0Qett1oD22+bZSYQ7vUk7SIZdiQfaYOo4qwoz9c+e7Cc/pPn/Hg==}
+  /@shikijs/monaco@1.9.1:
+    resolution: {integrity: sha512-uTr3m26D6JnkdUeO0pqBU76ZP7TjsmczFGPoQUoZPiP98eG1YtukJN0bzZg9ePSjD+/ijFs46PIZNF4Lw2Devg==}
     dependencies:
-      '@shikijs/core': 1.9.0
+      '@shikijs/core': 1.9.1
     dev: false
 
   /@sinclair/typebox@0.27.8:
@@ -5535,6 +5535,15 @@ packages:
       ufo: 1.5.3
     dev: true
 
+  /mlly@1.7.1:
+    resolution: {integrity: sha512-rrVRZRELyQzrIUAVMHxP97kv+G786pHmOKzuFII8zDYahFBS7qnHh2AlYSl1GAHhaMPCz6/oHjVMcfFYgFYHgA==}
+    dependencies:
+      acorn: 8.11.3
+      pathe: 1.1.2
+      pkg-types: 1.1.1
+      ufo: 1.5.3
+    dev: true
+
   /monaco-editor-core@0.50.0:
     resolution: {integrity: sha512-XKdublTat9qDKwJhMbm6nnTUKA75MU7jWVooZeXcZKP0/y2jscNWQ9FpCiRtWk33Teemihx155WQ7o7xgf89eA==}
     dev: false
@@ -6044,6 +6053,14 @@ packages:
       pathe: 1.1.2
     dev: true
 
+  /pkg-types@1.1.1:
+    resolution: {integrity: sha512-ko14TjmDuQJ14zsotODv7dBlwxKhUKQEhuhmbqo1uCi9BB0Z2alo/wAXg6q1dTR5TyuqYyWhjtfe/Tsh+X28jQ==}
+    dependencies:
+      confbox: 0.1.7
+      mlly: 1.7.1
+      pathe: 1.1.2
+    dev: true
+
   /pluralize@8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
@@ -6543,10 +6560,10 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /shiki@1.9.0:
-    resolution: {integrity: sha512-i6//Lqgn7+7nZA0qVjoYH0085YdNk4MC+tJV4bo+HgjgRMJ0JmkLZzFAuvVioJqLkcGDK5GAMpghZEZkCnwxpQ==}
+  /shiki@1.9.1:
+    resolution: {integrity: sha512-8PDkgb5ja3nfujTjvC4VytL6wGOGCtFAClUb2r3QROevYXxcq+/shVJK5s6gy0HZnjaJgFxd6BpPqpRfqne5rA==}
     dependencies:
-      '@shikijs/core': 1.9.0
+      '@shikijs/core': 1.9.1
     dev: false
 
   /side-channel@1.0.6:
@@ -7268,8 +7285,8 @@ packages:
       unplugin: 1.10.1
     dev: true
 
-  /unplugin-vue-components@0.27.0(vue@3.4.30):
-    resolution: {integrity: sha512-77eTEy23sQ0UpzGWnZ9I2mY3cnmXwklz4ITcn3JfxjCoX643ghImkiZ4nFm58sxbdVcc4Fo/o4LIoFnlqEqsSg==}
+  /unplugin-vue-components@0.27.1(vue@3.4.30):
+    resolution: {integrity: sha512-ximoYPwT9A5fc0ozy40IZbXR/XMRlTy69u4JfeqBMlsyuKHckQRisRqgzqve6m/ZeOh7eCHjEQP1WnBPW+YI+g==}
     engines: {node: '>=14'}
     peerDependencies:
       '@babel/parser': ^7.15.8
@@ -7289,7 +7306,7 @@ packages:
       local-pkg: 0.5.0
       magic-string: 0.30.10
       minimatch: 9.0.4
-      resolve: 1.22.8
+      mlly: 1.7.1
       unplugin: 1.10.1
       vue: 3.4.30(typescript@5.5.2)
     transitivePeerDependencies:

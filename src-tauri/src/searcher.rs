@@ -182,7 +182,5 @@ pub fn replace_file(replace_option: ReplaceOption) -> Result<(), String> {
             Ok(())
         }
         Err(e) => Err(e.to_string()),
-        // app_handle.emit("replace-error", "正则表达式错误").unwrap()
-        // app_handle.emit("replace", "替换完成").unwrap();
     }
 }

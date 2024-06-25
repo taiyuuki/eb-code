@@ -55,8 +55,8 @@ async function search() {
             case_sensitive.value,
             word.value,
             multi_line.value,
-            dot.value,
             greedy.value,
+            dot.value,
 
         )
     }
@@ -88,8 +88,8 @@ async function replace() {
             case_sensitive.value,
             word.value, 
             multi_line.value,
-            dot.value,
             greedy.value,
+            dot.value,
             repl.value,
         )
         if (status.display === DISPLAY.CODE && is_html(status.current.id)) {
@@ -317,7 +317,10 @@ function regexp_error_tips() {
           :patten="keyword"
           :replace="repl"
           :regexp="regex"
-          :fixed="case_sensitive"
+          :sensitive="case_sensitive"
+          :dot="dot"
+          :multiline="multi_line"
+          :greedy="greedy"
           @regexp-error="regexp_error_tips"
         />
         <q-separator :dark="theme.dark" />

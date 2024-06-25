@@ -418,7 +418,16 @@ const useStatus = defineStore('status', {
             }
         },
         async load_contents_link() {
-            const result = await invoke_search(this.dir, 'id=".*?"', true, false, false)
+            const result = await invoke_search(
+                this.dir,
+                'id=".*?"',
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+            )
             this.contents_links.length = 0
             this.nodes[TREE.HTML]?.children?.forEach(node => {
                 this.contents_links.push(node)
@@ -758,7 +767,17 @@ const useStatus = defineStore('status', {
 
                 // 重命名XHTML里的资源
                 if (is_image(old_name) || is_font(old_name)) {
-                    await invoke_replace(this.dir, old_name, false, false, false, new_name)
+                    await invoke_replace(
+                        this.dir, 
+                        old_name, 
+                        false, 
+                        false, 
+                        false,
+                        true,
+                        false,
+                        false,
+                        new_name,
+                    )
                     if (this.display === DISPLAY.CODE && is_html(this.current.id)) {
                         await this.reload_current()
                     }

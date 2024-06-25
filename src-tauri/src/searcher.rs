@@ -17,6 +17,9 @@ pub struct SearchOption {
     regex: bool,
     word: bool,
     case_sensitive: bool,
+    multi_line: bool,
+    greedy: bool,
+    dot: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -25,25 +28,26 @@ pub struct SearchResult {
     line: String,
 }
 
-pub fn find_file(file: &str, matcher: &RegexMatcher) -> Result<Vec<SearchResult>, Box<dyn Error>> {
+pub fn find_file(
+    file: &str,
+    matcher: &RegexMatcher,
+    searcher: &mut searcher::Searcher,
+) -> Result<Vec<SearchResult>, Box<dyn Error>> {
     let f = std::fs::File::open(file)?;
 
     let mut search_result = vec![];
 
-    searcher::SearcherBuilder::new()
-        .multi_line(true)
-        .build()
-        .search_file(
-            matcher,
-            &f,
-            searcher::sinks::UTF8(|lnum, line| {
-                search_result.push(SearchResult {
-                    lnum: lnum as usize,
-                    line: line.to_string(),
-                });
-                Ok(true)
-            }),
-        )?;
+    searcher.search_file(
+        matcher,
+        &f,
+        searcher::sinks::UTF8(|lnum, line| {
+            search_result.push(SearchResult {
+                lnum: lnum as usize,
+                line: line.to_string(),
+            });
+            Ok(true)
+        }),
+    )?;
 
     Ok(search_result)
 }
@@ -92,7 +96,9 @@ pub fn search(search_option: SearchOption) -> Result<Vec<(String, Vec<SearchResu
         .word(search_option.word)
         .fixed_strings(!search_option.regex)
         .octal(true)
-        .multi_line(true)
+        .multi_line(search_option.multi_line)
+        .dot_matches_new_line(search_option.dot)
+        .swap_greed(search_option.greedy)
         .line_terminator(None)
         .ignore_whitespace(false)
         .build(search_option.pattern.as_str())
@@ -110,7 +116,10 @@ pub fn search(search_option: SearchOption) -> Result<Vec<(String, Vec<SearchResu
                 })
                 .for_each(|e| {
                     let file = e.path().to_str().unwrap();
-                    let search_result = find_file(file, &matcher);
+                    let mut searcher = searcher::SearcherBuilder::new()
+                        .multi_line(search_option.multi_line)
+                        .build();
+                    let search_result = find_file(file, &matcher, &mut searcher);
                     if let Ok(result) = search_result {
                         if result.len() > 0 {
                             payload.push((
@@ -123,8 +132,6 @@ pub fn search(search_option: SearchOption) -> Result<Vec<(String, Vec<SearchResu
             Ok(payload)
         }
         Err(_) => Err("正则表达式错误".to_string()),
-        // app_handle.emit("search", payload).unwrap();
-        // app_handle.emit("search-error", "正则表达式错误").unwrap()
     }
 }
 
@@ -136,6 +143,9 @@ pub struct ReplaceOption {
     word: bool,
     case_sensitive: bool,
     replacement: String,
+    multi_line: bool,
+    greedy: bool,
+    dot: bool,
 }
 
 pub fn replace_file(replace_option: ReplaceOption) -> Result<(), String> {
@@ -145,7 +155,9 @@ pub fn replace_file(replace_option: ReplaceOption) -> Result<(), String> {
         .word(replace_option.word)
         .fixed_strings(!replace_option.regex)
         .octal(true)
-        .multi_line(true)
+        .multi_line(replace_option.multi_line)
+        .dot_matches_new_line(replace_option.dot)
+        .swap_greed(replace_option.greedy)
         .line_terminator(None)
         .build(&replace_option.pattern)
     {

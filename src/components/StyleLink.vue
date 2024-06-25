@@ -69,7 +69,6 @@ async function link_to_style() {
   <div
     bg="var-eb-bg"
     text="var-eb-fg"
-    h="65vh"
     w="80vw"
     select-none
   >

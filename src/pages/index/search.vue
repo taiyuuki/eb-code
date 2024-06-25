@@ -17,6 +17,9 @@ const case_sensitive = ref(false)
 const regex = ref(false)
 const word = ref(false)
 const has_error = ref(false)
+const dot = ref(false)
+const multi_line = ref(true)
+const greedy = ref(false)
 
 const error_tips = computed(() => {
     return `无效的正则表达式： ${keyword.value}`
@@ -45,7 +48,17 @@ async function search() {
         return
     }
     try {
-        search_result.value = await invoke_search(status.dir, keyword.value, regex.value, case_sensitive.value, word.value)
+        search_result.value = await invoke_search(
+            status.dir,
+            keyword.value,
+            regex.value, 
+            case_sensitive.value,
+            word.value,
+            multi_line.value,
+            dot.value,
+            greedy.value,
+
+        )
     }
     catch (_) {
         has_error.value = true
@@ -68,7 +81,17 @@ async function replace() {
         return
     }
     try {
-        await invoke_replace(status.dir, keyword.value, regex.value, case_sensitive.value, word.value, repl.value)
+        await invoke_replace(
+            status.dir, 
+            keyword.value,
+            regex.value,
+            case_sensitive.value,
+            word.value, 
+            multi_line.value,
+            dot.value,
+            greedy.value,
+            repl.value,
+        )
         if (status.display === DISPLAY.CODE && is_html(status.current.id)) {
             await status.reload_current()
         }
@@ -84,7 +107,14 @@ function open(k: string, item: SearchResult) {
     status.open_by_id(k, item.lnum)
 }
 
-watch([() => case_sensitive.value, () => regex.value, () => word.value], () => {
+watch(() => [
+    case_sensitive.value,
+    regex.value,
+    word.value,
+    multi_line.value,
+    dot.value,
+    greedy.value,
+], () => {
     trigger_search()
 })
 
@@ -205,6 +235,38 @@ function regexp_error_tips() {
       </template>
     </q-input>
   </div>
+  <div
+    m="t-10"
+    p="x-10"
+    select-none
+    class="q-gutter-y-sm"
+  >
+    <div>
+      <q-checkbox
+        v-model="multi_line"
+        dense
+        label="多行匹配"
+      />
+    </div>
+    <div>
+      <q-checkbox
+        v-model="greedy"
+        dense
+        label="贪婪匹配"
+      />
+    </div>
+    <div>
+      <q-checkbox
+        v-model="dot"
+        dense
+        label="允许点匹配换行符"
+      />
+    </div>
+  </div>
+  <q-separator
+    m="t-10"
+    class="sprt"
+  />
   <div
     m="t-10"
     p="5"

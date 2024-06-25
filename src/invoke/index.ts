@@ -160,9 +160,23 @@ const invoke_search = function() {
         regex: boolean, 
         case_sensitive: boolean,
         word: boolean,
+        multi_line: boolean,
+        greedy: boolean,
+        dot: boolean,
     ) {
 
-        return ir.invoke('find', { searchOption: { dir, pattern, regex, case_sensitive, word } })
+        return ir.invoke('find', {
+            searchOption: {
+                dir,
+                pattern,
+                regex, 
+                case_sensitive, 
+                word,
+                multi_line,
+                greedy,
+                dot,
+            }, 
+        })
     }
 }()
 
@@ -177,13 +191,28 @@ const invoke_replace = function() {
         regex: boolean,
         case_sensitive: boolean, 
         word: boolean,
+        multi_line: boolean,
+        greedy: boolean,
+        dot: boolean,
         replacement: string,
     ) {
         if (!changed.dirty) {
             changed.dirty = true
         }
 
-        return ir.invoke('replace', { replaceOption: { dir, pattern, regex, case_sensitive, replacement, word } })
+        return ir.invoke('replace', {
+            replaceOption: {
+                dir,
+                pattern,
+                regex,
+                case_sensitive,
+                replacement,
+                word,
+                multi_line,
+                greedy,
+                dot,
+            }, 
+        })
     }
 }()
 

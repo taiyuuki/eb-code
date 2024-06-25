@@ -441,7 +441,7 @@ defineExpose({
           <q-item
             v-close-popup
             clickable
-            @click="check_update"
+            @click="check_update()"
           >
             <q-item-section>
               检查更新

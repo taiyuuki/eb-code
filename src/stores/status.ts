@@ -9,7 +9,7 @@ import { basename, dirname, filename, join, relative } from '@/utils/path'
 import { is_audio, is_font, is_html, is_image, is_scripts, is_style, is_text, is_video } from '@/utils/is'
 import { get_scroll_top, scroll_to_line, scroll_top_to } from '@/editor'
 import { useActivity } from '@/composables/useActivity'
-import { notif_negative, notif_positive, notif_warning } from '@/notif'
+import { notif_negative, notif_warning } from '@/notif'
 import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
 import { DISPLAY, TREE } from '@/static'
 import { cover_template, ncx_template, xhtml_template } from '@/template/xhtml'
@@ -732,13 +732,7 @@ const useStatus = defineStore('status', {
                 arr_remove(this.tabs, node)
                 this.open_first()
             }
-            invoke_remove_file(this.dir, node.id).then(() => {
-
-                // TODO: 等功能完善后删除这里的通知
-                notif_positive('完成')
-            }, () => {
-                notif_negative('发生错误！')
-            })
+            invoke_remove_file(this.dir, node.id)
 
         },
         async rename_file(node: FileNode, new_name: string) {

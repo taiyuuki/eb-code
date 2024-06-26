@@ -1,4 +1,4 @@
-import { invoke_setup } from '@/invoke'
+import { invoke_clean_cache, invoke_setup } from '@/invoke'
 import { notif_negative } from '@/notif'
 import stores from '@/stores'
 import { usePreview } from '@/stores/preview'
@@ -23,7 +23,10 @@ const observer = new PerformanceObserver(list => {
                         notif_negative(`${basename(e)}不是有效的EPUB文件。`)
                     }
                 }) 
-            } 
+            }
+            else if (status.dir && navi_type === 'reload') {
+                invoke_clean_cache(status.dir)
+            }
         })
     })
 })

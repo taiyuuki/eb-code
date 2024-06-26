@@ -46,6 +46,9 @@ dependencies:
   dayjs:
     specifier: ^1.11.11
     version: 1.11.11
+  diff:
+    specifier: ^5.2.0
+    version: 5.2.0
   emmet-monaco-es:
     specifier: 5.4.0
     version: 5.4.0(patch_hash=m57ttxwkds6axo4piun3nbo5ai)(monaco-editor@0.50.0)
@@ -123,6 +126,9 @@ devDependencies:
   '@tauri-apps/cli':
     specifier: '>=2.0.0-beta.20'
     version: 2.0.0-beta.20
+  '@types/diff':
+    specifier: ^5.2.1
+    version: 5.2.1
   '@types/node':
     specifier: ^20.14.8
     version: 20.14.8
@@ -1884,6 +1890,10 @@ packages:
       '@types/ms': 0.7.34
     dev: true
 
+  /@types/diff@5.2.1:
+    resolution: {integrity: sha512-uxpcuwWJGhe2AR1g8hD9F5OYGCqjqWnBUQFD8gMZsDbv8oPHzxJF6iMO6n8Tk0AdzlxoaaoQhOYlIg/PukVU8g==}
+    dev: true
+
   /@types/eslint@8.56.10:
     resolution: {integrity: sha512-Shavhk87gCtY2fhXDctcfS3e6FdxWkCx1iUZ9eEUbh7rTqlZT0/IzOkCOVt0fCjcFuZ9FPYfuezTBImfHCDBGQ==}
     dependencies:
@@ -3531,6 +3541,11 @@ packages:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dev: true
+
+  /diff@5.2.0:
+    resolution: {integrity: sha512-uIFDxqpRZGZ6ThOk84hEfqWoHx2devRFvpTZcTHur85vImfaxUbTW9Ryh4CpCuDnToOP1CEtXKIgytHBPVff5A==}
+    engines: {node: '>=0.3.1'}
+    dev: false
 
   /dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}

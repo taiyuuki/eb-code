@@ -67,6 +67,13 @@ pub fn matcher_replace(
 
     matcher.replace_with_captures(&haystack, &mut caps, &mut dst, |captures, v| {
         let mut repl = replacement.to_string();
+        if repl.contains("$&") {
+            let regex_match = captures.get(0).unwrap();
+            let start = regex_match.start();
+            let end = regex_match.end();
+            let to = String::from_utf8(haystack.get(start..end).unwrap().to_vec()).unwrap();
+            repl = repl.replace("$&", to.as_str());
+        }
         for i in 0..matcher.capture_count() {
             let regex_match = captures.get(i).unwrap();
             let start = regex_match.start();

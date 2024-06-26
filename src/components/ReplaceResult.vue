@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { str_random } from '@taiyuuki/utils'
+import * as Diff from 'diff'
 import { escape_regexp } from '@/utils'
 
 const props = defineProps<{
@@ -15,9 +15,6 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: 'regexp-error', text: string): void
 }>()
-const S = `#d#${str_random(5, 36)}`
-
-let replace_result: [string, boolean?][] = [[props.text]]
 
 const flag = computed(() => {
     let flag = 'g'
@@ -37,78 +34,63 @@ const flag = computed(() => {
     return flag
 })
 
-const computed_result = computed<[string, boolean?][]>(() => {
+const computed_result = computed<string>(() => {
     try {
-        if (props.replace.trim() === '') {
-            replace_result = [[props.text]]
-        }
-        else if (props.regexp) {
+        if (props.regexp) {
             const reg = new RegExp(props.patten, flag.value)
             const matches = reg.exec(props.text)
             if (matches) {
-                replace_result = props.text.replace(reg, `${S}${matches[0]}${S}${props.replace}`).split(S)
-                    .map((m, i) => {
-                        if (i % 2 === 1) {
-                            return [m, true]
-                        }
-                        else {
-                            return [m]
-                        }
-                    })
+                return props.text.replace(reg, props.replace)
             }
             else {
-                replace_result = [[props.text]]
+                return props.text
             }
         
         }
         else if (props.sensitive) {
-            replace_result = props.text.replaceAll(props.patten, `${S}${props.patten}${S}${props.replace}`).split(S)
-                .map((m, i) => {
-                    if (i % 2 === 1) {
-                        return [m, true]
-                    }
-                    else {
-                        return [m]
-                    }
-                })
+            return props.text.replaceAll(props.patten, props.replace)
         }
         else {
             const reg = new RegExp(escape_regexp(props.patten), 'gi')
         
-            replace_result = props.text.replace(reg, `${S}${props.patten}${S}${escape_regexp(props.replace)}`).split(S)
-                .map((m, i) => {
-                    if (i % 2 === 1) {
-                        return [m, true]
-                    }
-                    else {
-                        return [m]
-                    }
-                })
+            return props.text.replace(reg, escape_regexp(props.replace))
         }
     }
     catch(_) {
         emit('regexp-error', props.patten)
     }
 
-    return replace_result
+    return props.text
+})
+
+const diff = computed(() => {
+    return Diff.diffWordsWithSpace(props.text, computed_result.value)
 })
 </script>
 
 <template>
   <span
-    v-for="(m, i) in computed_result"
-    :key="i"
+    v-for="part in diff"
+    :key="part.value"
   >
     <span
-      v-if="m[1]"
+      v-if="part.added"
+      text="green bold"
     >
-      <del
-        bg="var-eb-fg"
-        text="var-eb-bg"
-      >{{ m[0] }}</del> 
+      {{ part.value }}
     </span>
-    <span v-else>
-      {{ m[0] }}
+    <del
+      v-else-if="part.removed"
+      text="red bold"
+    >
+      {{ part.value }}
+    </del>
+    <span
+      v-else
+      text="var-eb-fg"
+    >
+      {{ part.value }}
     </span>
   </span>
 </template>
+

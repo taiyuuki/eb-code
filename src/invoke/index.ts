@@ -227,6 +227,15 @@ const invoke_get_port = function() {
     }
 }()
 
+// 给目录添加id
+const invoke_gen_contents = function() {
+    const ir = new InvokeRequest('gen-contents', 'gen-contents-error')
+    
+    return function(dir: string, replacement: Record<string, [string, string][]>) {
+        return ir.invoke('gen_contents', { genContentsOption: { dir, ids: replacement } })
+    }
+}()
+
 export {
     invoke_setup,
     invoke_open_epub,
@@ -241,5 +250,6 @@ export {
     invoke_search,
     invoke_replace,
     invoke_get_port,
+    invoke_gen_contents,
     changed,
 }

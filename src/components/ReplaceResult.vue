@@ -10,7 +10,8 @@ const props = defineProps<{
     sensitive: boolean,
     dot: boolean,
     multiline: boolean
-    greedy: boolean
+    greedy: boolean,
+    diffMode: 1 | 2 | 3 | 4
 }>()
 const emit = defineEmits<{
     (e: 'regexp-error', text: string): void
@@ -38,13 +39,8 @@ const computed_result = computed<string>(() => {
     try {
         if (props.regexp) {
             const reg = new RegExp(props.patten, flag.value)
-            const matches = reg.exec(props.text)
-            if (matches) {
-                return props.text.replace(reg, props.replace)
-            }
-            else {
-                return props.text
-            }
+
+            return props.text.replace(reg, props.replace)
         
         }
         else if (props.sensitive) {
@@ -64,7 +60,19 @@ const computed_result = computed<string>(() => {
 })
 
 const diff = computed(() => {
-    return Diff.diffWordsWithSpace(props.text, computed_result.value)
+    switch (props.diffMode) {
+        case 1:
+            return Diff.diffWords(props.text, computed_result.value)
+        case 2:
+            return Diff.diffLines(props.text, computed_result.value)
+        case 3:
+            return [{ added: false, removed: false, value: props.text }]
+        case 4:
+            return [{ added: true, removed: false, value: computed_result.value }]
+        default:
+            return [{ added: false, removed: false, value: props.text }]
+
+    } 
 })
 </script>
 

@@ -1,6 +1,6 @@
 [package]
 name = "eb-code"
-version = "0.3.0"
+version = "0.4.0"
 description = "Ebook Code is a epub editor"
 authors = ["you"]
 edition = "2021"

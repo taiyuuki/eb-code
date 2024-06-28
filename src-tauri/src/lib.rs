@@ -10,6 +10,7 @@ use warp::Filter;
 mod async_proc;
 mod clean;
 mod command;
+mod contents;
 mod copy;
 mod open;
 mod read;
@@ -37,6 +38,7 @@ pub enum Input {
     Search(searcher::SearchOption),
     Replace(searcher::ReplaceOption),
     Write(write::TextContents),
+    GenContents(contents::GenContentsOption),
 }
 
 pub type OutputResult<T> = Result<T, String>;
@@ -54,6 +56,7 @@ pub enum Output {
     Search(OutputResult<Vec<(String, Vec<searcher::SearchResult>)>>),
     Replace(OutputResult<()>),
     Write(OutputResult<()>),
+    GenContents(OutputResult<()>),
 }
 
 fn open_from_args() -> Result<EpubContent, String> {
@@ -136,8 +139,11 @@ async fn async_process_model(
             Input::Write(text_contents) => write::write_to_cache(text_contents)
                 .map(|_| Output::Write(Ok(())))
                 .unwrap_or_else(|e| Output::Write(Err(e.to_string()))),
+            Input::GenContents(gen_contents_option) => contents::replace_ids(gen_contents_option)
+                .map(|_| Output::GenContents(Ok(())))
+                .unwrap_or_else(|e| Output::GenContents(Err(e.to_string()))),
         };
-        output_tx.send(output).await.unwrap();
+        output_tx.send(output).await?;
     }
 
     Ok(())
@@ -188,6 +194,7 @@ pub fn run() {
             command::rename_file,
             command::find,
             command::replace,
+            command::gen_contents,
         ])
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())

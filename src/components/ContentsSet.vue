@@ -10,15 +10,17 @@ import { TREE } from '@/static'
 import { notif_warning } from '@/notif'
 import { vScrollview } from '@/directives/v-scrollview'
 import { vMove } from '@/directives/v-move'
+import { invoke_gen_contents } from '@/invoke'
 
 const status = useStatus()
 const theme = useTheme()
-const { cloned, sync } = useCloned(status.contents_tree, { clone: clone_deep })
+const { cloned: dirty_contents, sync } = useCloned(status.contents_tree, { clone: clone_deep })
 const contents_edit = ref(false)
 let editting_node: ContentsNode | null = null
 let selected_dirty_node: ContentsNode | null = null
 const confirm_type = ref<'after' | 'before' | null>(null)
 const filter_target = ref('')
+let replacement: Record<string, [string, string][]> | null = null
 
 function select_contents(node: ContentsNode) {
     if (selected_dirty_node) {
@@ -31,14 +33,14 @@ function select_contents(node: ContentsNode) {
 const selected_index = ref(-1)
 
 function contents_up(node: ContentsNode) {
-    const tree = node.parent?.children ?? cloned.value
+    const tree = node.parent?.children ?? dirty_contents.value
     const index = tree.indexOf(node)
     if (index > 0) {
         arr_move(tree, index, index - 1)
     }
 }
 function contents_down(node: ContentsNode) {
-    const tree = node.parent?.children ?? cloned.value
+    const tree = node.parent?.children ?? dirty_contents.value
     const index = tree.indexOf(node)
     if (index < tree.length - 1) {
         arr_move(tree, index, index + 1)
@@ -48,7 +50,7 @@ function contents_left(node: ContentsNode) {
     if (!node.parent) {
         return
     }
-    const parent_tree = node.parent.parent?.children ?? cloned.value
+    const parent_tree = node.parent.parent?.children ?? dirty_contents.value
     const current_tree = node.parent.children!
     const ci = current_tree.indexOf(node)
     if (ci >= 0) {
@@ -74,7 +76,7 @@ function contents_left(node: ContentsNode) {
 }
 
 function contents_right(node: ContentsNode) {
-    const tree = node.parent?.children ?? cloned.value
+    const tree = node.parent?.children ?? dirty_contents.value
     const index = tree.indexOf(node)
     if (index > 0) {
         arr_remove(tree, node)
@@ -91,7 +93,7 @@ function contents_right(node: ContentsNode) {
 }
 
 function contents_remove(node: ContentsNode) {
-    const tree = node?.parent?.children ?? cloned.value
+    const tree = node?.parent?.children ?? dirty_contents.value
     arr_remove(tree, node)
     if (selected_dirty_node && selected_dirty_node === node) {
         selected_dirty_node.selected = false
@@ -134,13 +136,19 @@ function contents_move(derection: 'down' | 'left' | 'right' | 'up') {
     }
 }
 
-function save_contents() {
+async function save_contents() {
     if (selected_dirty_node) {
         selected_dirty_node.selected = false
         selected_dirty_node = null
     }
+    if (replacement && Object.keys(replacement).length > 0) {
+        await invoke_gen_contents(status.dir, replacement).finally(() => {
+            replacement = null
+        })
+        await status.load_contents_link()
+    }
     status.contents_tree.length = 0
-    status.contents_tree.push(...toRaw(cloned.value))
+    status.contents_tree.push(...toRaw(dirty_contents.value))
     status.save_contents()
     contents_setting.value = false
 }
@@ -186,7 +194,7 @@ function save_node() {
 
     if (selected_dirty_node) {
         if (confirm_type.value) {
-            const tree = selected_dirty_node.parent?.children ?? cloned.value
+            const tree = selected_dirty_node.parent?.children ?? dirty_contents.value
             const index = tree.indexOf(selected_dirty_node)
 
             if (index >= 0) {
@@ -226,12 +234,12 @@ function save_node() {
         }
         switch (confirm_type.value) {
             case 'before':
-                cloned.value.unshift(new_node)
-                selected_dirty_node = cloned.value[0]
+                dirty_contents.value.unshift(new_node)
+                selected_dirty_node = dirty_contents.value[0]
                 break
             case 'after':
-                cloned.value.push(new_node)
-                selected_dirty_node = cloned.value[cloned.value.length - 1]
+                dirty_contents.value.push(new_node)
+                selected_dirty_node = dirty_contents.value[dirty_contents.value.length - 1]
                 break
             default:
                 break
@@ -258,6 +266,12 @@ function insert_after(node?: ContentsNode) {
     input_value.value = ''
     confirm_type.value = 'after'
     contents_edit.value = true
+}
+
+async function gen_contents() {
+    const headers = await status.get_contents_header()
+    dirty_contents.value = headers.nodes
+    replacement = headers.replacement
 }
 </script>
 
@@ -292,7 +306,7 @@ function insert_after(node?: ContentsNode) {
         h="50vh"
       >
         <ContentsTree
-          :contents="cloned"
+          :contents="dirty_contents"
           :edit="true"
           @open="select_contents"
           @edit="edit_node"
@@ -332,7 +346,7 @@ function insert_after(node?: ContentsNode) {
           @click="contents_move('right')"
         />
         <q-btn
-          pst="abs l-150 t-70"
+          pst="abs l-150 b-10"
           label="删除选中"
           @click="contents_remove(selected_dirty_node!)"
         />
@@ -347,9 +361,14 @@ function insert_after(node?: ContentsNode) {
           @click="insert_before()"
         />
         <q-btn
-          pst="abs l-250 t-70"
+          pst="abs l-250 b-10"
           label="下方添加"
           @click="insert_after()"
+        />
+        <q-btn
+          pst="abs r-10 t-20"
+          label="生成目录"
+          @click="gen_contents"
         />
         <q-btn
           pst="abs r-80 b-10"

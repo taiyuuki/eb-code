@@ -86,7 +86,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
       <q-splitter
         v-model="sidebar_width"
         unit="px"
-        :limits="[180, Infinity]"
+        :limits="[180, 600]"
         separator-class="sprt"
         flex="1"
       >

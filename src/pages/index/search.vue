@@ -20,6 +20,7 @@ const has_error = ref(false)
 const dot = ref(false)
 const multi_line = ref(true)
 const greedy = ref(false)
+const diff_mode = ref<1 | 2 | 3 | 4>(1)
 
 const error_tips = computed(() => {
     return `无效的正则表达式： ${keyword.value}`
@@ -74,6 +75,10 @@ const repl = computed(() => {
     catch (_) {
         return replacement.value
     }
+})
+
+const total = computed(() => {
+    return `${counter.value.found}个文件中有${counter.value.total}个结果`
 })
 
 async function replace() {
@@ -273,60 +278,83 @@ function regexp_error_tips() {
     cursor-default
     select-none
   >
-    {{ counter.found }}个文件中有 {{ counter.total }} 个结果
+    {{ total }}
   </div>
-  <q-scroll-area
-    visible
+  <div
     m="t-10"
-    style="height: calc(100vh - 415px);padding-bottom: 12px;"
-    select-none
+    p="l-5"
   >
-    <template
-      v-for="(rst, index) in search_result"
-      :key="index"
+    <q-btn-toggle
+      v-model="diff_mode"
+      color="fg"
+      text-color="fg"
+      toggle-color="button"
+      toggle-text-color="button"
+      flat
+      unelevated
+      :rounded="false"
+      :options="[
+        { label: '行内', value: 1 },
+        { label: '整行', value: 2 },
+        { label: '原始', value: 3 },
+        { label: '替换', value: 4 },
+      ]"
+    />
+    <q-scroll-area
+      visible
+      m="t-10"
+      p="r-14"
+      style="height: calc(100vh - 450px);padding-bottom: 12px;"
+      select-none
     >
-      <div flex="~ items-center">
-        <div
-          class="i-vscode-icons:file-type-html"
-          middle
-          w="20"
-          h="20"
-          pointer
-        />
-
-        <div
-          class="list-selection"
-          pointer
-          m="l-5"
-          flex="1"
-          @click="open(rst[0], rst[1][0])"
-        >
-          {{ rst[0] }}
-        </div>
-      </div>
-      <div
-        v-for="(item, i) in rst[1]"
-        :key="i"
-        class="list-selection"
-        m="l-30"
-        pointer
-        @click="open(rst[0], item)"
+      <template
+        v-for="(rst, index) in search_result"
+        :key="index"
       >
-        <ReplaceResult
-          :text="item.line"
-          :patten="keyword"
-          :replace="repl"
-          :regexp="regex"
-          :sensitive="case_sensitive"
-          :dot="dot"
-          :multiline="multi_line"
-          :greedy="greedy"
-          @regexp-error="regexp_error_tips"
-        />
-        <q-separator :dark="theme.dark" />
-      </div>
-    </template>
-  </q-scroll-area>
+        <div flex="~ items-center">
+          <div
+            class="i-vscode-icons:file-type-html"
+            middle
+            w="20"
+            h="20"
+            pointer
+          />
+
+          <div
+            class="list-selection"
+            pointer
+            m="l-5"
+            flex="1"
+            @click="open(rst[0], rst[1][0])"
+          >
+            {{ rst[0] }}
+          </div>
+        </div>
+        <div
+          v-for="(item, i) in rst[1]"
+          :key="i"
+          class="list-selection"
+          m="l-30"
+          pointer
+          @click="open(rst[0], item)"
+        >
+          <ReplaceResult
+            :text="item.line"
+            :patten="keyword"
+            :replace="repl"
+            :regexp="regex"
+            :sensitive="case_sensitive"
+            :dot="dot"
+            :multiline="multi_line"
+            :greedy="greedy"
+            :diff-mode="diff_mode"
+            @regexp-error="regexp_error_tips"
+          />
+          <q-separator :dark="theme.dark" />
+        </div>
+      </template>
+    </q-scroll-area>
+  </div>
 </template>
 
 <style scoped>

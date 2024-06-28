@@ -1,4 +1,5 @@
 use crate::async_proc::AsyncProcInputTx;
+use crate::contents::GenContentsOption;
 use crate::copy::CopyOption;
 use crate::read::TextDirectory;
 use crate::remove::RemoveOption;
@@ -147,6 +148,18 @@ pub async fn write_text(
     let async_proc_input_tx = state.inner.lock().await;
     async_proc_input_tx
         .send(Input::Write(text_contents))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn gen_contents(
+    gen_contents_option: GenContentsOption,
+    state: tauri::State<'_, AsyncProcInputTx<Input>>,
+) -> Result<(), String> {
+    let async_proc_input_tx = state.inner.lock().await;
+    async_proc_input_tx
+        .send(Input::GenContents(gen_contents_option))
         .await
         .map_err(|e| e.to_string())
 }

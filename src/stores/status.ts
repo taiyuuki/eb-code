@@ -1,7 +1,8 @@
 // @unocss-include
 import { convertFileSrc } from '@tauri-apps/api/core'
-import { arr_remove } from '@taiyuuki/utils'
+import { arr_remove, str_random } from '@taiyuuki/utils'
 import { ask } from '@tauri-apps/plugin-dialog'
+import { load } from 'cheerio'
 import type { ContentsNode, EpubContent, FileNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
 import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_replace, invoke_search, invoke_write_text } from '@/invoke'
@@ -444,6 +445,98 @@ const useStatus = defineStore('status', {
                     })
                 }
             })
+        },
+        async get_contents_header() {
+            const result = await invoke_search(
+                this.dir,
+                '<h\\d.*?>.*?</h\\d>',
+                true,
+                false,
+                false,
+                true,
+                false,
+                true,
+            )
+            const nodes: ContentsNode[] = []
+            const reg = /(<h\d.*?)(>.*?<\/h\d>)/
+            const map = new WeakMap()
+
+            let pre: ContentsNode | undefined = undefined
+            const replacement: Record<string, [string, string][]> = {}
+            this.nodes[TREE.HTML]?.children?.forEach(node => {
+                const xhtml_file = result.find(r => r[0] === node.id)
+                if (xhtml_file) { 
+                    const manifest_id = xhtml_file[0]
+                    xhtml_file[1].forEach((r, i) => {
+                        const match = reg.exec(r.line)
+                        if (!match) return
+                    
+                        const line = match[0]
+                        const $ = load(line)
+                        let c = 1
+                        let $h = $(`h${c}`)
+                        while (!$h.html()) {
+                            $h = $(`h${++c}`)
+                        }
+
+                        let id = $h.attr('id')
+                        const node: ContentsNode = {
+                            id: manifest_id,
+                            title: $h.attr('title') ?? $h.text(),
+                        }
+                        if (i > 0) {
+                            if (!id) {
+                                id = `ebook-${str_random(7, 36)}`
+                                if (!replacement[manifest_id]) {
+                                    replacement[manifest_id] = []
+                                }
+                                replacement[manifest_id].push([match[0], `${match[1]} id="${id}"${match[2]}`])
+                            }
+                            node.id += `#${id}`
+                        }
+                    
+                        if (pre) {
+                            let pre_h = map.get(pre)
+                            if (pre_h < c) {
+                                if (!pre.children) {
+                                    pre.children = []
+                                    pre.expanded = true
+                                }
+                                node.parent = pre
+                                pre.children.push(node)
+                            }
+                            else {
+                                while (pre_h > c) {
+                                    pre = pre?.parent
+                                    pre_h = pre ? map.get(pre) : 0
+                                }
+                                pre = pre?.parent
+                                if (pre) {
+                                    if (!pre.children) {
+                                        pre.children = []
+                                        pre.expanded = true
+                                    }
+                                    node.parent = pre
+                                    pre.children.push(node)
+                                }
+                                else {
+                                    nodes.push(node)
+                                }
+                            }
+                        }
+                        else {
+                            nodes.push(node)
+                        }
+                        pre = node
+                        map.set(node, c)
+                    })
+                }
+            })
+
+            return {
+                nodes,
+                replacement,
+            }
         },
         parse_guide() {
             

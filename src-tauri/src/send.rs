@@ -100,5 +100,13 @@ pub fn rs2js<R: Runtime>(output: Output, app_handle: &impl Manager<R>) {
                 app_handle.emit("text-write-error", err).unwrap();
             }
         },
+        Output::GenContents(output) => match output {
+            Ok(output) => {
+                app_handle.emit("gen-contents", output).unwrap();
+            }
+            Err(err) => {
+                app_handle.emit("gen-contents-error", err).unwrap();
+            }
+        },
     }
 }

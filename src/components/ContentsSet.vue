@@ -430,7 +430,7 @@ async function gen_contents() {
         v-model="filter_target"
         dense
         outlined
-        label="过滤"
+        label="筛选"
         class="m-t-10"
         :dark="theme.dark"
       />

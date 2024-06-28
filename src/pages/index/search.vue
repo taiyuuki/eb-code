@@ -19,7 +19,6 @@ const word = ref(false)
 const has_error = ref(false)
 const dot = ref(false)
 const multi_line = ref(true)
-const greedy = ref(false)
 const diff_mode = ref<1 | 2 | 3 | 4>(1)
 
 const error_tips = computed(() => {
@@ -56,7 +55,6 @@ async function search() {
             case_sensitive.value,
             word.value,
             multi_line.value,
-            greedy.value,
             dot.value,
 
         )
@@ -93,7 +91,6 @@ async function replace() {
             case_sensitive.value,
             word.value, 
             multi_line.value,
-            greedy.value,
             dot.value,
             repl.value,
         )
@@ -118,7 +115,6 @@ watch(() => [
     word.value,
     multi_line.value,
     dot.value,
-    greedy.value,
 ], () => {
     trigger_search()
 })
@@ -255,13 +251,6 @@ function regexp_error_tips() {
     </div>
     <div>
       <q-checkbox
-        v-model="greedy"
-        dense
-        label="贪婪匹配"
-      />
-    </div>
-    <div>
-      <q-checkbox
         v-model="dot"
         dense
         label="允许点匹配换行符"
@@ -304,7 +293,7 @@ function regexp_error_tips() {
       visible
       m="t-10"
       p="r-14"
-      style="height: calc(100vh - 450px);padding-bottom: 12px;"
+      style="height: calc(100vh - 425px);padding-bottom: 12px;"
       select-none
     >
       <template
@@ -346,7 +335,6 @@ function regexp_error_tips() {
             :sensitive="case_sensitive"
             :dot="dot"
             :multiline="multi_line"
-            :greedy="greedy"
             :diff-mode="diff_mode"
             @regexp-error="regexp_error_tips"
           />

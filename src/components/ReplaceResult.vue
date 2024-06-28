@@ -10,7 +10,6 @@ const props = defineProps<{
     sensitive: boolean,
     dot: boolean,
     multiline: boolean
-    greedy: boolean,
     diffMode: 1 | 2 | 3 | 4
 }>()
 const emit = defineEmits<{
@@ -18,7 +17,7 @@ const emit = defineEmits<{
 }>()
 
 const flag = computed(() => {
-    let flag = 'g'
+    let flag = 'gu'
     if (props.sensitive) { 
         flag += 'i'
     }
@@ -27,9 +26,6 @@ const flag = computed(() => {
     }
     if (props.multiline) {
         flag += 'm'
-    }
-    if (props.greedy) {
-        flag += 'u'
     }
 
     return flag

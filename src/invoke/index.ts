@@ -161,7 +161,6 @@ const invoke_search = function() {
         case_sensitive: boolean,
         word: boolean,
         multi_line: boolean,
-        greedy: boolean,
         dot: boolean,
     ) {
 
@@ -173,7 +172,6 @@ const invoke_search = function() {
                 case_sensitive, 
                 word,
                 multi_line,
-                greedy,
                 dot,
             }, 
         })
@@ -192,7 +190,6 @@ const invoke_replace = function() {
         case_sensitive: boolean, 
         word: boolean,
         multi_line: boolean,
-        greedy: boolean,
         dot: boolean,
         replacement: string,
     ) {
@@ -209,7 +206,6 @@ const invoke_replace = function() {
                 replacement,
                 word,
                 multi_line,
-                greedy,
                 dot,
             }, 
         })

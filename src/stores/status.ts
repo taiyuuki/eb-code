@@ -427,7 +427,6 @@ const useStatus = defineStore('status', {
                 false,
                 false,
                 false,
-                false,
             )
             this.contents_links.length = 0
             this.nodes[TREE.HTML]?.children?.forEach(node => {
@@ -454,11 +453,10 @@ const useStatus = defineStore('status', {
                 false,
                 false,
                 true,
-                false,
                 true,
             )
             const nodes: ContentsNode[] = []
-            const reg = /(<h\d.*?)(>.*?<\/h\d>)/
+            const reg = /(<h\d.*?)(>.*?<\/h\d>)/g
             const map = new WeakMap()
 
             let pre: ContentsNode | undefined = undefined
@@ -468,50 +466,35 @@ const useStatus = defineStore('status', {
                 if (xhtml_file) { 
                     const manifest_id = xhtml_file[0]
                     xhtml_file[1].forEach((r, i) => {
-                        const match = reg.exec(r.line)
-                        if (!match) return
-                    
-                        const line = match[0]
-                        const $ = load(line)
-                        let c = 1
-                        let $h = $(`h${c}`)
-                        while (!$h.html()) {
-                            $h = $(`h${++c}`)
-                        }
-
-                        let id = $h.attr('id')
-                        const node: ContentsNode = {
-                            id: manifest_id,
-                            title: $h.attr('title') ?? $h.text(),
-                        }
-                        if (i > 0) {
-                            if (!id) {
-                                id = `ebook-${str_random(7, 36)}`
-                                if (!replacement[manifest_id]) {
-                                    replacement[manifest_id] = []
-                                }
-                                replacement[manifest_id].push([match[0], `${match[1]} id="${id}"${match[2]}`])
+                        let match = reg.exec(r.line)
+                        while(match) {
+                            const line = match[0]
+                            const $ = load(line)
+                            let c = 1
+                            let $h = $(`h${c}`)
+                            while (!$h.html()) {
+                                $h = $(`h${++c}`)
                             }
-                            node.id += `#${id}`
-                        }
-                    
-                        if (pre) {
-                            let pre_h = map.get(pre)
-                            if (pre_h < c) {
-                                if (!pre.children) {
-                                    pre.children = []
-                                    pre.expanded = true
-                                }
-                                node.parent = pre
-                                pre.children.push(node)
+    
+                            let id = $h.attr('id')
+                            const node: ContentsNode = {
+                                id: manifest_id,
+                                title: $h.attr('title') ?? $h.text(),
                             }
-                            else {
-                                while (pre_h > c) {
-                                    pre = pre?.parent
-                                    pre_h = pre ? map.get(pre) : 0
+                            if (i > 0) {
+                                if (!id) {
+                                    id = `ebook-${str_random(7, 36)}`
+                                    if (!replacement[manifest_id]) {
+                                        replacement[manifest_id] = []
+                                    }
+                                    replacement[manifest_id].push([match[0], `${match[1]} id="${id}"${match[2]}`])
                                 }
-                                pre = pre?.parent
-                                if (pre) {
+                                node.id += `#${id}`
+                            }
+                        
+                            if (pre) {
+                                let pre_h = map.get(pre)
+                                if (pre_h < c) {
                                     if (!pre.children) {
                                         pre.children = []
                                         pre.expanded = true
@@ -520,15 +503,32 @@ const useStatus = defineStore('status', {
                                     pre.children.push(node)
                                 }
                                 else {
-                                    nodes.push(node)
+                                    while (pre_h > c) {
+                                        pre = pre?.parent
+                                        pre_h = pre ? map.get(pre) : 0
+                                    }
+                                    pre = pre?.parent
+                                    if (pre) {
+                                        if (!pre.children) {
+                                            pre.children = []
+                                            pre.expanded = true
+                                        }
+                                        node.parent = pre
+                                        pre.children.push(node)
+                                    }
+                                    else {
+                                        nodes.push(node)
+                                    }
                                 }
                             }
+                            else {
+                                nodes.push(node)
+                            }
+                            pre = node
+                            map.set(node, c)
+                            match = reg.exec(r.line)
                         }
-                        else {
-                            nodes.push(node)
-                        }
-                        pre = node
-                        map.set(node, c)
+                    
                     })
                 }
             })
@@ -861,7 +861,6 @@ const useStatus = defineStore('status', {
                         false, 
                         false,
                         true,
-                        false,
                         false,
                         new_name,
                     )

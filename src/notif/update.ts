@@ -7,17 +7,14 @@ async function check_update(confirm = true) {
 
         return null
     })
-    if (update) {
-        if (update.currentVersion !== update.version) {
-            const yes = await ask(`发现新版本${update.version}，是否前往下载？`, {
-                title: '检查更新',
-                okLabel: '更新',
-                cancelLabel: '取消',
-            })
-            if (yes) {
-                window.open('https://github.com/taiyuuki/eb-code/releases/latest')
-            }
-
+    if (update && update.currentVersion !== update.version) {
+        const yes = await ask(`发现新版本${update.version}，是否前往下载？`, {
+            title: '检查更新',
+            okLabel: '更新',
+            cancelLabel: '取消',
+        })
+        if (yes) {
+            window.open('https://github.com/taiyuuki/eb-code/releases/latest')
         }
     }
     else if (confirm) {

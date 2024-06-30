@@ -103,6 +103,7 @@ async function create_epub(version: number) {
         }
     }
     const payload = await invoke_create_epub(version)
+    router.replace({ path: '/' })
     if (status.dir !== '') {
         status.close_epub()
     }
@@ -193,6 +194,7 @@ async function close_epub() {
     status.clean_tree()
     status.dir && invoke_clean_cache(status.dir)
     status.close_epub()
+    router.replace({ path: '/' })
 }
 
 function edit_metadata() {

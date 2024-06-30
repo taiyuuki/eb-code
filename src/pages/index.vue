@@ -17,7 +17,7 @@ const status = useStatus()
 const app_window = getCurrent()
 const activity_node = useActivity()
 
-const sidebar_width = ref(256)
+const sidebar_width = ref(250)
 
 function open_file(node: FileNode) {
     status.open(node)
@@ -62,7 +62,8 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
         }
     }
     if (status.dir) {
-        invoke_clean_cache(status.dir).then(() => {
+        await invoke_clean_cache(status.dir).finally(() => {
+          
             app_window.destroy()
         })
     }
@@ -86,7 +87,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
       <q-splitter
         v-model="sidebar_width"
         unit="px"
-        :limits="[180, 600]"
+        :limits="[250, 600]"
         separator-class="sprt"
         flex="1"
       >

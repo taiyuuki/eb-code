@@ -163,6 +163,7 @@ function init_edit() {
     input_value.value = ''
     selected_index.value = -1
     editting_node = null
+    filter_target.value = ''
 }
 
 function edit_node(node?: ContentsNode) {

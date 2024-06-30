@@ -34,6 +34,17 @@
           class="i-ic:baseline-search"
         />
       </q-route-tab>
+      <q-route-tab
+        name="设置"
+        to="/option"
+        exact
+      >
+        <div
+          w="36"
+          h="36"
+          class="i-ic:baseline-settings"
+        />
+      </q-route-tab>
     </q-tabs>
   </div>
 </template>

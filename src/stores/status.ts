@@ -1,6 +1,6 @@
 // @unocss-include
 import { convertFileSrc } from '@tauri-apps/api/core'
-import { arr_remove, str_random } from '@taiyuuki/utils'
+import { arr_remove, is_empty_string, is_void, str_random } from '@taiyuuki/utils'
 import { ask } from '@tauri-apps/plugin-dialog'
 import { load } from 'cheerio'
 import type { ContentsNode, EpubContent, FileNode } from '@/components/types'
@@ -16,6 +16,7 @@ import { DISPLAY, TREE } from '@/static'
 import { cover_template, ncx_template, xhtml_template } from '@/template/xhtml'
 import stores from '@/stores'
 import { usePreview } from '@/stores/preview'
+import { fmt_html } from '@/utils/format'
 
 /**
  * TODO: 统一变量命名
@@ -123,6 +124,19 @@ const useStatus = defineStore('status', {
         },
         editable(state) {
             return state.dir !== ''
+        },
+        flat_nodes(state) {
+            const flat = {} as Record<string, FileNode>
+            state.nodes.forEach(node => {
+                flat[node.id] = node
+                if (node.children) {
+                    node.children.forEach(child => {
+                        flat[child.id] = child
+                    })
+                }
+            })
+
+            return flat
         },
     },
     actions: {
@@ -472,14 +486,18 @@ const useStatus = defineStore('status', {
                             const $ = load(line)
                             let c = 1
                             let $h = $(`h${c}`)
-                            while (!$h.html()) {
+                            while (is_void($h.html())) {
                                 $h = $(`h${++c}`)
                             }
     
                             let id = $h.attr('id')
+                            const title = $h.attr('title') ?? $h.text()
+                            if (is_empty_string(title, true)) {
+                                return
+                            }
                             const node: ContentsNode = {
                                 id: manifest_id,
-                                title: $h.attr('title') ?? $h.text(),
+                                title,
                             }
                             if (i > 0) {
                                 if (!id) {
@@ -623,13 +641,15 @@ const useStatus = defineStore('status', {
             const contents_xml = this.nav_version === 2 
                 ? this.get_nav_epub2(contents.dom!, contents.namespaceURI) 
                 : this.get_nav_epub3(contents.dom!)
+
+            const code = fmt_html(contents_xml)
             
             if (activity_nodes.opened_node?.type === 'navigation') {
                 this.is_toogle = true
-                this.current.code = contents_xml
+                this.current.code = code
             }
             
-            await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
+            await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, code)
         },
         async gen_ncx_for_epub2() {
             const conf = await ask('此操作是为了兼容ePub2，如果你后续修改了导航文件，你可能需要重新执行此操作，是否继续？', {
@@ -639,7 +659,7 @@ const useStatus = defineStore('status', {
             })
             if (!conf) return
             const dom = xmlToDom(ncx_template(this.book_id))
-            const contents_xml = this.get_nav_epub2(dom, 'http://www.idpf.org/2007/ops')
+            const contents_xml = fmt_html(this.get_nav_epub2(dom, 'http://www.idpf.org/2007/ops')) 
 
             let ncx_manifest_id = join(this.manifest_path, 'toc.ncx')
             const spine_node = opf.dom?.querySelector('spine')
@@ -1003,7 +1023,7 @@ const useStatus = defineStore('status', {
             img.onload = () => {
                 const href = relative(path, id)
                 const { naturalWidth, naturalHeight } = img
-                const xhtml = cover_template(naturalWidth, naturalHeight, href)
+                const xhtml = fmt_html(cover_template(naturalWidth, naturalHeight, href)) 
                 const cc = this.nodes[TREE.HTML].children!.find(n => n.id === id)
                 invoke_write_text(this.dir, id, xhtml).then(() => {
                     if (cc) {
@@ -1093,7 +1113,7 @@ const useStatus = defineStore('status', {
                     ol?.appendChild(li_cover)
                 }
                 li_cover.appendChild(a)
-                const contents_xml = domToXml(contents.dom!)
+                const contents_xml = fmt_html(domToXml(contents.dom!)) 
                 await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
             }
             else {
@@ -1117,7 +1137,7 @@ const useStatus = defineStore('status', {
             await this.save_opf()
         },
         async new_html(i: number, id: string) {
-            const xhtml = xhtml_template()
+            const xhtml = fmt_html(xhtml_template()) 
             await invoke_write_text(this.dir, id, xhtml)
             this.nodes[TREE.HTML].children?.splice(i + 1, 0, {
                 id,
@@ -1168,7 +1188,7 @@ const useStatus = defineStore('status', {
             }
         },
         async save_opf() {
-            const code = domToXml(opf.dom!, 'xml').replace(/\n\s*\n\s*\n/g, '\n\n')
+            const code = fmt_html(domToXml(opf.dom!, 'xml').replace(/\n\s*\n\s*\n/g, '\n\n')) 
             if (activity_nodes.opened_node?.type === 'opf') {
                 this.is_toogle = true
                 this.current.code = code
@@ -1512,11 +1532,15 @@ const useStatus = defineStore('status', {
             await this.open_by_id(this.current.id, 1)
         },
         async open_by_id(id: string, lnum?: number, hash?: string) {
-            const node = this.nodes[TREE.HTML].children!.find(n => n.id === id) ?? this.nodes.find(n => n.id === id)
-            if (node) {
+            if (id in this.flat_nodes) {
+                const node = this.flat_nodes[id]
                 await this.open(node, lnum, hash)
                 this.add_tab(node)
             }
+        },
+        async follow_link(url: string) {
+            const id = join(dirname(this.current.id), url)
+            this.open_by_id(id)
         },
         close_epub() {
             this.display = DISPLAY.NONE

@@ -3,15 +3,14 @@ import TitleBar from '@/components/TitleBar.vue'
 import { useCompRef } from '@/composables/useComp'
 import { contents_setting } from '@/composables/contents_setting'
 import { cover_setting } from '@/composables/cover_setting'
-import { set_font_size } from '@/editor'
-import { useFontSize } from '@/stores/font-size'
 import { DISPLAY } from '@/static'
 import { useStatus } from '@/stores/status'
 import { check_update } from '@/notif/update'
+import { useOption } from '@/stores/option'
 
 const titlebar = useCompRef(TitleBar)
-const font_size = useFontSize()
 const status = useStatus()
+const option = useOption()
 
 onBeforeMount(() => {
     document.documentElement.classList.add('monaco-component')
@@ -20,13 +19,11 @@ onBeforeMount(() => {
         if (status.display === DISPLAY.CODE) {
             if ((e.key === '-' || e.key === '_') && e.ctrlKey) {
                 e.preventDefault()
-                font_size.size = Math.max(font_size.size - 2, 8)
-                set_font_size(font_size.size)
+                option.value.font_size = Math.max(option.value.font_size - 2, 14)
             }
             else if ((e.key === '+' || e.key === '=') && e.ctrlKey) {
                 e.preventDefault()
-                font_size.size = Math.min(font_size.size + 2, 40)
-                set_font_size(font_size.size)
+                option.value.font_size = Math.min(option.value.font_size + 2, 40)
             }
         }
     })

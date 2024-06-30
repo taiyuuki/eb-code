@@ -6,6 +6,10 @@ import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
 import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
 import typescriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 import type { Language } from './shiki'
+import { useStatus } from '@/stores/status'
+import { useCustomCSSProperties } from '@/stores/custom-properties'
+import stores from '@/stores'
+import { useOption } from '@/stores/option'
 
 function initMonaco() {
     
@@ -51,15 +55,35 @@ class MonacoController {
     }
 
     create_monaco(el: HTMLElement) {
-        monaco.editor.create(el, {
+        const option = useOption(stores)
+        const editor = monaco.editor.create(el, {
             model: MonacoController.text_model,
             automaticLayout: true,
-            cursorSmoothCaretAnimation: 'on',
+            cursorSmoothCaretAnimation: option.value.cursor_animation ? 'on' : 'off',
             scrollBeyondLastLine: false,
             bracketPairColorization: { enabled: true },
             cursorSurroundingLines: 5,
             fontLigatures: true,
-            fontSize: 18,
+            fontSize: option.value.font_size,
+            tabSize: option.value.indent,
+            minimap: { enabled: option.value.minimap },
+            smoothScrolling: option.value.smooth_scrolling,
+            lineNumbers: option.value.line_numbers ? 'on' : 'off',
+            wordWrap: option.value.wordWrap ? 'on' : 'off',
+            linkedEditing: true,
+            unicodeHighlight: {
+                ambiguousCharacters: false,
+                invisibleCharacters: false,
+            },
+        })
+        register_openner(editor)
+
+        monaco.editor.onDidChangeMarkers(e => {
+            const markers = monaco.editor.getModelMarkers({ owner: 'css', resource: e[0] })
+            const customCSS = useCustomCSSProperties()
+            if (markers.length) {
+                monaco.editor.setModelMarkers(MonacoController.text_model, 'css', markers.filter(m => !customCSS.properties.some(ignore => m.message.includes(ignore))))
+            }
         })
 
         return monaco
@@ -106,7 +130,9 @@ function create_controller() {
 }
 
 function get_code() {
-    return MonacoController.text_model.getValue()
+    const editor = monaco.editor.getEditors()[0]
+
+    return editor.getModel()?.getValue()
 }
 
 function get_scroll_top() {
@@ -138,6 +164,28 @@ function set_font_size(size: number) {
     editor.updateOptions({ fontSize: size })
 }
 
+function set_indent(size: number) {
+    const editor = monaco.editor.getEditors()[0]
+    editor.getModel()?.updateOptions({ tabSize: size, indentSize: size })
+}
+
+function update_option(option: monaco.editor.IStandaloneEditorConstructionOptions) {
+    const editor = monaco.editor.getEditors()[0]
+    editor.updateOptions(option)
+}
+
+function register_openner(editor: monaco.editor.IStandaloneCodeEditor) {
+
+    // @ts-expect-error - 非标准行为，拦截打开链接
+    editor.getContribution('editor.linkDetector').openerService._openers._first.element.open = function(url: string) {
+        if (url.startsWith('file')) {
+            url = url.substring(7)
+        }
+        const status = useStatus(stores)
+        status.follow_link(url)
+    }
+}
+
 export {
     initMonaco,
     get_scroll_top,
@@ -146,4 +194,6 @@ export {
     create_controller,
     get_code,
     set_font_size,
+    set_indent,
+    update_option,
 }

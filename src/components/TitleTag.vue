@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FileNode } from './types'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { basename } from '@/utils/path'
 import { vScrollview } from '@/directives/v-scrollview'
 import { vVisible } from '@/directives/v-visible'
@@ -11,7 +11,7 @@ const emit = defineEmits<{
     (e: 'close', node: FileNode): void
 }>()
 
-const status = useStatus()
+const epub = useEPUB()
 
 const tag_name = computed(() => {
     return basename(props.node.name)
@@ -55,7 +55,7 @@ function close(e: MouseEvent, node: FileNode) {
         <q-item
           v-close-popup
           clickable
-          @click="status.close_other(node)"
+          @click="epub.close_other(node)"
         >
           <q-item-section>
             关闭其他
@@ -64,7 +64,7 @@ function close(e: MouseEvent, node: FileNode) {
         <q-item
           v-close-popup
           clickable
-          @click="status.close_right(node)"
+          @click="epub.close_right(node)"
         >
           <q-item-section>
             关闭右侧标签
@@ -73,7 +73,7 @@ function close(e: MouseEvent, node: FileNode) {
         <q-item
           v-close-popup
           clickable
-          @click="status.close_left(node)"
+          @click="epub.close_left(node)"
         >
           <q-item-section>
             关闭左侧标签

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { arr_remove, object_keys } from '@taiyuuki/utils'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { cover_setting } from '@/composables/cover_setting'
 import { dirty_meta } from '@/composables/dirty_meta'
 import { vMove } from '@/directives/v-move'
@@ -45,33 +45,26 @@ const meta_property_selections = reactive(object_keys(_META_PROPERTY).reduce((r,
 const meta_dialog = ref(false)
 const meta_property_dialog = ref(false)
 
-// const meta_items = object_keys(_META_KEY).map(t => {
-//     return {
-//         label: _META_KEY[t],
-//         value: t,
-//     }
-// })
-
-const status = useStatus()
+const epub = useEPUB()
 
 onMounted(() => {
-    Object.assign(dirty_meta.value, status.metadata)
+    Object.assign(dirty_meta.value, epub.metadata)
 })
 
 onBeforeUnmount(async() => {
-    if (status.meta_is_dirty) {
-        status.$patch({ metadata: dirty_meta.value })
+    if (epub.meta_is_dirty) {
+        epub.$patch({ metadata: dirty_meta.value })
 
         // Object.assign(status.metadata, dirty_meta.value)
-        status.save_meta()
-        status.meta_is_dirty = false
+        epub.save_meta()
+        epub.meta_is_dirty = false
     }
 })
 
 function add_meta() {
     object_keys(meta_selections).forEach(t => {
         if (meta_selections[t]) {
-            status.add_meta(t, '[点我修改属性值]')
+            epub.add_meta(t, '[点我修改属性值]')
 
             meta_selections[t] = false
         }
@@ -90,7 +83,7 @@ function add_meta_property() {
 
     object_keys(meta_property_selections).forEach(t => {
         if (meta_property_selections[t]) {
-            status.add_meta_child(temp_meta_item, t, '[点我修改属性值]')
+            epub.add_meta_child(temp_meta_item, t, '[点我修改属性值]')
 
             meta_property_selections[t] = false
         }
@@ -100,20 +93,20 @@ function add_meta_property() {
 
 function remove_meta_item(item: Record<string, any>) {
     arr_remove(dirty_meta.value, item)
-    status.$patch({ metadata: dirty_meta.value })
-    status.save_meta()
+    epub.$patch({ metadata: dirty_meta.value })
+    epub.save_meta()
 }
 
 function remove_meta_child(item: Record<string, Record<string, any>[]>, child: Record<string, any>) {
     if (item.children) {
         arr_remove(item.children, child)
-        status.$patch({ metadata: dirty_meta.value })
-        status.save_meta()
+        epub.$patch({ metadata: dirty_meta.value })
+        epub.save_meta()
     }
 }
 
 function meta_changed() {
-    status.meta_is_dirty || (status.meta_is_dirty = true)
+    epub.meta_is_dirty || (epub.meta_is_dirty = true)
 }
 </script>
 
@@ -131,11 +124,11 @@ function meta_changed() {
         flex="1"
       >
         <img
-          v-show="status.cover_src !== ''"
+          v-show="epub.cover_src !== ''"
           w="100%"
           h="100%"
           obj-contain
-          :src="status.cover_src"
+          :src="epub.cover_src"
           alt="cover"
         >
       </div>

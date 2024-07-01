@@ -5,22 +5,22 @@ import type { FileNode } from './types'
 import { mimetype } from '@/utils/path'
 import { cover_setting } from '@/composables/cover_setting'
 import { TREE } from '@/static'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { vMove } from '@/directives/v-move'
 
 const cover_src = ref('')
-const status = useStatus()
-const images = computed(() => status.nodes[TREE.IMAGE]?.children ?? [])
+const epub = useEPUB()
+const images = computed(() => epub.nodes[TREE.IMAGE]?.children ?? [])
 
 const si = ref(-1)
 
 function seletct_cover(img: FileNode, i: number) {
-    if (status.has_src(img.id)) {
-        cover_src.value = status.image_srces[img.id]
+    if (epub.has_src(img.id)) {
+        cover_src.value = epub.image_srces[img.id]
     }
     else {
-        cover_src.value = convertFileSrc(status.base_path + img.id)
-        status.image_srces[img.id] = cover_src.value
+        cover_src.value = convertFileSrc(epub.base_path + img.id)
+        epub.image_srces[img.id] = cover_src.value
     }
     si.value = i
 }
@@ -29,7 +29,7 @@ function set_cover() {
     const img = images.value[si.value]
     if (img) {
         const id = img.id
-        status.set_cover(id)
+        epub.set_cover(id)
     }
     cover_setting.value = false
 }
@@ -42,17 +42,17 @@ async function open_cover() {
     })
     if (file) {
         const manifest_id = file.name!
-        const path = status.manifest_path + status.image_path + manifest_id
-        const node = status.nodes[TREE.IMAGE].children!.find(n => n.name === path)
+        const path = epub.manifest_path + epub.image_path + manifest_id
+        const node = epub.nodes[TREE.IMAGE].children!.find(n => n.name === path)
         let has = false
         if (node) {
             has = true
         }
         else {
-            status.add_image(path)
+            epub.add_image(path)
         }
-        await status.add_file(file.path, manifest_id, status.image_path + manifest_id, mimetype(file.path), has)
-        status.set_cover(status.manifest_path + status.image_path + manifest_id)
+        await epub.add_file(file.path, manifest_id, epub.image_path + manifest_id, mimetype(file.path), has)
+        epub.set_cover(epub.manifest_path + epub.image_path + manifest_id)
     }
     else {
         return

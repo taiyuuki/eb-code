@@ -5,7 +5,7 @@ import type { HighlighterCore } from 'shiki/index.mjs'
 import { create_controller } from '@/editor'
 import { getLighter } from '@/editor/shiki'
 import { useTheme } from '@/stores/theme'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { invoke_write_text } from '@/invoke'
 import { check_xml } from '@/utils/xml'
 import { useActivity } from '@/composables/useActivity'
@@ -14,7 +14,7 @@ import { usePreview } from '@/stores/preview'
 import { is_html, is_style } from '@/utils/is'
 
 const theme = useTheme()
-const status = useStatus()
+const epub = useEPUB()
 
 const editor = useElementRef()
 const monaco_controller = create_controller()
@@ -23,8 +23,8 @@ let timeout_id = 0
 const preview = usePreview()
 
 monaco_controller.on_change_code(() => {
-    if (status.is_toogle) {
-        status.is_toogle = false
+    if (epub.is_toogle) {
+        epub.is_toogle = false
 
         return
     } 
@@ -40,26 +40,26 @@ monaco_controller.on_change_code(() => {
             return
         }
 
-        if (status.current.id.endsWith('.opf')) {
+        if (epub.current.id.endsWith('.opf')) {
       
             if (!check_xml(code)) {
                 return
             }
 
-            status.reload_opf().then(() => {
-                status.parse_metadata()
+            epub.reload_opf().then(() => {
+                epub.parse_metadata()
             })
         }
 
         if (activity_node.opened_node?.type === 'navigation') {
-            if (status.current.id.endsWith('.ncx') && !check_xml(code)) {
+            if (epub.current.id.endsWith('.ncx') && !check_xml(code)) {
                 return
             }
-            status.parse_contents()
+            epub.parse_contents()
         }
 
-        invoke_write_text(status.dir, status.current.id, code).then(() => {
-            if (is_html(status.current.id) || is_style(status.current.id)) {
+        invoke_write_text(epub.dir, epub.current.id, code).then(() => {
+            if (is_html(epub.current.id) || is_style(epub.current.id)) {
                 preview.reload_iframe()
             }
         })
@@ -67,15 +67,15 @@ monaco_controller.on_change_code(() => {
 })
 
 monaco_controller.on_change_lang(() => {
-    status.current.lang = monaco_controller.get_lang()
+    epub.current.lang = monaco_controller.get_lang()
 })
 
-watch(() => status.current.code, () => {
-    monaco_controller.set_code(status.current.code)
+watch(() => epub.current.code, () => {
+    monaco_controller.set_code(epub.current.code)
 })
 
-watch(() => status.current.lang, () => {
-    monaco_controller.set_lang(status.current.lang)
+watch(() => epub.current.lang, () => {
+    monaco_controller.set_lang(epub.current.lang)
 })
 
 let hightlighter: HighlighterCore

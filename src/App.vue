@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { invoke_clean_cache } from './invoke'
-import { useStatus } from './stores/status'
+import { useEPUB } from './stores/epub'
 
-const status = useStatus()
+const epub = useEPUB()
 
 defineOptions({ name: 'App' })
 
@@ -15,7 +15,7 @@ window.addEventListener('beforeunload', e => {
 })
 
 window.addEventListener('unload', () => {
-    status.dir && invoke_clean_cache(status.dir)
+    epub.dir && invoke_clean_cache(epub.dir)
 })
 </script>
 

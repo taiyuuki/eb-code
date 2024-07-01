@@ -3,7 +3,7 @@ import type { Directive } from 'vue'
 import type { TouchPanValue } from 'quasar'
 import type { HTMLEventManage } from '@/utils/event'
 import { useElementRef } from '@/composables/useComp'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { DISPLAY } from '@/static'
 
 const props = defineProps<{ src: string }>()
@@ -12,7 +12,7 @@ const image_size = reactive({ width: 0, height: 0 })
 const mask_class = ref('mask-transparent')
 
 const controller = useElementRef<HTMLDivElement>()
-const status = useStatus()
+const epub = useEPUB()
 
 const image_position = reactive({
     scale: 1, // 缩放倍数
@@ -99,7 +99,7 @@ const vTakeSize: Directive = (img: HTMLImageElement) => {
             image_position.size = 'height:100%'
         }
         
-        status.display = DISPLAY.IMAGE
+        epub.display = DISPLAY.IMAGE
     }
 }
 

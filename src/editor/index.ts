@@ -6,7 +6,7 @@ import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
 import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
 import typescriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 import type { Language } from './shiki'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { useCustomCSSProperties } from '@/stores/custom-properties'
 import stores from '@/stores'
 import { useOption } from '@/stores/option'
@@ -181,8 +181,8 @@ function register_openner(editor: monaco.editor.IStandaloneCodeEditor) {
         if (url.startsWith('file')) {
             url = url.substring(7)
         }
-        const status = useStatus(stores)
-        status.follow_link(url)
+        const epub = useEPUB(stores)
+        epub.follow_link(url)
     }
 }
 

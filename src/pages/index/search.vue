@@ -2,14 +2,14 @@
 import { debounce } from '@taiyuuki/utils'
 import type { SearchResult } from '@/components/types'
 import { invoke_replace, invoke_search } from '@/invoke'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { useTheme } from '@/stores/theme'
 import { is_html } from '@/utils/is'
 import { DISPLAY } from '@/static'
 import { de_escape } from '@/utils'
 
 const theme = useTheme()
-const status = useStatus()
+const epub = useEPUB()
 const keyword = ref('')
 const replacement = ref('')
 const search_result = ref<[string, SearchResult[]][]>([])
@@ -49,7 +49,7 @@ async function search() {
     }
     try {
         search_result.value = await invoke_search(
-            status.dir,
+            epub.dir,
             keyword.value,
             regex.value, 
             case_sensitive.value,
@@ -85,7 +85,7 @@ async function replace() {
     }
     try {
         await invoke_replace(
-            status.dir, 
+            epub.dir, 
             keyword.value,
             regex.value,
             case_sensitive.value,
@@ -94,8 +94,8 @@ async function replace() {
             dot.value,
             repl.value,
         )
-        if (status.display === DISPLAY.CODE && is_html(status.current.id)) {
-            await status.reload_current()
+        if (epub.display === DISPLAY.CODE && is_html(epub.current.id)) {
+            await epub.reload_current()
         }
         await trigger_search()
     }
@@ -106,7 +106,7 @@ async function replace() {
 }
 
 function open(k: string, item: SearchResult) {
-    status.open_by_id(k, item.lnum)
+    epub.open_by_id(k, item.lnum)
 }
 
 watch(() => [
@@ -119,7 +119,7 @@ watch(() => [
     trigger_search()
 })
 
-watch(() => status.dir, () => {
+watch(() => epub.dir, () => {
     keyword.value = ''
     replacement.value = ''
     search_result.value.length = 0

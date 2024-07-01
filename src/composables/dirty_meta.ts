@@ -1,6 +1,6 @@
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import stores from '@/stores'
 
-const status = useStatus(stores)
+const epub = useEPUB(stores)
 
-export const dirty_meta = ref(toRaw(status.metadata))
+export const dirty_meta = ref(toRaw(epub.metadata))

@@ -3,25 +3,26 @@ import type { FileNode } from './types'
 import { invoke_get_text, invoke_write_text } from '@/invoke'
 import { notif_negative } from '@/notif'
 import { DISPLAY, TREE } from '@/static'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { relative } from '@/utils/path'
 import { domToXml, xmlToDom } from '@/utils/xml'
 import { usePreview } from '@/stores/preview'
 import { vMove } from '@/directives/v-move'
+import { fmt_html } from '@/utils/format'
 
 const props = defineProps<{ node: FileNode }>()
 const emit = defineEmits<{ (e: 'complate'): void }>()
 
-const status = useStatus()
+const epub = useEPUB()
 const preview = usePreview()
-const checks = ref(Array.from<boolean>({ length: status.nodes[TREE.STYLE].children!.length }).fill(false))
+const checks = ref(Array.from<boolean>({ length: epub.nodes[TREE.STYLE].children!.length }).fill(false))
 
-const [code, _] = await invoke_get_text(props.node.id, status.dir)
+const [code, _] = await invoke_get_text(props.node.id, epub.dir)
 const dom = xmlToDom(code)
 const head = dom.querySelector('head')
 
 checks.value.forEach((_, i) => {
-    const style_node = status.nodes[TREE.STYLE].children![i]
+    const style_node = epub.nodes[TREE.STYLE].children![i]
     const href = relative(style_node.id, props.node.id)
     const link = dom.querySelector(`link[href="${href}"]`)
     if (link) {
@@ -42,7 +43,7 @@ async function link_to_style() {
         if (!check) {
             return
         }
-        const style_node = status.nodes[TREE.STYLE].children![i]
+        const style_node = epub.nodes[TREE.STYLE].children![i]
         const href = relative(style_node.id, props.node.id)
         const link = dom.querySelector(`link[href="${href}"]`)
         if (!link) {
@@ -51,13 +52,13 @@ async function link_to_style() {
             new_link.setAttribute('rel', 'stylesheet')
             new_link.setAttribute('type', 'text/css')
             head?.appendChild(new_link)
-            head?.appendChild(document.createTextNode('\n'))
         }
     })
-    await invoke_write_text(status.dir, props.node.id, domToXml(dom).replace(/\n\s*\n\s*\n/g, '\n\n'))
-    if (status.current.id === props.node.id) {
-        if (status.display === DISPLAY.CODE) {
-            await status.reload_current()
+    const code = fmt_html(domToXml(dom).replace(/\n\s*\n\s*\n/g, '\n\n'))
+    await invoke_write_text(epub.dir, props.node.id, code)
+    if (epub.current.id === props.node.id) {
+        if (epub.display === DISPLAY.CODE) {
+            epub.current.code = code
         }
         preview.reload_iframe()
     }
@@ -85,7 +86,7 @@ async function link_to_style() {
     </q-bar>
     <q-scroll-area h="50vh">
       <div
-        v-for="(css, i) in status.nodes[TREE.STYLE].children"
+        v-for="(css, i) in epub.nodes[TREE.STYLE].children"
         :key="css.id"
       >
         <q-checkbox

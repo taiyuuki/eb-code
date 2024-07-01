@@ -4,7 +4,7 @@ import { ask, open } from '@tauri-apps/plugin-dialog'
 import { QInput } from 'quasar'
 import { arr_remove } from '@taiyuuki/utils'
 import type { FileNode, Moved, TreeProps } from './types'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { useTheme } from '@/stores/theme'
 import { basename, filename, mimetype } from '@/utils/path'
 import { is_audio, is_font, is_html, is_image, is_scripts, is_style, is_video } from '@/utils/is'
@@ -24,10 +24,10 @@ const next_indent = computed(() => {
 const line_width = computed(() => {
     return `${props.indent * 2}px`
 })
-const status = useStatus()
+const epub = useEPUB()
 
 function toggle(node: FileNode) {
-    status.open(node)
+    epub.open(node)
 }
 
 async function add_file(node: FileNode) {
@@ -81,97 +81,97 @@ async function add_file(node: FileNode) {
             let has = false
             let asset_path = ''
             if (is_image(_name)) {
-                asset_path = status.image_path
-                const file = status.manifest_path + asset_path + manifest_id
-                const node = status.nodes[TREE.IMAGE].children!.find(n => n.name === file)
+                asset_path = epub.image_path
+                const file = epub.manifest_path + asset_path + manifest_id
+                const node = epub.nodes[TREE.IMAGE].children!.find(n => n.name === file)
                 if (node) {
                     has = true
                 }
                 else {
-                    status.add_image(file)
+                    epub.add_image(file)
                 }
             }
             else if (is_font(_name)) {
-                asset_path = status.font_path
-                const file = status.manifest_path + asset_path + manifest_id
-                const node = status.nodes[TREE.FONT].children!.find(n => n.name === file)
+                asset_path = epub.font_path
+                const file = epub.manifest_path + asset_path + manifest_id
+                const node = epub.nodes[TREE.FONT].children!.find(n => n.name === file)
                 if (node) {
                     has = true
                 }
                 else {
-                    status.add_font(file)
+                    epub.add_font(file)
                 }
             }
             else if (is_style(_name)) {
-                asset_path = status.style_path
-                const file = status.manifest_path + asset_path + manifest_id
-                const node = status.nodes[TREE.STYLE].children!.find(n => n.name === file)
+                asset_path = epub.style_path
+                const file = epub.manifest_path + asset_path + manifest_id
+                const node = epub.nodes[TREE.STYLE].children!.find(n => n.name === file)
                 if (node) {
                     has = true
                 }
                 else {
-                    status.add_css(file)
+                    epub.add_css(file)
                 }
             }
             else if (is_html(_name)) {
-                asset_path = status.text_path
-                const file = status.manifest_path + asset_path + manifest_id
-                const node = status.nodes[TREE.HTML].children!.find(n => n.name === file)
+                asset_path = epub.text_path
+                const file = epub.manifest_path + asset_path + manifest_id
+                const node = epub.nodes[TREE.HTML].children!.find(n => n.name === file)
                 if (node) {
                     has = true
                 }
                 else {
-                    status.add_html(file)
+                    epub.add_html(file)
                 }
             }
             else if (is_audio(_name)) {
-                asset_path = status.audio_path
-                const file = status.manifest_path + asset_path + manifest_id
-                const node = status.nodes[TREE.AUDIO].children!.find(n => n.name === file)
+                asset_path = epub.audio_path
+                const file = epub.manifest_path + asset_path + manifest_id
+                const node = epub.nodes[TREE.AUDIO].children!.find(n => n.name === file)
                 if (node) {
                     has = true
                 }
                 else {
-                    status.add_audio(file)
+                    epub.add_audio(file)
                 }
             }
             else if (is_video(_name)) {
-                asset_path = status.video_path
-                const file = status.manifest_path + asset_path + manifest_id
-                const node = status.nodes[TREE.VIDEO].children!.find(n => n.name === file)
+                asset_path = epub.video_path
+                const file = epub.manifest_path + asset_path + manifest_id
+                const node = epub.nodes[TREE.VIDEO].children!.find(n => n.name === file)
                 if (node) {
                     has = true
                 }
                 else {
-                    status.add_video(file)
+                    epub.add_video(file)
                 }
             }
             else if (is_scripts(_name)) {
-                asset_path = status.script_path
-                const file = status.manifest_path + asset_path + manifest_id
-                const node = status.nodes[TREE.JS].children!.find(n => n.name === file)
+                asset_path = epub.script_path
+                const file = epub.manifest_path + asset_path + manifest_id
+                const node = epub.nodes[TREE.JS].children!.find(n => n.name === file)
                 if (node) {
                     has = true
                 }
                 else {
-                    status.add_js(file)
+                    epub.add_js(file)
                 }
 
             }
             else {
-                asset_path = status.other_path
-                const file = status.manifest_path + asset_path + manifest_id
-                const node = status.nodes[TREE.OTHER].children!.find(n => n.name === file)
+                asset_path = epub.other_path
+                const file = epub.manifest_path + asset_path + manifest_id
+                const node = epub.nodes[TREE.OTHER].children!.find(n => n.name === file)
                 if (node) {
                     has = true
                 }
                 else {
-                    status.add_other(file)
+                    epub.add_other(file)
                 }
             }
-            status.add_file(file.path, manifest_id, asset_path + manifest_id, media_type, has)
+            epub.add_file(file.path, manifest_id, asset_path + manifest_id, media_type, has)
         }
-        status.save_opf()
+        epub.save_opf()
     }
 }
 
@@ -189,7 +189,7 @@ async function remove_file(node: FileNode) {
 
         return
     }
-    status.remove_file(node)
+    epub.remove_file(node)
 }
 
 function show_base_menu(node: FileNode) {
@@ -197,7 +197,7 @@ function show_base_menu(node: FileNode) {
 }
 
 function show_new_html(node: FileNode) {
-    return node.type === 'html' || node.id === 'text' || node.type === 'navigation' && status.nav_in_spine
+    return node.type === 'html' || node.id === 'text' || node.type === 'navigation' && epub.nav_in_spine
 }
 
 function show_new_css(node: FileNode) {
@@ -253,9 +253,9 @@ function rename_over() {
                 }
                 else {
   
-                    invoke_rename_file(status.dir, temp_node.id, id).then(() => {
+                    invoke_rename_file(epub.dir, temp_node.id, id).then(() => {
                       
-                        status.rename_file(temp_node, id.replace(status.manifest_path, ''))
+                        epub.rename_file(temp_node, id.replace(epub.manifest_path, ''))
                         temp_node.id = id
                         temp_node.name = id
                         parent.children![temp_i] = temp_node
@@ -281,46 +281,46 @@ function on_keypress(e: KeyboardEvent) {
 }
 
 function add_nav_to_spine(node: FileNode) {
-    if (status.nav_in_spine) {
-        status.nodes.push(node)
-        arr_remove(status.nodes[0].children!, node)
+    if (epub.nav_in_spine) {
+        epub.nodes.push(node)
+        arr_remove(epub.nodes[0].children!, node)
     }
     else {
-        arr_remove(status.nodes, node)
-        status.nodes[0].children!.unshift(node)
+        arr_remove(epub.nodes, node)
+        epub.nodes[0].children!.unshift(node)
     }
-    status.nav_in_spine = !status.nav_in_spine
-    status.add_nav_to_spine()
+    epub.nav_in_spine = !epub.nav_in_spine
+    epub.add_nav_to_spine()
 }
 
 function change(e: { moved: Moved }) {
     const { moved } = e
 
-    status.move(moved.oldIndex, moved.newIndex)
+    epub.move(moved.oldIndex, moved.newIndex)
 }
 
 function set_cover(node: FileNode) {
-    status.set_cover(node.id)
+    epub.set_cover(node.id)
 }
 
 let hi = 1
 function new_html(i: number) {
-    let html_file_name = `${status.manifest_path}${status.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
-    while (status.nodes[TREE.HTML].children!.some(n => n.id === html_file_name)) {
+    let html_file_name = `${epub.manifest_path}${epub.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
+    while (epub.nodes[TREE.HTML].children!.some(n => n.id === html_file_name)) {
         hi++
-        html_file_name = `${status.manifest_path}${status.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
+        html_file_name = `${epub.manifest_path}${epub.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
     }
-    status.new_html(i, html_file_name)
+    epub.new_html(i, html_file_name)
 }
 
 let si = 1
 function new_css() {
-    let style_file_name = `${status.manifest_path}${status.style_path}Style${si.toString().padStart(4, '0')}.css`
-    while (status.nodes[TREE.STYLE].children!.some(n => n.id === style_file_name)) {
+    let style_file_name = `${epub.manifest_path}${epub.style_path}Style${si.toString().padStart(4, '0')}.css`
+    while (epub.nodes[TREE.STYLE].children!.some(n => n.id === style_file_name)) {
         si++
-        style_file_name = `${status.manifest_path}${status.style_path}Style${si.toString().padStart(4, '0')}.css`
+        style_file_name = `${epub.manifest_path}${epub.style_path}Style${si.toString().padStart(4, '0')}.css`
     }
-    status.new_css(style_file_name)
+    epub.new_css(style_file_name)
 }
 
 const to_node = ref<FileNode | null>(null)
@@ -346,7 +346,7 @@ async function link_to_style(node: FileNode) {
     @change="change"
   >
     <template #item="{ element: node, index: i }">
-      <div :class="{ draggable: node.type === 'html' || node.type === 'navigation' && status.nav_in_spine }">
+      <div :class="{ draggable: node.type === 'html' || node.type === 'navigation' && epub.nav_in_spine }">
         <q-menu
           context-menu
         >
@@ -408,13 +408,13 @@ async function link_to_style(node: FileNode) {
                 @click="add_nav_to_spine(node)"
               >
                 <q-item-section>
-                  {{ status.nav_in_spine ? '移出书脊' : '添加到书脊' }}
+                  {{ epub.nav_in_spine ? '移出书脊' : '添加到书脊' }}
                 </q-item-section>
               </q-item>
               <q-item
                 v-close-popup
                 clickable
-                @click="status.gen_ncx_for_epub2"
+                @click="epub.gen_ncx_for_epub2"
               >
                 <q-item-section>
                   为ePub2生成NCX和GUIDE

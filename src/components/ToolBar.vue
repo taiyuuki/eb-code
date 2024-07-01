@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { themes } from '@/editor/themes'
 import { NOT_SUPPORTED_THEMES } from '@/static'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { useTheme } from '@/stores/theme'
 
 const emit = defineEmits<{
@@ -15,7 +15,7 @@ const emit = defineEmits<{
 }>()
 
 const theme = useTheme()
-const status = useStatus()
+const epub = useEPUB()
 const router = useRouter()
 
 const supported_themes = themes.filter(t => !NOT_SUPPORTED_THEMES.includes(t))
@@ -42,8 +42,8 @@ function set_theme(t: string) {
       <MenuIcon
         name="save-file"
         tip="保存"
-        :disable="!status.editable"
-        @click="status.editable && emit('save')"
+        :disable="!epub.editable"
+        @click="epub.editable && emit('save')"
       />
       <q-separator
         m="x-10"
@@ -68,20 +68,20 @@ function set_theme(t: string) {
       <MenuIcon
         name="epub-meta"
         tip="元数据"
-        :disable="!status.editable"
-        @click="status.editable && emit('meta')"
+        :disable="!epub.editable"
+        @click="epub.editable && emit('meta')"
       />
       <MenuIcon
         name="image"
         tip="封面"
-        :disable="!status.editable"
-        @click="status.editable && emit('cover')"
+        :disable="!epub.editable"
+        @click="epub.editable && emit('cover')"
       />
       <MenuIcon
         name="contents"
         tip="目录"
-        :disable="!status.editable"
-        @click="status.editable && emit('contents')"
+        :disable="!epub.editable"
+        @click="epub.editable && emit('contents')"
       />
       <q-separator
         m="x-10"
@@ -91,14 +91,14 @@ function set_theme(t: string) {
       <MenuIcon
         name="search"
         tip="全书搜索"
-        :disable="!status.editable"
+        :disable="!epub.editable"
         @click="router.push('/search')"
       />
       <MenuIcon
         name="eyes"
         tip="预览"
-        :disable="!status.editable"
-        @click="status.editable && emit('preview')"
+        :disable="!epub.editable"
+        @click="epub.editable && emit('preview')"
       />
     </div>
     <q-select

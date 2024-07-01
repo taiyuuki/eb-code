@@ -4,19 +4,19 @@ import { useCompRef } from '@/composables/useComp'
 import { contents_setting } from '@/composables/contents_setting'
 import { cover_setting } from '@/composables/cover_setting'
 import { DISPLAY } from '@/static'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { check_update } from '@/notif/update'
 import { useOption } from '@/stores/option'
 
 const titlebar = useCompRef(TitleBar)
-const status = useStatus()
+const epub = useEPUB()
 const option = useOption()
 
 onBeforeMount(() => {
     document.documentElement.classList.add('monaco-component')
 
     document.addEventListener('keydown', function(e: KeyboardEvent) {
-        if (status.display === DISPLAY.CODE) {
+        if (epub.display === DISPLAY.CODE) {
             if ((e.key === '-' || e.key === '_') && e.ctrlKey) {
                 e.preventDefault()
                 option.value.font_size = Math.max(option.value.font_size - 2, 14)

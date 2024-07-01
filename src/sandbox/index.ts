@@ -1,30 +1,30 @@
 import { load } from 'cheerio'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import stores from '@/stores'
 import { invoke_get_text, invoke_write_text } from '@/invoke'
 import 'ses'
 
-const status = useStatus(stores)
+const epub = useEPUB(stores)
 
 const sandbox = {
     _api: {
         _book: {
             get_bookid() {
-                return status.book_id
+                return epub.book_id
             },
             get_spine() {
-                return status.get_spine()
+                return epub.get_spine()
             },
             set_spine(manifest_id: string, linear: boolean) {
-                status.add_spine(manifest_id, linear)
+                epub.add_spine(manifest_id, linear)
             },
             spine_insert_before(position: number, manifest_id: string, linear: boolean, properties?: Record<string, string>) {
-                status.spine_insert_before(position, manifest_id, linear, properties)
+                epub.spine_insert_before(position, manifest_id, linear, properties)
             },
             async readfile(manifest_id: string) {
-                const id = status.get_id(manifest_id)
+                const id = epub.get_id(manifest_id)
                 if (id) {
-                    const result = await invoke_get_text(id, status.dir)
+                    const result = await invoke_get_text(id, epub.dir)
     
                     return result[0]
                 }
@@ -33,27 +33,27 @@ const sandbox = {
                 }
             },
             async writefile(manifest_id: string, data: string) {
-                const id = status.get_id(manifest_id)
+                const id = epub.get_id(manifest_id)
                 if (id) {
-                    return invoke_write_text(id, status.dir, data)
+                    return invoke_write_text(id, epub.dir, data)
                 }
             },
             get_spine_ppd() {
-                return status.get_spine_ppd()
+                return epub.get_spine_ppd()
             },
             get_metadata_xml() {
-                return status.get_metadata_xml()
+                return epub.get_metadata_xml()
             },
             get_package_tag() {
-                return status.get_package_tag()
+                return epub.get_package_tag()
             },
             set_package_tag(tag: Record<string, string>) {
-                status.set_package_tag(tag)
+                epub.set_package_tag(tag)
             },
         },
         async _save_opf() {
-            if (status.opf_is_dirty) {
-                await status.save_opf()
+            if (epub.opf_is_dirty) {
+                await epub.save_opf()
             }
         },
         _load: load,

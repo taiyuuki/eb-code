@@ -5,7 +5,7 @@ import { TauriEvent, listen } from '@tauri-apps/api/event'
 import { getVersion } from '@tauri-apps/api/app'
 import { changed, invoke_clean_cache, invoke_create_epub, invoke_open_epub, invoke_save_epub } from '@/invoke'
 import { useTheme } from '@/stores/theme'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { DISPLAY } from '@/static'
 import { cover_setting } from '@/composables/cover_setting'
 import { notif_negative, notif_positive } from '@/notif'
@@ -36,13 +36,13 @@ listen(TauriEvent.WINDOW_RESIZED, get_maximized)
 onMounted(get_maximized)
 
 const theme = useTheme()
-const status = useStatus()
+const epub = useEPUB()
 const activity_nodes = useActivity()
 const router = useRouter()
 const preview = usePreview()
 
 async function open_epub_file() {
-    if (status.is_opening || status.is_saving) {
+    if (epub.is_opening || epub.is_saving) {
         notif_negative('当前文件尚未处理完毕，请稍后再试。')
 
         return
@@ -72,17 +72,17 @@ async function open_epub_file() {
     })
     const path = file?.path
     if (path) {
-        status.is_opening = true
+        epub.is_opening = true
         invoke_open_epub(path).then(payload => {
-            if (status.dir !== '') {
-                status.close_epub()
+            if (epub.dir !== '') {
+                epub.close_epub()
             }
-            status.current.save_path = path
-            status.is_opening = false
-            status.parse_epub(payload)
+            epub.save_path = path
+            epub.is_opening = false
+            epub.parse(payload)
             router.replace({ path: '/' })
         }, () => {
-            status.is_opening = false
+            epub.is_opening = false
             notif_negative('失败！不是有效的EPUB文件。')
         })
     }
@@ -104,49 +104,49 @@ async function create_epub(version: number) {
     }
     const payload = await invoke_create_epub(version)
     router.replace({ path: '/' })
-    if (status.dir !== '') {
-        status.close_epub()
+    if (epub.dir !== '') {
+        epub.close_epub()
     }
-    status.parse_epub(payload)
+    epub.parse(payload)
 }
 
 async function save_epub() {
-    if (status.dir === '') {
+    if (epub.dir === '') {
         return
     }
-    if (status.current.save_path === '') {
+    if (epub.save_path === '') {
         save_epub_to()
     }
-    else if (status.is_opening || status.is_saving) {
+    else if (epub.is_opening || epub.is_saving) {
         notif_negative('当前文件尚未处理完毕，请稍后再试。')
   
         return
     }
     else {
-        status.is_saving = true
+        epub.is_saving = true
         try{
-            if (status.meta_is_dirty) {
-                Object.assign(status.metadata, dirty_meta.value)
-                await status.save_meta()
-                status.meta_is_dirty = false
+            if (epub.meta_is_dirty) {
+                Object.assign(epub.metadata, dirty_meta.value)
+                await epub.save_meta()
+                epub.meta_is_dirty = false
             }
-            await invoke_save_epub(status.dir, status.current.save_path)
+            await invoke_save_epub(epub.dir, epub.save_path)
         }
         catch(_e) {
             notif_negative('保存失败！缓存文件被删除了。')
             
             return
         }
-        status.is_saving = false
+        epub.is_saving = false
         notif_positive('文件已保存')
     }
 }
 
 async function save_epub_to() {
-    if (status.dir === '') {
+    if (epub.dir === '') {
         return
     }
-    if (status.is_opening || status.is_saving) {
+    if (epub.is_opening || epub.is_saving) {
         notif_negative('当前文件尚未处理完毕，请稍后再试。')
 
         return
@@ -159,21 +159,21 @@ async function save_epub_to() {
                 
             },
         ],
-        defaultPath: status.current.save_path || 'Unnamed.epub',
+        defaultPath: epub.save_path || 'Unnamed.epub',
     })
 
     if (path) {
-        status.is_saving = true
-        status.current.save_path = path
+        epub.is_saving = true
+        epub.save_path = path
         try {
-            await invoke_save_epub(status.dir, path)
+            await invoke_save_epub(epub.dir, path)
         }
         catch(_e) {
             notif_negative('保存失败！缓存文件被删除了。')
 
             return 
         }
-        status.is_saving = false
+        epub.is_saving = false
         notif_positive('文件已保存')
     }
 }
@@ -191,14 +191,14 @@ async function close_epub() {
             return
         }
     }
-    status.clean_tree()
-    status.dir && invoke_clean_cache(status.dir)
-    status.close_epub()
+    epub.clean_tree()
+    epub.dir && invoke_clean_cache(epub.dir)
+    epub.close_epub()
     router.replace({ path: '/' })
 }
 
 function edit_metadata() {
-    let node = status.tabs.find(n => n.id === 'metadata')
+    let node = epub.tabs.find(n => n.id === 'metadata')
     if (!node) {
         node = reactive({
             id: 'metadata',
@@ -206,12 +206,12 @@ function edit_metadata() {
             icon: 'i-vscode-icons:file-type-maya',
             type: 'metadata',
         })
-        status.tabs.push(node)
+        epub.tabs.push(node)
     }
     activity_nodes.on(node)
-    status.metadata.length = 0
-    status.parse_metadata()
-    status.display = DISPLAY.METADATA
+    epub.metadata.length = 0
+    epub.parse_metadata()
+    epub.display = DISPLAY.METADATA
 }
 
 function toggle_preview() {
@@ -307,9 +307,9 @@ defineExpose({
           </q-item>
           <q-separator :dark="theme.dark" />
           <q-item
-            v-close-popup="status.editable"
-            :disable="!status.editable"
-            :clickable="status.editable"
+            v-close-popup="epub.editable"
+            :disable="!epub.editable"
+            :clickable="epub.editable"
             @click="save_epub"
           >
             <q-item-section>
@@ -317,9 +317,9 @@ defineExpose({
             </q-item-section>
           </q-item>
           <q-item
-            v-close-popup="status.editable"
-            :disable="!status.editable"
-            :clickable="status.editable"
+            v-close-popup="epub.editable"
+            :disable="!epub.editable"
+            :clickable="epub.editable"
             @click="save_epub_to"
           >
             <q-item-section>
@@ -329,8 +329,8 @@ defineExpose({
           <q-separator :dark="theme.dark" />
           <q-item
             v-close-popup
-            :disable="!status.editable"
-            :clickable="status.editable"
+            :disable="!epub.editable"
+            :clickable="epub.editable"
             @click="close_epub"
           >
             <q-item-section>
@@ -362,9 +362,9 @@ defineExpose({
       >
         <q-list>
           <q-item
-            v-close-popup="status.editable"
-            :disable="!status.editable"
-            :clickable="status.editable"
+            v-close-popup="epub.editable"
+            :disable="!epub.editable"
+            :clickable="epub.editable"
             @click="cover_setting = true"
           >
             <q-item-section>
@@ -372,9 +372,9 @@ defineExpose({
             </q-item-section>
           </q-item>
           <q-item
-            v-close-popup="status.editable"
-            :disable="!status.editable"
-            :clickable="status.editable"
+            v-close-popup="epub.editable"
+            :disable="!epub.editable"
+            :clickable="epub.editable"
             @click="edit_metadata"
           >
             <q-item-section>
@@ -382,9 +382,9 @@ defineExpose({
             </q-item-section>
           </q-item>
           <q-item
-            v-close-popup="status.editable"
-            :disable="!status.editable"
-            :clickable="status.editable"
+            v-close-popup="epub.editable"
+            :disable="!epub.editable"
+            :clickable="epub.editable"
             @click="contents_setting = true"
           >
             <q-item-section>
@@ -404,8 +404,8 @@ defineExpose({
       <q-menu>
         <q-list>
           <q-item
-            :disable="!status.editable"
-            :clickable="status.editable"
+            :disable="!epub.editable"
+            :clickable="epub.editable"
             @click="toggle_preview"
           >
             <q-item-section>

@@ -6,29 +6,29 @@ import { ask } from '@tauri-apps/plugin-dialog'
 import type { FileNode } from '@/components/types'
 import { DISPLAY } from '@/static'
 import { useTheme } from '@/stores/theme'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { changed, invoke_clean_cache } from '@/invoke'
 import { useActivity } from '@/composables/useActivity'
 import { usePreview } from '@/stores/preview'
 
 const preview = usePreview()
 const theme = useTheme()
-const status = useStatus()
+const epub = useEPUB()
 const app_window = getCurrent()
 const activity_node = useActivity()
 
 const sidebar_width = ref(250)
 
 function open_file(node: FileNode) {
-    status.open(node)
+    epub.open(node)
 }
 
 function close_file(node: FileNode) {
-    status.remove_tab_by_id(node.id)
+    epub.remove_tab_by_id(node.id)
     if (node.open) {
-        status.open_first()
+        epub.open_first()
     }
-    if (status.tabs.length === 0) {
+    if (epub.tabs.length === 0) {
         activity_node.close()
     }
 
@@ -61,8 +61,8 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
             return
         }
     }
-    if (status.dir) {
-        await invoke_clean_cache(status.dir).finally(() => {
+    if (epub.dir) {
+        await invoke_clean_cache(epub.dir).finally(() => {
           
             app_window.destroy()
         })
@@ -75,7 +75,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
 
 <template>
   <q-page
-    v-show="status.editable"
+    v-show="epub.editable"
     pst="rel"
     style="min-height: inherit;"
   >
@@ -124,7 +124,7 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
                     @mousewheel.prevent="scroll_ytx"
                   >
                     <draggable
-                      :list="status.tabs"
+                      :list="epub.tabs"
                       item-key="id"
                       animation="200"
                       force-fallback
@@ -151,16 +151,16 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
                 </div>
               </TitleBanner>
               <CodeEditor
-                v-show="status.display === DISPLAY.CODE"
-                :language="status.current.lang"
-                :code="status.current.code"
+                v-show="epub.display === DISPLAY.CODE"
+                :language="epub.current.lang"
+                :code="epub.current.code"
               />
           
               <ImageViewer
-                v-show="status.display === DISPLAY.IMAGE"
-                :src="status.current.src"
+                v-show="epub.display === DISPLAY.IMAGE"
+                :src="epub.current.src"
               />
-              <MetaSet v-if="status.display === DISPLAY.METADATA" />
+              <MetaSet v-if="epub.display === DISPLAY.METADATA" />
             </template>
             <template #after>
               <HtmlPreview v-if="preview.display" />

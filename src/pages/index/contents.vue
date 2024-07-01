@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { activity_contents } from '@/composables/useActivity'
 import type { ContentsNode } from '@/components/types'
 import { useTheme } from '@/stores/theme'
 import { contents_setting } from '@/composables/contents_setting'
 
-const status = useStatus()
+const epub = useEPUB()
 const theme = useTheme()
 
 function open(node: ContentsNode) {
@@ -17,11 +17,11 @@ function open(node: ContentsNode) {
     activity_contents.selected_node.selected = true
 
     const [id, $id] = node.id.split('#')
-    if (node.id in status.contents_id_lnum) {
-        status.open_by_id(id, status.contents_id_lnum[node.id], $id ? `#${$id}` : undefined)
+    if (node.id in epub.contents_id_lnum) {
+        epub.open_by_id(id, epub.contents_id_lnum[node.id], $id ? `#${$id}` : undefined)
     }
     else {
-        status.open_by_id(id, 1)
+        epub.open_by_id(id, 1)
     }
 }
 </script>
@@ -54,7 +54,7 @@ function open(node: ContentsNode) {
     style="height: calc(100vh - 170px);padding-bottom: 12px;"
   >
     <ContentsTree
-      :contents="status.contents_tree"
+      :contents="epub.contents_tree"
       :edit="false"
       @open="open"
     />

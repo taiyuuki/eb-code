@@ -2,7 +2,7 @@
 import { arr_move, arr_remove, clone_deep } from '@taiyuuki/utils'
 import { useCloned } from '@vueuse/core'
 import type { ContentsNode, FileNode } from './types'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { activity_contents } from '@/composables/useActivity'
 import { contents_setting } from '@/composables/contents_setting'
 import { useTheme } from '@/stores/theme'
@@ -12,9 +12,9 @@ import { vScrollview } from '@/directives/v-scrollview'
 import { vMove } from '@/directives/v-move'
 import { invoke_gen_contents } from '@/invoke'
 
-const status = useStatus()
+const epub = useEPUB()
 const theme = useTheme()
-const { cloned: dirty_contents, sync } = useCloned(status.contents_tree, { clone: clone_deep })
+const { cloned: dirty_contents, sync } = useCloned(epub.contents_tree, { clone: clone_deep })
 const contents_edit = ref(false)
 let editting_node: ContentsNode | null = null
 let selected_dirty_node: ContentsNode | null = null
@@ -113,7 +113,7 @@ function on_show() {
         activity_contents.selected_node.selected = false
         activity_contents.selected_node = null
     }
-    status.load_contents_link()
+    epub.load_contents_link()
     sync()
 }
 
@@ -142,14 +142,14 @@ async function save_contents() {
         selected_dirty_node = null
     }
     if (replacement && Object.keys(replacement).length > 0) {
-        await invoke_gen_contents(status.dir, replacement).finally(() => {
+        await invoke_gen_contents(epub.dir, replacement).finally(() => {
             replacement = null
         })
-        await status.load_contents_link()
+        await epub.load_contents_link()
     }
-    status.contents_tree.length = 0
-    status.contents_tree.push(...toRaw(dirty_contents.value))
-    status.save_contents()
+    epub.contents_tree.length = 0
+    epub.contents_tree.push(...toRaw(dirty_contents.value))
+    epub.save_contents()
     contents_setting.value = false
 }
 
@@ -168,7 +168,7 @@ function init_edit() {
 
 function edit_node(node?: ContentsNode) {
     if (node) {
-        selected_index.value = status.nodes[TREE.HTML].children!.findIndex(n => n.id === node.id)
+        selected_index.value = epub.nodes[TREE.HTML].children!.findIndex(n => n.id === node.id)
         input_value.name = node.title
         input_value.value = node.id
         contents_edit.value = true
@@ -270,7 +270,7 @@ function insert_after(node?: ContentsNode) {
 }
 
 async function gen_contents() {
-    const headers = await status.get_contents_header()
+    const headers = await epub.get_contents_header()
     dirty_contents.value = headers.nodes
     replacement = headers.replacement
 }
@@ -442,7 +442,7 @@ async function gen_contents() {
         style="box-shadow: 0 0 2px var(--eb-fg);"
       >
         <template
-          v-for="(node, i) in status.contents_links"
+          v-for="(node, i) in epub.contents_links"
           :key="node.id"
         >
           <div

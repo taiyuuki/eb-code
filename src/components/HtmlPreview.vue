@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { usePreview } from '@/stores/preview'
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { useTheme } from '@/stores/theme'
 
 defineEmits<{
@@ -8,12 +8,12 @@ defineEmits<{
 }>()
 const $iframe = ref<HTMLIFrameElement>()
 const preview = usePreview()
-const status = useStatus()
+const epub = useEPUB()
 const theme = useTheme()
 
 const url = computed(() => {
 
-    return `http://127.0.0.1:${preview.port}/static/${status.dir}/${preview.id}`
+    return `http://127.0.0.1:${preview.port}/static/${epub.dir}/${preview.id}`
 })
 
 watch(() => preview.need_reload, () => {

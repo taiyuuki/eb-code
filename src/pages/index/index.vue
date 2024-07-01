@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useStatus } from '@/stores/status'
+import { useEPUB } from '@/stores/epub'
 import { useTheme } from '@/stores/theme'
 
-const status = useStatus()
+const epub = useEPUB()
 const theme = useTheme()
 </script>
 
@@ -23,7 +23,7 @@ const theme = useTheme()
     style="height: calc(100vh - 165px);padding-bottom: 12px;"
   > 
     <FileTree
-      :files="status.nodes"
+      :files="epub.nodes"
       :level="1"
     />
   </q-scroll-area>

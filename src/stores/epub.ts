@@ -66,7 +66,7 @@ const contents = {
     namespaceURI: 'http://www.daisy.org/z3986/2005/ncx/',
 }
 
-const useStatus = defineStore('status', { 
+const useEPUB = defineStore('epub', { 
     state: () => ({
         nodes: [] as FileNode[],
         opf_id: '', // opf文件路径，即container.xml里的filepath
@@ -74,8 +74,8 @@ const useStatus = defineStore('status', {
         nav_manifest_id: '', // 导航文件id
         tabs: [] as FileNode[], // 打开的标签
         image_srces: {} as Record<string, string>, // 图片src
+        save_path: '', // epub保存路径
         current: {
-            save_path: '', // epub保存路径
             id: '', // 打开文件的id，例如META-INF/container.xml
             code: '', // 当前文件内容
             lang: 'html' as Language, // 当前打开的文本文件类型
@@ -90,7 +90,7 @@ const useStatus = defineStore('status', {
         is_reading: false, // 正在读取文本文件内容
         is_writing: false, // 正在写入文本
         is_toogle: false, // 正在切换文件
-        epub_version: '2.0', // EPUB版本
+        version: '2.0', // EPUB版本
         metadata: [] as Record<string, any>[], // EPUB元数据
         meta_is_dirty: false,
         opf_is_dirty: false,
@@ -114,7 +114,7 @@ const useStatus = defineStore('status', {
 
         // EPUB文件名
         file_name(state) {
-            return filename(state.current.save_path || 'Unnamed.epub')
+            return filename(state.save_path || 'Unnamed.epub')
         },
         book_id(state) {
             return state.metadata.find(m => m.tagName === 'dc:identifier')?.textContent || ''
@@ -140,7 +140,7 @@ const useStatus = defineStore('status', {
         },
     },
     actions: {
-        parse_epub(payload: EpubContent) {
+        parse(payload: EpubContent) {
             
             const dom = xmlToDom(payload.container)
             const rootfile = dom.getElementsByTagName('rootfile')[0]
@@ -192,7 +192,7 @@ const useStatus = defineStore('status', {
             })
 
             this.add_parent()
-            const root_path = this.opf_id.substring(0, this.opf_id.lastIndexOf('/')) 
+            const root_path = dirname(this.opf_id)
             this.manifest_path = root_path === '' ? '' : `${root_path}/`
 
             const get_sub_path = (path: string) => {
@@ -259,7 +259,7 @@ const useStatus = defineStore('status', {
         parse_version() {
             if (opf.dom) {
                 const package_node = opf.dom.querySelector('package')
-                this.epub_version = package_node?.getAttribute('version') || '2.0'
+                this.version = package_node?.getAttribute('version') || '2.0'
             }
         },
         parse_cover() {
@@ -326,7 +326,7 @@ const useStatus = defineStore('status', {
             }
         },
         parse_nav() {
-            if (this.epub_version.startsWith('3')) {
+            if (this.version.startsWith('3')) {
                 const item = opf.dom?.querySelector('item[properties="nav"]')
                 this.nav_href = item?.getAttribute('href') || ''
                 this.nav_manifest_id = item?.getAttribute('id') || ''
@@ -1554,7 +1554,7 @@ const useStatus = defineStore('status', {
             this.meta_is_dirty = false
             this.opf_is_dirty = false
             this.is_toogle = false
-            this.current.save_path = ''
+            this.save_path = ''
             this.metadata.length = 0    
             this.nav_href = ''
             this.nav_in_spine = false
@@ -1569,4 +1569,4 @@ const useStatus = defineStore('status', {
     },
 })
 
-export { useStatus }
+export { useEPUB }

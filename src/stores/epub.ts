@@ -1,9 +1,9 @@
 // @unocss-include
 import { convertFileSrc } from '@tauri-apps/api/core'
-import { arr_remove, is_empty_string, is_void, str_random } from '@taiyuuki/utils'
+import { arr_remove, is_empty_string, is_void, key_in, str_random } from '@taiyuuki/utils'
 import { ask } from '@tauri-apps/plugin-dialog'
 import { load } from 'cheerio'
-import type { ContentsNode, EpubContent, FileNode } from '@/components/types'
+import type { ContentsNode, EpubContent, FileNode, GuideNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
 import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_replace, invoke_search, invoke_write_text } from '@/invoke'
 import { basename, dirname, filename, join, relative } from '@/utils/path'
@@ -12,7 +12,7 @@ import { get_scroll_top, scroll_to_line, scroll_top_to } from '@/editor'
 import { useActivity } from '@/composables/useActivity'
 import { notif_negative, notif_warning } from '@/notif'
 import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
-import { DISPLAY, TREE } from '@/static'
+import { DISPLAY, SSV, TREE } from '@/static'
 import { cover_template, ncx_template, xhtml_template } from '@/template/xhtml'
 import stores from '@/stores'
 import { usePreview } from '@/stores/preview'
@@ -109,6 +109,7 @@ const useEPUB = defineStore('epub', {
         contents_tree: [] as ContentsNode[],
         contents_links: [] as FileNode[],
         contents_id_lnum: {} as Record<string, number>,
+        guide: [] as GuideNode[],
     }),
     getters: {
 
@@ -140,7 +141,7 @@ const useEPUB = defineStore('epub', {
         },
     },
     actions: {
-        parse(payload: EpubContent) {
+        async parse(payload: EpubContent) {
             
             const dom = xmlToDom(payload.container)
             const rootfile = dom.getElementsByTagName('rootfile')[0]
@@ -230,8 +231,9 @@ const useEPUB = defineStore('epub', {
                 this.video_path = get_sub_path(video)
             }
 
-            this.parse_opf()
-            this.load_contents_link()
+            await this.parse_opf()
+            await this.load_contents_link()
+            this.parse_guide()
         },
         async parse_opf() {
             if (this.opf_id !== '') {
@@ -557,7 +559,108 @@ const useEPUB = defineStore('epub', {
             }
         },
         parse_guide() {
-            
+            if (this.nav_version === 2) {
+                const guide_node = opf.dom?.querySelector('guide')
+                if (guide_node) {
+                    const referencies = guide_node.querySelectorAll('reference')
+                    referencies.forEach(r => {
+                        const type = r.getAttribute('type')
+                        const href = r.getAttribute('href')
+                        if (href && type) {
+                            const title = r.getAttribute('title') ?? (key_in(type, SSV) ? SSV[type] : type)
+                            const id = join(dirname(this.opf_id), href)
+                            this.guide.push({
+                                id,
+                                type,
+                                title,
+                                href,
+                            })
+                        }
+                    })
+                }
+            }
+            else {
+                const navs = contents.dom!.querySelectorAll('nav')
+                const guide_node = Array.from(navs).find(nav => nav.getAttribute('epub:type') === 'landmarks')
+                const ols = guide_node?.querySelectorAll('li')
+                if (ols) {
+                    ols.forEach(ol => {
+                        const a = ol.querySelector('a')
+                        if (a) {
+                            const type = a.getAttribute('epub:type')
+                            const href = a.getAttribute('href')
+                            if (href && type && key_in(type, SSV)) {
+                                const title = a.textContent ?? (key_in(type, SSV) ? SSV[type] : type)
+                                const id = join(this.manifest_path, href)
+                                this.guide.push({
+                                    id,
+                                    type,
+                                    title,
+                                    href,
+                                })
+                            }
+                        }
+                    })
+                }
+            }
+        },
+        async save_guide() {
+            if (this.nav_version === 2) {
+                let guide_node = opf.dom?.querySelector('guide')
+                if (guide_node) {
+                    guide_node?.replaceChildren()
+                }
+                else {
+                    guide_node = document.createElementNS(opf.namespaceURI, 'guide')
+                    opf.dom?.querySelector('package')?.appendChild(guide_node)
+                }
+                this.guide.forEach(g => {   
+                    const r = document.createElementNS(opf.namespaceURI, 'reference')
+                    r.setAttribute('type', g.type)
+                    r.setAttribute('href', g.href)
+                    r.setAttribute('title', key_in(g.type, SSV) ? SSV[g.type] : g.type)
+                    guide_node.appendChild(r)
+                })
+                await this.save_opf()
+            }
+            else {
+                const navs = contents.dom!.querySelectorAll('nav')
+                let guide_node = Array.from(navs).find(nav => nav.getAttribute('epub:type') === 'landmarks')
+                if (guide_node) {
+                    guide_node?.replaceChildren()
+                }
+                else {
+                    guide_node = document.createElement('ol')
+                    guide_node.setAttribute('epub:type', 'landmarks')
+                    contents.dom!.body.appendChild(guide_node)
+                }
+                this.guide.forEach(g => { 
+                    const a = document.createElement('a')
+                    a.setAttribute('epub:type', g.type)
+                    a.setAttribute('href', g.href)
+                    const li = document.createElement('li')
+                    li.appendChild(a)
+                    guide_node.appendChild(li)
+                })
+                await this.save_contents()
+            }
+        },
+        add_to_guide(node: FileNode, type: keyof typeof SSV) {
+            const r = this.guide.find(g => g.type === type)
+            const href = relative(node.id, this.opf_id)
+            if (r) {
+                r.type = type
+                r.title = SSV[type]
+                r.href = href
+            }
+            else {
+                this.guide.push({
+                    id: node.id,
+                    type: type,
+                    title: SSV[type],
+                    href,
+                })
+            }
         },
         get_nav_epub2(dom: Document, namespaceURI: string) {
             const navMap = document.createElementNS(namespaceURI, 'navMap')
@@ -652,7 +755,7 @@ const useEPUB = defineStore('epub', {
             await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, code)
         },
         async gen_ncx_for_epub2() {
-            const conf = await ask('此操作是为了兼容ePub2，如果你后续修改了导航文件，你可能需要重新执行此操作，是否继续？', {
+            const conf = await ask('此操作是为了兼容ePub2，如果你后续修改了目录，需要重新执行此操作，是否继续？', {
                 title: '提示',
                 okLabel: '是',
                 cancelLabel: '否',
@@ -1014,127 +1117,146 @@ const useEPUB = defineStore('epub', {
                 const src = convertFileSrc(this.base_path + path)
                 this.cover_src = src
                 this.image_srces[path] = src
-
             }
             const img = new Image()
             img.src = this.cover_src
-            const id = `${this.manifest_path + this.text_path}cover.xhtml`
+            let id = `${this.manifest_path + this.text_path}cover.xhtml`
+            let title = 'Cover'
+            const cover_guide = this.guide.find(x => x.type === 'cover')
+            if (cover_guide) {
+                id = cover_guide.id
+                title = cover_guide.title
+            }
             const xhtml_href = relative(id, this.opf_id)
-            img.onload = () => {
+            img.onload = async() => {
                 const href = relative(path, id)
                 const { naturalWidth, naturalHeight } = img
                 const xhtml = fmt_html(cover_template(naturalWidth, naturalHeight, href)) 
                 const cc = this.nodes[TREE.HTML].children!.find(n => n.id === id)
-                invoke_write_text(this.dir, id, xhtml).then(() => {
-                    if (cc) {
-                        if (cc.open) {
-                            this.current.code = xhtml
-                        }
+                await invoke_write_text(this.dir, id, xhtml)
+                if (cc) {
+                    if (cc.open) {
+                        this.current.code = xhtml
+                    }
+                }
+                else {
+                    this.nodes[TREE.HTML].children?.unshift({
+                        id,
+                        name: id,
+                        icon: 'i-vscode-icons:file-type-html',
+                        parent: this.nodes[TREE.HTML],
+                    })
+                }
+                this.add_tab(this.nodes[TREE.HTML].children![0])
+                this.open(this.nodes[TREE.HTML].children![0])
+                
+                const old_items = opf.dom?.querySelectorAll('item[properties="cover-image"]')
+                if (old_items) {
+                    old_items.forEach(i => i.removeAttribute('properties'))
+                }
+
+                const cover_href = path.replace(this.manifest_path, '')
+                const item_cover = opf.dom?.querySelector(`item[href="${cover_href}"`)
+                if (item_cover) {
+                    item_cover.setAttribute('properties', 'cover-image')
+                    const content = item_cover.id
+                    let meta_cover = opf.dom?.querySelector('meta[name="cover"]')
+                    if (!meta_cover) {
+                
+                        meta_cover = document.createElementNS(opf.namespaceURI, 'meta')
+                        meta_cover.setAttribute('name', 'cover')
+                        const meta = opf.dom?.querySelector('metadata')
+                        meta?.appendChild(document.createTextNode('\n'))
+                        meta?.appendChild(meta_cover)
+                
+                    }
+                    meta_cover.setAttribute('content', content ?? filename(path))
+                }
+
+                let manifest_id = `${this.text_path}cover.xhtml`
+                let item_xhtml = opf.dom?.querySelector(`item[href="${manifest_id}"]`)
+                const manifest = opf.dom?.querySelector('manifest')
+                if (!item_xhtml) {
+                    item_xhtml = document.createElementNS(opf.namespaceURI, 'item')
+                    manifest?.appendChild(document.createTextNode('\n'))
+                    manifest?.appendChild(item_xhtml)
+                    item_xhtml.setAttribute('id', manifest_id)
+                    item_xhtml.setAttribute('href', manifest_id)
+                    item_xhtml.setAttribute('media-type', 'application/xhtml+xml')
+                }
+                manifest_id = item_xhtml.getAttribute('id') || manifest_id
+
+                let itemref_cover = opf.dom?.querySelector(`itemref[idref="${manifest_id}"]`)
+                if(!itemref_cover) {
+                    itemref_cover = document.createElementNS(opf.namespaceURI, 'itemref')
+                    itemref_cover.setAttribute('idref', manifest_id)
+                    itemref_cover.setAttribute('linear', 'yes')
+                    const spine = opf.dom?.querySelector('spine')
+                    const first_child = spine?.children[0]
+                    if (first_child) {
+                        spine.insertBefore(document.createTextNode('\n'), first_child)
+                        spine.insertBefore(itemref_cover, first_child)
                     }
                     else {
-                        this.nodes[TREE.HTML].children?.unshift({
-                            id,
-                            name: id,
-                            icon: 'i-vscode-icons:file-type-html',
-                            parent: this.nodes[TREE.HTML],
-                        })
+                        spine?.appendChild(document.createTextNode('\n'))
+                        spine?.appendChild(itemref_cover)
                     }
-                    this.add_tab(this.nodes[TREE.HTML].children![0])
-                    this.open(this.nodes[TREE.HTML].children![0])
-                })
-            }
-
-            const old_items = opf.dom?.querySelectorAll('item[properties="cover-image"]')
-            if (old_items) {
-                old_items.forEach(i => i.removeAttribute('properties'))
-            }
-
-            const cover_href = path.replace(this.manifest_path, '')
-            const item_cover = opf.dom?.querySelector(`item[href="${cover_href}"`)
-            if (item_cover) {
-                item_cover.setAttribute('properties', 'cover-image')
-                const content = item_cover.id
-                let meta_cover = opf.dom?.querySelector('meta[name="cover"]')
-                if (!meta_cover) {
-                    
-                    meta_cover = document.createElementNS(opf.namespaceURI, 'meta')
-                    meta_cover.setAttribute('name', 'cover')
-                    const meta = opf.dom?.querySelector('metadata')
-                    meta?.appendChild(document.createTextNode('\n'))
-                    meta?.appendChild(meta_cover)
-                    
                 }
-                meta_cover.setAttribute('content', content ?? filename(path))
-            }
 
-            let manifest_id = `${this.text_path}cover.xhtml`
-            let item_xhtml = opf.dom?.querySelector(`item[href="${manifest_id}"]`)
-            const manifest = opf.dom?.querySelector('manifest')
-            if (!item_xhtml) {
-                item_xhtml = document.createElementNS(opf.namespaceURI, 'item')
-                manifest?.appendChild(document.createTextNode('\n'))
-                manifest?.appendChild(item_xhtml)
-                item_xhtml.setAttribute('id', manifest_id)
-                item_xhtml.setAttribute('href', manifest_id)
-                item_xhtml.setAttribute('media-type', 'application/xhtml+xml')
-            }
-            manifest_id = item_xhtml.getAttribute('id') || manifest_id
-
-            let itemref_cover = opf.dom?.querySelector(`itemref[idref="${manifest_id}"]`)
-            if(!itemref_cover) {
-                itemref_cover = document.createElementNS(opf.namespaceURI, 'itemref')
-                itemref_cover.setAttribute('idref', manifest_id)
-                itemref_cover.setAttribute('linear', 'yes')
-                const spine = opf.dom?.querySelector('spine')
-                const first_child = spine?.children[0]
-                if (first_child) {
-                    spine.insertBefore(document.createTextNode('\n'), first_child)
-                    spine.insertBefore(itemref_cover, first_child)
+                if (this.nav_version === 3) {
+                    const navs = contents.dom?.querySelectorAll('nav') ?? []
+                    let guide_node = Array.from(navs).find(nav => nav.getAttribute('epub:type') === 'landmarks')
+                    if (!guide_node) {
+                        guide_node = document.createElement('ol')
+                        guide_node.setAttribute('epub:type', 'landmarks')
+                        contents.dom!.body.appendChild(guide_node)
+                    }
+                    let ol = guide_node?.querySelector('ol')
+                    if (!ol) {
+                        ol = document.createElement('ol')
+                        guide_node.appendChild(ol)
+                    }
+                    let a = Array.from(guide_node.querySelectorAll('a')).find(a => a.getAttribute('epub:type') === 'cover')
+                    if (!a) {
+                        const li = document.createElement('li')
+                        a = document.createElement('a')
+                        a.setAttribute('epub:type', 'cover')
+                        li.appendChild(a)
+                        ol.appendChild(li)
+                    }
+                    a.setAttribute('href', xhtml_href)
+                    a.textContent = title
+                    const contents_xml = fmt_html(domToXml(contents.dom!))
+                    await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
                 }
                 else {
-                    spine?.appendChild(document.createTextNode('\n'))
-                    spine?.appendChild(itemref_cover)
+                    let guide_node = opf.dom?.querySelector('guide')
+                    if (!guide_node) {
+                        guide_node = document.createElementNS(opf.namespaceURI, 'guide')
+                        const root_node = opf.dom?.querySelector('package')
+                        root_node?.appendChild(guide_node)
+                    } 
+                    let reference_cover = guide_node.querySelector('reference[type="cover"]')
+                    if (!reference_cover) {
+                        reference_cover = document.createElementNS(opf.namespaceURI, 'reference')
+                        guide_node.appendChild(reference_cover)
+                        guide_node.appendChild(document.createTextNode('\n'))
+                    }
+                    reference_cover.setAttribute('type', 'cover')
+                    reference_cover.setAttribute('title', 'cover')
+                    reference_cover.setAttribute('href', xhtml_href)
                 }
-            }
-
-            if (this.nav_version === 3) {
-                const navs = contents.dom?.querySelectorAll('nav')
-                const ol = Array.from(navs ?? []).find(nav => nav.getAttribute('epub:type') === 'landmarks')
-                    ?.querySelector('ol') 
-                let li_cover = Array.from(ol?.children ?? []).find(li => li.getAttribute('epub:type') === 'cover')
-                const a = document.createElementNS(contents.namespaceURI, 'a')
-                a.setAttribute('href', xhtml_href)
-                a.textContent = 'Cover'
-                if (li_cover) {
-                    li_cover.innerHTML = ''
+                if (cover_guide) {
+                    cover_guide.href = xhtml_href
+                    cover_guide.id = id
+                    cover_guide.title = title
                 }
                 else {
-                    li_cover = document.createElementNS(contents.namespaceURI, 'li')
-                    ol?.appendChild(li_cover)
+                    this.guide.push({ type: 'cover', id, href: xhtml_href, title: 'Cover' })
                 }
-                li_cover.appendChild(a)
-                const contents_xml = fmt_html(domToXml(contents.dom!)) 
-                await invoke_write_text(this.dir, `${this.manifest_path}${this.nav_href}`, contents_xml)
-            }
-            else {
-                let guide_node = opf.dom?.querySelector('guide')
-                if (!guide_node) {
-                    guide_node = document.createElementNS(opf.namespaceURI, 'guide')
-                    const root_node = opf.dom?.querySelector('package')
-                    root_node?.appendChild(guide_node)
-                } 
-                let reference_cover = guide_node.querySelector('reference[type="cover"]')
-                if (!reference_cover) {
-                    reference_cover = document.createElementNS(opf.namespaceURI, 'reference')
-                    guide_node.appendChild(reference_cover)
-                    guide_node.appendChild(document.createTextNode('\n'))
-                }
-                reference_cover.setAttribute('type', 'cover')
-                reference_cover.setAttribute('title', 'cover')
-                reference_cover.setAttribute('href', xhtml_href)
-            }
 
-            await this.save_opf()
+                await this.save_opf()
+            }
         },
         async new_html(i: number, id: string) {
             const xhtml = fmt_html(xhtml_template()) 
@@ -1562,6 +1684,7 @@ const useEPUB = defineStore('epub', {
             this.contents_id_lnum = {}
             this.contents_links.length = 0
             this.is_reading = false
+            this.guide.length = 0
             preview.clean()
             this.dir && invoke_clean_cache(this.dir)
             this.dir = ''

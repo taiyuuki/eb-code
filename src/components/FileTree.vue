@@ -15,7 +15,6 @@ import { TREE } from '@/static'
 const props = withDefaults(defineProps<TreeProps>(), { indent: 10 })
 const theme = useTheme()
 
-const link_style_dialog = ref(false)
 const rn = ref('')
 
 const next_indent = computed(() => {
@@ -323,10 +322,26 @@ function new_css() {
     epub.new_css(style_file_name)
 }
 
+const link_style_dialog = ref(false)
 const to_node = ref<FileNode | null>(null)
-async function link_to_style(node: FileNode) {
+function link_to_style(node: FileNode) {
     link_style_dialog.value = true
     to_node.value = node
+}
+function set_link_over() {
+    link_style_dialog.value = false
+    to_node.value = null
+}
+
+const show_add_semantic = ref(false)
+const to_semantic = ref<FileNode | null>(null)
+function add_semantic(node: FileNode) {
+    show_add_semantic.value = true
+    to_semantic.value = node
+}
+function set_semantic_over() {
+    show_add_semantic.value = false
+    to_semantic.value = null
 }
 </script>
 
@@ -401,7 +416,7 @@ async function link_to_style(node: FileNode) {
                 重命名
               </q-item-section>
             </q-item>
-            <template v-if="node.type === 'navigation' && node.id.endsWith('html')">
+            <template v-if="node.type === 'navigation' && is_html(node.id)">
               <q-item
                 v-close-popup
                 clickable
@@ -428,6 +443,17 @@ async function link_to_style(node: FileNode) {
             >
               <q-item-section>
                 添加文件
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              v-if="is_html(node.id)"
+              v-close-popup
+              clickable
+              @click="add_semantic(node)"
+            >
+              <q-item-section>
+                添加语义
               </q-item-section>
             </q-item>
 
@@ -492,9 +518,21 @@ async function link_to_style(node: FileNode) {
       <Suspense>
         <StyleLink
           :node="to_node"
-          @complate="link_style_dialog = false"
+          @complate="set_link_over"
         />
       </Suspense>
+    </template>
+  </q-dialog>
+  <q-dialog
+    v-model="show_add_semantic"
+    no-shake
+    no-backdrop-dismiss
+  >
+    <template v-if="to_semantic">
+      <SemanticSet
+        :node="to_semantic"
+        @complate="set_semantic_over"
+      />
     </template>
   </q-dialog>
 </template>

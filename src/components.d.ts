@@ -22,6 +22,7 @@ declare module 'vue' {
     ReplaceResult: typeof import('./components/ReplaceResult.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SemanticSet: typeof import('./components/SemanticSet.vue')['default']
     StatusBar: typeof import('./components/StatusBar.vue')['default']
     StyleLink: typeof import('./components/StyleLink.vue')['default']
     TitleBanner: typeof import('./components/TitleBanner.vue')['default']

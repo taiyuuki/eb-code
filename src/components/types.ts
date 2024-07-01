@@ -50,6 +50,13 @@ interface EpubContent {
     save_path: string,
 }
 
+interface GuideNode {
+    id: string
+    type: string
+    href: string
+    title: string
+}
+
 export type {
     EpubContent,
     FileNode,
@@ -58,4 +65,5 @@ export type {
     Moved, 
     ContentsNode, 
     SearchResult,
+    GuideNode,
 }

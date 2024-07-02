@@ -13,7 +13,7 @@ import { useActivity } from '@/composables/useActivity'
 import { notif_negative, notif_warning } from '@/notif'
 import { domToObj, domToXml, objToDom, xmlToDom } from '@/utils/xml'
 import { DISPLAY, SSV, TREE } from '@/static'
-import { cover_template, ncx_template, xhtml_template } from '@/template/xhtml'
+import { cover_template, ncx_template } from '@/template/xhtml'
 import stores from '@/stores'
 import { usePreview } from '@/stores/preview'
 import { fmt_html } from '@/utils/format'
@@ -73,7 +73,6 @@ const useEPUB = defineStore('epub', {
         nav_href: '', // 导航文件路径
         nav_manifest_id: '', // 导航文件id
         tabs: [] as FileNode[], // 打开的标签
-        image_srces: {} as Record<string, string>, // 图片src
         save_path: '', // epub保存路径
         current: {
             id: '', // 打开文件的id，例如META-INF/container.xml
@@ -883,10 +882,7 @@ const useEPUB = defineStore('epub', {
             arr_remove(item.children, child)
         },
         async add_file(from: string, manifest_id: string, href: string, mimetype: string, has?: boolean) {
-            if (has) {
-                delete this.image_srces[this.manifest_path + href]
-            }
-            else {
+            if (!has) {
                 const item = document.createElementNS(opf.namespaceURI, 'item')
                 item.setAttribute('id', manifest_id.replace(/\s/g, '_'))
                 item.setAttribute('href', href)
@@ -936,9 +932,6 @@ const useEPUB = defineStore('epub', {
                     }
                     this.save_opf()
                 }
-            }
-            if (this.has_src(node.id)) {
-                delete this.image_srces[node.id]
             }
             const i = tree_index(node.id)
 
@@ -991,9 +984,6 @@ const useEPUB = defineStore('epub', {
                         await this.reload_current()
                     }
                 }
-            }
-            if (this.has_src(node.id)) {
-                delete this.image_srces[node.id]
             }
         },
         move(old_i: number, new_i: number) {
@@ -1110,14 +1100,9 @@ const useEPUB = defineStore('epub', {
             this.save_opf()
         },
         async set_cover(path: string) {
-            if (this.has_src(path)) {
-                this.cover_src = this.image_srces[path]
-            }
-            else {
-                const src = convertFileSrc(this.base_path + path)
-                this.cover_src = src
-                this.image_srces[path] = src
-            }
+            const src = convertFileSrc(this.base_path + path)
+            this.cover_src = src
+            
             const img = new Image()
             img.src = this.cover_src
             let id = `${this.manifest_path + this.text_path}cover.xhtml`
@@ -1258,8 +1243,14 @@ const useEPUB = defineStore('epub', {
                 await this.save_opf()
             }
         },
-        async new_html(i: number, id: string) {
-            const xhtml = fmt_html(xhtml_template()) 
+        async new_html(i: number, data: string) {
+            let hi = 1
+            let id = `${this.manifest_path}${this.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
+            while (this.nodes[TREE.HTML].children!.some(n => n.id === id)) {
+                hi++
+                id = `${this.manifest_path}${this.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
+            }
+            const xhtml = fmt_html(data) 
             await invoke_write_text(this.dir, id, xhtml)
             this.nodes[TREE.HTML].children?.splice(i + 1, 0, {
                 id,
@@ -1553,6 +1544,16 @@ const useEPUB = defineStore('epub', {
                 this.current.src = ''
             }
         },
+        open_pre(node: FileNode) {
+            const i = this.tabs.indexOf(node)
+            this.remove_tab_by_id(node.id)
+            if (i > 0) {
+                this.open(this.tabs[i - 1])
+            }
+            else {
+                this.open_first()
+            }
+        },
         add_scroll_top(id: string, top: number) {
             this.scroll_tops[id] = top
         },
@@ -1571,18 +1572,9 @@ const useEPUB = defineStore('epub', {
         set_base_path(path: string) {
             this.base_path = path
         },
-        has_src(id: string) {
-            return id in this.image_srces
-        },
         set_src(src: string) {
             this.display = DISPLAY.IMAGE
-            if (this.has_src(src)) {
-                this.current.src = this.image_srces[src]
-
-                return
-            }
             const img_src = convertFileSrc(this.base_path + src)
-            this.image_srces[src] = img_src
             this.current.src = img_src
         },
         set_text(code: string, lang: Language, id: string) {
@@ -1671,7 +1663,6 @@ const useEPUB = defineStore('epub', {
             this.current.id = ''
             this.current.lang = 'xhtml'
             this.tabs.length = 0
-            this.image_srces = {}
             this.scroll_tops = {}
             this.meta_is_dirty = false
             this.opf_is_dirty = false

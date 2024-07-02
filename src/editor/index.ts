@@ -10,6 +10,7 @@ import { useEPUB } from '@/stores/epub'
 import { useCustomCSSProperties } from '@/stores/custom-properties'
 import stores from '@/stores'
 import { useOption } from '@/stores/option'
+import { DISPLAY } from '@/static'
 
 function initMonaco() {
     
@@ -124,6 +125,10 @@ class MonacoController {
     }
 }
 
+function get_editor() {
+    return monaco.editor.getEditors()[0]
+}
+
 function create_controller() {
 
     return new MonacoController()
@@ -186,8 +191,38 @@ function register_openner(editor: monaco.editor.IStandaloneCodeEditor) {
     }
 }
 
+function insert_text(text: string) {
+    const epub = useEPUB(stores)
+    if (epub.display === DISPLAY.CODE) {        
+        const editor = monaco.editor.getEditors()[0]
+        const pst = editor.getPosition()
+        if (pst) {
+            editor.executeEdits('insertText', [{
+                range: new monaco.Range(pst.lineNumber, pst.column, pst.lineNumber, pst.column),
+                text,
+            }])
+        }
+    }
+}
+
+function focus() {
+    const editor = monaco.editor.getEditors()[0]
+    editor.focus()
+}
+
+function undo() {
+    const editor = monaco.editor.getEditors()[0]
+    editor.trigger('keyboard', 'undo', {})
+}
+
+function redo() {
+    const editor = monaco.editor.getEditors()[0]
+    editor.trigger('keyboard', 'redo', {})
+}
+
 export {
     initMonaco,
+    get_editor,
     get_scroll_top,
     scroll_top_to,
     scroll_to_line,
@@ -196,4 +231,8 @@ export {
     set_font_size,
     set_indent,
     update_option,
+    insert_text,
+    focus,
+    undo,
+    redo,
 }

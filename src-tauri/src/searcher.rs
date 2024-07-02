@@ -104,7 +104,6 @@ pub fn search(search_option: SearchOption) -> Result<Vec<(String, Vec<SearchResu
         .octal(true)
         .multi_line(search_option.multi_line)
         .dot_matches_new_line(search_option.dot)
-        .line_terminator(None)
         .ignore_whitespace(false)
         .build(search_option.pattern.as_str())
     {
@@ -161,7 +160,6 @@ pub fn replace_file(replace_option: ReplaceOption) -> Result<(), String> {
         .octal(true)
         .multi_line(replace_option.multi_line)
         .dot_matches_new_line(replace_option.dot)
-        .line_terminator(None)
         .build(&replace_option.pattern)
     {
         Ok(matcher) => {

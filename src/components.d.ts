@@ -15,6 +15,8 @@ declare module 'vue' {
     FileTree: typeof import('./components/FileTree.vue')['default']
     HtmlPreview: typeof import('./components/HtmlPreview.vue')['default']
     ImageViewer: typeof import('./components/ImageViewer.vue')['default']
+    InsertFile: typeof import('./components/InsertFile.vue')['default']
+    InsertPreview: typeof import('./components/InsertPreview.vue')['default']
     MenuIcon: typeof import('./components/MenuIcon.vue')['default']
     MetaItem: typeof import('./components/MetaItem.vue')['default']
     MetaSet: typeof import('./components/MetaSet.vue')['default']

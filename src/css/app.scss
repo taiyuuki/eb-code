@@ -106,7 +106,13 @@ body {
 }
 
 .q-bar {
-    background-color: var(--vscode-toolbar-hoverBackground);
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.q-tab-panels {
+    background-color: var(--eb-bg);
+    color: var(--eb-fg);
 }
 
 .q-field, .q-field__control, .q-field__label {

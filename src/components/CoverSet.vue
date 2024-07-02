@@ -15,13 +15,8 @@ const images = computed(() => epub.nodes[TREE.IMAGE]?.children ?? [])
 const si = ref(-1)
 
 function seletct_cover(img: FileNode, i: number) {
-    if (epub.has_src(img.id)) {
-        cover_src.value = epub.image_srces[img.id]
-    }
-    else {
-        cover_src.value = convertFileSrc(epub.base_path + img.id)
-        epub.image_srces[img.id] = cover_src.value
-    }
+
+    cover_src.value = convertFileSrc(epub.base_path + img.id)
     si.value = i
 }
 

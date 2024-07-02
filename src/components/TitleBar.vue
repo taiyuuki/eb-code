@@ -3,10 +3,10 @@ import { Window } from '@tauri-apps/api/window'
 import { ask, message, open, save } from '@tauri-apps/plugin-dialog'
 import { TauriEvent, listen } from '@tauri-apps/api/event'
 import { getVersion } from '@tauri-apps/api/app'
-import { changed, invoke_clean_cache, invoke_create_epub, invoke_open_epub, invoke_save_epub } from '@/invoke'
-import { useTheme } from '@/stores/theme'
+import { str_random } from '@taiyuuki/utils'
+import { changed, invoke_clean_cache, invoke_create_epub, invoke_open_epub, invoke_save_epub, invoke_write_text } from '@/invoke'
 import { useEPUB } from '@/stores/epub'
-import { DISPLAY } from '@/static'
+import { DISPLAY, TREE } from '@/static'
 import { cover_setting } from '@/composables/cover_setting'
 import { notif_negative, notif_positive } from '@/notif'
 import { useActivity } from '@/composables/useActivity'
@@ -14,6 +14,9 @@ import { dirty_meta } from '@/composables/dirty_meta'
 import { contents_setting } from '@/composables/contents_setting'
 import { usePreview } from '@/stores/preview'
 import { check_update } from '@/notif/update'
+import { get_editor, redo, undo } from '@/editor'
+import { check_xml, domToXml, split_DOM } from '@/utils/xml'
+import { fmt_html } from '@/utils/format'
 
 const appWindow = new Window('main')
 const is_maximized = ref(false)
@@ -35,12 +38,12 @@ listen(TauriEvent.WINDOW_RESIZED, get_maximized)
 
 onMounted(get_maximized)
 
-const theme = useTheme()
 const epub = useEPUB()
 const activity_nodes = useActivity()
 const router = useRouter()
 const preview = usePreview()
 
+// 文件
 async function open_epub_file() {
     if (epub.is_opening || epub.is_saving) {
         notif_negative('当前文件尚未处理完毕，请稍后再试。')
@@ -197,6 +200,7 @@ async function close_epub() {
     router.replace({ path: '/' })
 }
 
+// 书籍
 function edit_metadata() {
     let node = epub.tabs.find(n => n.id === 'metadata')
     if (!node) {
@@ -214,14 +218,129 @@ function edit_metadata() {
     epub.display = DISPLAY.METADATA
 }
 
+// 视图
 function toggle_preview() {
     preview.toggle()
 }
 
+// 帮助
 function about() {
     getVersion().then(version => {
         message(`Ebook Code v${version}\n作者：Taiyuuki\n项目主页：https://github.com/taiyuuki/eb-code`, { title: '关于' })
     })
+}
+
+const show_insert_file = ref(false)
+
+// 插入
+function insert_file() {
+    show_insert_file.value = true
+}
+
+function insert_split_marker() {
+    if (epub.display === DISPLAY.CODE && activity_nodes.opened_node?.type === 'html') {
+        const editor = get_editor()
+
+        const code = editor.getValue()
+        const pst = editor.getPosition()
+        if (!pst) {
+            return
+        }
+        const text_model = editor.getModel()
+        
+        const count = text_model?.getCharacterCountInRange({
+            startLineNumber: 0,
+            startColumn: 0,
+            endLineNumber: pst.lineNumber,
+            endColumn: pst.column,
+        })
+        if (count) {
+            const split_marker = '<hr class="ebook-split-marker"/>'
+            const text = `${code.substring(0, count)}${split_marker}${code.substring(count)}`
+
+            const origin_dom = check_xml(text)
+            if (!origin_dom) {
+                notif_negative('不能在这里插入标记！')
+
+                return
+            }
+            editor.setValue(text)
+        }
+
+    }
+}
+
+// 编辑
+async function split_at_cursor() {
+    if (epub.display === DISPLAY.CODE && activity_nodes.opened_node?.type === 'html') {
+        const editor = get_editor()
+
+        const code = editor.getValue()
+        const pst = editor.getPosition()
+        if (!pst) {
+            return
+        }
+        const text_model = editor.getModel()
+        
+        const count = text_model?.getCharacterCountInRange({
+            startLineNumber: 0,
+            startColumn: 0,
+            endLineNumber: pst.lineNumber,
+            endColumn: pst.column,
+        })
+        if (count) {
+            const rand_class = str_random(8)
+            const split_marker = `<br class="${rand_class}"/>`
+            const text = `${code.substring(0, count)}${split_marker}${code.substring(count)}`
+
+            const origin_dom = check_xml(text)
+            if (!origin_dom) {
+                notif_negative('不能在这里分割文件！')
+
+                return
+            }
+
+            // 在标记处将html拆分为两个html
+            const iterator = document.createNodeIterator(origin_dom, NodeFilter.SHOW_ELEMENT)
+            let node = iterator.nextNode() as HTMLElement
+            let split_node: HTMLElement | null = null
+            while (node) {
+                if (node?.classList?.contains(rand_class)) {
+                    split_node = node
+                    break
+                }
+                node = iterator.nextNode() as HTMLElement
+            }
+
+            if (split_node) {
+
+                const { before, after } = split_DOM(split_node)
+
+                const i = epub.nodes[TREE.HTML].children?.findIndex(n => n.id === epub.current.id)
+                if (i !== void 0) {
+                    try {
+                        origin_dom.body.replaceChildren()
+                        while(before.firstChild) {
+                            origin_dom.body.appendChild(before.firstChild)
+                        }
+                        await invoke_write_text(epub.dir, epub.current.id, fmt_html(domToXml(origin_dom)))
+                        origin_dom.body.replaceChildren()
+                        while(after.firstChild) {
+                            origin_dom.body.appendChild(after.firstChild)
+                        }
+                        await epub.new_html(i, domToXml(origin_dom))
+                    }
+                    catch(_e) {
+                        notif_negative('不能在这里分割文件！')
+                    }
+                }
+            }
+            else {
+                notif_negative('不能在这里分割文件！')
+            }
+        }
+
+    }
 }
 
 defineExpose({
@@ -232,6 +351,7 @@ defineExpose({
     close_epub,
     edit_metadata,
     toggle_preview,
+    insert_file,
 })
 </script>
 
@@ -305,7 +425,7 @@ defineExpose({
               </q-list>
             </q-menu>
           </q-item>
-          <q-separator :dark="theme.dark" />
+          <q-separator class="sprt" />
           <q-item
             v-close-popup="epub.editable"
             :disable="!epub.editable"
@@ -326,7 +446,7 @@ defineExpose({
               另存为
             </q-item-section>
           </q-item>
-          <q-separator :dark="theme.dark" />
+          <q-separator class="sprt" />
           <q-item
             v-close-popup
             :disable="!epub.editable"
@@ -337,7 +457,7 @@ defineExpose({
               关闭当前文件
             </q-item-section>
           </q-item>
-          <q-separator :dark="theme.dark" />
+          <q-separator class="sprt" />
           <q-item
             v-close-popup
             clickable
@@ -353,6 +473,94 @@ defineExpose({
     <q-btn
       :ripple="false"
       label="编辑"
+      unelevated
+      square
+      flat
+    >
+      <q-menu
+        w="fit"
+      >
+        <q-list>
+          <q-item
+            v-close-popup="epub.editable"
+            :disable="!epub.editable"
+            :clickable="epub.editable"
+            @click="undo"
+          >
+            <q-item-section>
+              撤销
+            </q-item-section>
+          </q-item>
+          <q-item
+            v-close-popup="epub.editable"
+            :disable="!epub.editable"
+            :clickable="epub.editable"
+            @click="redo"
+          >
+            <q-item-section>
+              重做
+            </q-item-section>
+          </q-item>
+          <q-separator class="sprt" />
+          <q-item
+            v-close-popup="epub.editable"
+            :disable="!epub.editable"
+            :clickable="epub.editable"
+            @click="split_at_cursor"
+          >
+            <q-item-section>
+              在光标位置拆分
+            </q-item-section>
+          </q-item>
+          <q-item
+            v-close-popup="epub.editable"
+            :disable="!epub.editable"
+            :clickable="epub.editable"
+          >
+            <q-item-section>
+              在标记位置拆分
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <q-btn
+      :ripple="false"
+      label="插入"
+      unelevated
+      square
+      flat
+    >
+      <q-menu
+        w="fit"
+      >
+        <q-list>
+          <q-item
+            v-close-popup
+            :disable="!epub.editable"
+            :clickable="epub.editable"
+            @click="insert_file"
+          >
+            <q-item-section>
+              文件
+            </q-item-section>
+          </q-item>
+          <q-item
+            v-close-popup
+            :disable="!epub.editable"
+            :clickable="epub.editable"
+            @click="insert_split_marker"
+          >
+            <q-item-section>
+              拆分标记
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <q-btn
+      :ripple="false"
+      label="书籍"
       unelevated
       square
       flat
@@ -497,6 +705,13 @@ defineExpose({
         @click="appWindow.close()"
       />
     </div>
+    <q-dialog
+      v-model="show_insert_file"
+      no-shake
+      no-backdrop-dismiss
+    >
+      <InsertFile @close="show_insert_file = false" />
+    </q-dialog>
   </div>
 </template>
 

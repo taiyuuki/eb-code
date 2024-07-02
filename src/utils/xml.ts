@@ -1,15 +1,21 @@
 import xmlserializer from 'xmlserializer' // 原生XMLSerializer会删除prefix，所以用xmlserializer
 
+function to_xhtml(html: string) {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN"
+       "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+       
+    ${html}`
+}
+
 function xmlToDom(xml: string) {
     return new DOMParser().parseFromString(xml, 'application/xhtml+xml')
 }
 
-function domToXml(dom: Document, type: 'xhtml' | 'xml' = 'xhtml') {
-    return type === 'xhtml' ? new XMLSerializer().serializeToString(dom) : `<?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN"
-       "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
-       
-    ${xmlserializer.serializeToString(dom)}`
+function domToXml(dom: Document | Element, type: 'xhtml' | 'xml' = 'xhtml') {
+    return type === 'xhtml' 
+        ? new XMLSerializer().serializeToString(dom) 
+        : to_xhtml(xmlserializer.serializeToString(dom))
 }
 
 function domToObj(dom: Element) {
@@ -72,17 +78,57 @@ function check_xml(xml: string) {
             return false
         }
 
-        return true
+        return dom
     }
     catch (_) {
         return false
     }
 }
 
+function split(element: HTMLElement) {
+    const parent = element.parentNode!
+    const index = Array.from(parent.childNodes).indexOf(element)
+    const before = parent.cloneNode(false) as HTMLElement
+    const after = parent.cloneNode(false) as HTMLElement
+
+    let i = index - 1
+    let child = parent.childNodes[0]
+    while (child && i >= 0) {
+        before.appendChild(child)
+        child = parent.childNodes[0]
+        i--
+    }
+
+    child = parent.childNodes[1]
+    while (child) {
+        after.appendChild(child)
+        child = parent.childNodes[1]
+    }
+
+    return { before, after }
+}
+
+function split_DOM(element: HTMLElement) {
+    let { before, after } = split(element)
+    let parent = element.parentNode! as HTMLElement
+    while (parent && parent.tagName !== 'body' && parent.parentNode) {
+        const { before: p_before, after: p_after } = split(parent)
+        p_before.appendChild(before)
+        p_after.insertBefore(after, p_after.firstChild)
+        before = p_before
+        after = p_after
+        parent = parent.parentNode! as HTMLElement
+    }
+
+    return { before, after }
+}
+
 export {
+    to_xhtml,
     xmlToDom,
     domToXml,
     domToObj,
     objToDom,
     check_xml,
+    split_DOM,
 }

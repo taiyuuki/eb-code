@@ -11,6 +11,7 @@ import { is_audio, is_font, is_html, is_image, is_scripts, is_style, is_video } 
 import { notif_negative, notif_warning } from '@/notif'
 import { invoke_rename_file } from '@/invoke'
 import { TREE } from '@/static'
+import { xhtml_template } from '@/template/xhtml'
 
 const props = withDefaults(defineProps<TreeProps>(), { indent: 10 })
 const theme = useTheme()
@@ -302,14 +303,8 @@ function set_cover(node: FileNode) {
     epub.set_cover(node.id)
 }
 
-let hi = 1
 function new_html(i: number) {
-    let html_file_name = `${epub.manifest_path}${epub.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
-    while (epub.nodes[TREE.HTML].children!.some(n => n.id === html_file_name)) {
-        hi++
-        html_file_name = `${epub.manifest_path}${epub.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
-    }
-    epub.new_html(i, html_file_name)
+    epub.new_html(i, xhtml_template())
 }
 
 let si = 1
@@ -457,7 +452,10 @@ function set_semantic_over() {
               </q-item-section>
             </q-item>
 
-            <q-separator v-if="node.type === 'image'" />
+            <q-separator
+              v-if="node.type === 'image'"
+              class="sprt"
+            />
 
             <q-item
               v-if="node.type === 'image'"

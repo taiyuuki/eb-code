@@ -24,9 +24,8 @@ function open_file(node: FileNode) {
 }
 
 function close_file(node: FileNode) {
-    epub.remove_tab_by_id(node.id)
     if (node.open) {
-        epub.open_first()
+        epub.open_pre(node)
     }
     if (epub.tabs.length === 0) {
         activity_node.close()

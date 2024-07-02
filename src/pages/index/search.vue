@@ -338,7 +338,7 @@ function regexp_error_tips() {
             :diff-mode="diff_mode"
             @regexp-error="regexp_error_tips"
           />
-          <q-separator :dark="theme.dark" />
+          <q-separator class="sprt" />
         </div>
       </template>
     </q-scroll-area>

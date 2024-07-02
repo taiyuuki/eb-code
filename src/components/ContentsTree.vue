@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ContentsNode } from './types'
-import { useTheme } from '@/stores/theme'
 
 defineProps<{ contents: Record<number, ContentsNode>, edit: boolean }>()
 const emit = defineEmits<{
@@ -15,8 +14,6 @@ const emit = defineEmits<{
     (e: 'add_down', node: ContentsNode): void
     (e: 'contextmenu', node: ContentsNode): void
 }>()
-
-const theme = useTheme()
 
 function open(e: MouseEvent, node: ContentsNode) {
     e.stopPropagation()
@@ -103,7 +100,7 @@ function expand(node: ContentsNode) {
             删除
           </q-item-section>
         </q-item>
-        <q-separator :dark="theme.dark" />
+        <q-separator class="sprt" />
         <q-item
           v-close-popup
           clickable
@@ -140,7 +137,7 @@ function expand(node: ContentsNode) {
             左移
           </q-item-section>
         </q-item>
-        <q-separator :dark="theme.dark" />
+        <q-separator class="sprt" />
         <q-item
           v-close-popup
           clickable

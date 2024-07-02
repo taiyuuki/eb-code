@@ -9,6 +9,6 @@ declare namespace NodeJS {
 }
 
 declare module 'xmlserializer' {
-  const xmlserializer: { serializeToString: (dom: Document) => string }
+  const xmlserializer: { serializeToString: (dom: Document | Element) => string }
   export default xmlserializer
 }

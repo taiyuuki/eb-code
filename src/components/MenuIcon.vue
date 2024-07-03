@@ -34,7 +34,7 @@ const class_list = computed(() => {
     cursor: pointer;
     opacity: 0.8;
     background-color: #fff;
-    box-shadow: 0 0 2px var(--eb-fg);
+    box-shadow: 0 0 2px var(--vscode-foreground);
 }
 
 .menu-icon:hover {

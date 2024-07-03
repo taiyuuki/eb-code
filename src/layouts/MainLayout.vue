@@ -7,10 +7,14 @@ import { DISPLAY } from '@/static'
 import { useEPUB } from '@/stores/epub'
 import { check_update } from '@/notif/update'
 import { useOption } from '@/stores/option'
+import { useRecent } from '@/stores/recent'
+import { useTheme } from '@/stores/theme'
 
 const titlebar = useCompRef(TitleBar)
 const epub = useEPUB()
 const option = useOption()
+const recent = useRecent()
+const theme = useTheme()
 
 onBeforeMount(() => {
     document.documentElement.classList.add('monaco-component')
@@ -95,10 +99,31 @@ function split_at_marker() {
 function split_at_cursor() {
     titlebar.value.split_at_cursor()
 }
+
+async function open_recent(path: string) {
+    await epub.open_epub(path)
+    router.replace({ path: '/' })
+    if (!recent.list.find(item => item === path)) {
+        recent.list.push(path)
+        if (recent.list.length > 5) {
+            recent.list.shift()
+        }
+    }
+}
 </script>
 
 <template>
   <q-layout>
+    <q-inner-loading
+      :showing="epub.is_opening"
+      :dark="theme.dark"
+      z-index="3000"
+    >
+      <q-spinner-hourglass
+        size="50px"
+        text="var-eb-fg"
+      />
+    </q-inner-loading>
     <q-page-container pst="abs t-37 r-0 l-0">
       <TitleBar
         ref="titlebar"
@@ -117,6 +142,18 @@ function split_at_cursor() {
         @split-at-cursor="split_at_cursor"
       />
       <router-view />
+      
+      <q-page
+        v-show="!epub.editable"
+        pst="rel"
+        style="min-height: inherit;"
+      >
+        <Welcome
+          @open="open"
+          @create="create"
+          @recent="open_recent"
+        />
+      </q-page>
       <StatusBar />
     </q-page-container>
   </q-layout>

@@ -4,7 +4,7 @@ import { ask, message, open, save } from '@tauri-apps/plugin-dialog'
 import { TauriEvent, listen } from '@tauri-apps/api/event'
 import { getVersion } from '@tauri-apps/api/app'
 import { str_random } from '@taiyuuki/utils'
-import { changed, invoke_clean_cache, invoke_create_epub, invoke_get_text, invoke_open_epub, invoke_save_epub, invoke_search, invoke_write_text } from '@/invoke'
+import { changed, invoke_clean_cache, invoke_create_epub, invoke_get_text, invoke_save_epub, invoke_search, invoke_write_text } from '@/invoke'
 import { useEPUB } from '@/stores/epub'
 import { DISPLAY, TREE } from '@/static'
 import { cover_setting } from '@/composables/cover_setting'
@@ -18,6 +18,7 @@ import { get_editor, insert_text, redo, undo } from '@/editor'
 import { check_xml, domToXml, split_DOM } from '@/utils/xml'
 import { fmt_html } from '@/utils/format'
 import { dirname, extname, filename } from '@/utils/path'
+import { useRecent } from '@/stores/recent'
 
 const appWindow = new Window('main')
 const is_maximized = ref(false)
@@ -43,6 +44,7 @@ const epub = useEPUB()
 const activity_nodes = useActivity()
 const router = useRouter()
 const preview = usePreview()
+const recent = useRecent()
 
 // 文件
 async function open_epub_file() {
@@ -76,19 +78,8 @@ async function open_epub_file() {
     })
     const path = file?.path
     if (path) {
-        epub.is_opening = true
-        invoke_open_epub(path).then(payload => {
-            if (epub.dir !== '') {
-                epub.close_epub()
-            }
-            epub.save_path = path
-            epub.is_opening = false
-            epub.parse(payload)
-            router.replace({ path: '/' })
-        }, () => {
-            epub.is_opening = false
-            notif_negative('失败！不是有效的EPUB文件。')
-        })
+        epub.open_epub(path)
+        router.replace({ path: '/' })
     }
 }
 
@@ -179,6 +170,7 @@ async function save_epub_to() {
         }
         epub.is_saving = false
         notif_positive('文件已保存')
+        recent.add(epub.save_path)
     }
 }
 async function close_epub() {
@@ -409,6 +401,7 @@ async function split_at_marker() {
     for await (const mark of find_mark) {
         await epub.remove_file_by_id(mark[0])
     }
+    await epub.save_opf()
 }
 
 defineExpose({

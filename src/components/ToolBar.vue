@@ -37,7 +37,10 @@ function set_theme(t: string) {
 
 <template>
   <div class="toolbar">
-    <div flex="~ justify-start items-center">
+    <div
+      flex="~ justify-start items-center"
+      text="#0088f0"
+    >
       <MenuIcon
         name="read-book"
         tip="打开"
@@ -71,7 +74,7 @@ function set_theme(t: string) {
       />
       <MenuIcon
         name="separator"
-        tip="插入分割标记"
+        tip="插入拆分标记"
         :disable="!epub.editable"
         @click="emit('insert-marker')"
       />
@@ -157,12 +160,14 @@ function set_theme(t: string) {
 
 <style scoped>
 .toolbar {
-  color: #0088f0;
   display: flex;
   justify-content: space-between;
+  background-color: var(--vscode-menu-background);
   padding: 0 5px;
+  color: var(--vscode-menu-foreground);
   border-width: 0 0 1px 0;
   border-style: solid;
+  border-color: var(--vscode-textSeparator-foreground);
   user-select: none;
 }
 </style>

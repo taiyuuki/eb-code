@@ -288,7 +288,7 @@ async function gen_contents() {
       bg="var-eb-bg"
       text="var-eb-fg" 
       select-none
-      style="box-shadow:0 0 2px var(--eb-fg);"
+      style="box-shadow:0 0 2px var(--vscode-foreground);"
       w="80vw"
     >
       <q-bar v-move>
@@ -394,7 +394,7 @@ async function gen_contents() {
       text="var-eb-fg"
       p="10"
       select-none
-      style="box-shadow:0 0 2px var(--eb-fg);"
+      style="box-shadow:0 0 2px var(--vscode-foreground);"
       w="80vw"
     >
       <q-bar
@@ -439,7 +439,7 @@ async function gen_contents() {
         visible
         m="t-10"
         h="35vh"
-        style="box-shadow: 0 0 2px var(--eb-fg);"
+        style="box-shadow: 0 0 2px var(--vscode-foreground);"
       >
         <template
           v-for="(node, i) in epub.contents_links"

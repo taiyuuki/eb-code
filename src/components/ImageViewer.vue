@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
     position: absolute;
     top: 0;
     right: 0;
-    color: var(--eb-fg);
+    color: var(--vscode-foreground);
     font-size: 12px;
     padding: 5px 10px;
     background-color: var(--eb-bg);

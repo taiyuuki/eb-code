@@ -12,7 +12,7 @@
 
 .scrollbar::-webkit-scrollbar-thumb {
     border-radius: 5px;
-    background-color: var(--eb-fg);
+    background-color: var(--vscode-foreground);
 }
 
 .q-splitter__panel {
@@ -30,27 +30,27 @@
 }
 
 .text-fg {
-    color: var(--eb-fg)!important;
+    color: var(--vscode-foreground)!important;
     background: var(--eb-bg)!important;
 }
 
 .bg-fg {
-    color: var(--eb-fg)!important;
+    color: var(--vscode-foreground)!important;
     background: var(--eb-bg)!important;
 }
 
 .text-bg {
-    color: var(--eb-fg)!important;
+    color: var(--vscode-foreground)!important;
     background: var(--eb-bg)!important;
 }
 
 .bg-bg {
-    color: var(--eb-fg)!important;
+    color: var(--vscode-foreground)!important;
     background: var(--eb-bg)!important;
 }
 
 body {
-    color: var(--eb-fg);
+    color: var(--vscode-foreground);
     background-color: var(--eb-bg);
     overflow: hidden!important;
 }
@@ -112,7 +112,7 @@ body {
 
 .q-tab-panels {
     background-color: var(--eb-bg);
-    color: var(--eb-fg);
+    color: var(--vscode-foreground);
 }
 
 .q-field, .q-field__control, .q-field__label {
@@ -125,7 +125,7 @@ body {
 }
 
 .q-menu {
-    box-shadow: 0 0 2px var(--eb-fg);
+    box-shadow: 0 0 2px var(--vscode-foreground);
     background-color: var(--vscode-menu-background);
     color: var(--vscode-menu-foreground);
     user-select: none;
@@ -134,7 +134,7 @@ body {
 .q-tooltip {
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
-    box-shadow: 0 0 2px var(--eb-fg);
+    box-shadow: 0 0 2px var(--vscode-foreground);
 }
 
 // 未选中外部边框

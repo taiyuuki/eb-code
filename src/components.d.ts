@@ -31,5 +31,7 @@ declare module 'vue' {
     TitleBar: typeof import('./components/TitleBar.vue')['default']
     TitleTag: typeof import('./components/TitleTag.vue')['default']
     ToolBar: typeof import('./components/ToolBar.vue')['default']
+    Welcome: typeof import('./components/Welcome.vue')['default']
+    WellcomStart: typeof import('./components/WellcomStart.vue')['default']
   }
 }

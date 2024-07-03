@@ -80,6 +80,7 @@ function insert() {
     </q-bar>
     <q-splitter
       v-model="tab_width"
+      :limits="[80, 80]"
       unit="px"
     >
       <template #before>

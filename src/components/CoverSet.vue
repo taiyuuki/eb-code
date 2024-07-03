@@ -66,7 +66,7 @@ async function open_cover() {
     <div 
       bg="var-eb-bg"
       text="var-eb-fg" 
-      style="box-shadow:0 0 2px var(--eb-fg);"
+      style="box-shadow:0 0 2px var(--vscode-foreground);"
       select-none
       w="80vw"
     >

@@ -1,11 +1,12 @@
 // @unocss-include
 import { convertFileSrc } from '@tauri-apps/api/core'
 import { arr_remove, is_empty_string, is_void, key_in, str_random } from '@taiyuuki/utils'
-import { ask } from '@tauri-apps/plugin-dialog'
+import { ask, message } from '@tauri-apps/plugin-dialog'
 import { load } from 'cheerio'
+import { useRecent } from './recent'
 import type { ContentsNode, EpubContent, FileNode, GuideNode } from '@/components/types'
 import type { Language } from '@/editor/shiki'
-import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_remove_file, invoke_replace, invoke_search, invoke_write_text } from '@/invoke'
+import { invoke_clean_cache, invoke_copy_file, invoke_get_text, invoke_open_epub, invoke_remove_file, invoke_replace, invoke_search, invoke_write_text } from '@/invoke'
 import { basename, dirname, filename, join, relative } from '@/utils/path'
 import { is_audio, is_font, is_html, is_image, is_scripts, is_style, is_text, is_video } from '@/utils/is'
 import { get_scroll_top, scroll_to_line, scroll_top_to } from '@/editor'
@@ -140,6 +141,24 @@ const useEPUB = defineStore('epub', {
         },
     },
     actions: {
+        async open_epub(path: string) {
+            this.is_opening = true
+            const recent = useRecent(stores)
+            try {
+                const payload = await invoke_open_epub(path)
+                if (this.dir !== '') {
+                    this.close_epub()
+                }
+                this.save_path = path
+                await this.parse(payload)
+                recent.add(path)
+            }
+            catch(_) {
+                message(`无法打开${basename(path)}！`, { title: '打开失败' })
+                recent.remove(path)
+            }
+            this.is_opening = false
+        },
         async parse(payload: EpubContent) {
             
             const dom = xmlToDom(payload.container)
@@ -1248,7 +1267,7 @@ const useEPUB = defineStore('epub', {
                 await this.save_opf()
             }
         },
-        async new_html(i: number, data: string, id?: string, open = true) {
+        async new_html(i: number, data: string, id?: string, has_next = true) {
             let hi = 1
             if (id === void 0) {
                 id = `${this.manifest_path}${this.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
@@ -1266,7 +1285,7 @@ const useEPUB = defineStore('epub', {
                 type: 'html',
                 parent: this.nodes[TREE.HTML],
             })
-            if (open) {
+            if (has_next) {
                 this.add_tab(this.nodes[TREE.HTML].children![i + 1])
                 this.open(this.nodes[TREE.HTML].children![i + 1])
             }
@@ -1282,7 +1301,9 @@ const useEPUB = defineStore('epub', {
                 manifest_node.appendChild(item)
             }
             this.spine_insert_before(i + 1, manifest_id, true)
-            await this.save_opf()
+            if (has_next) {
+                has_next && await this.save_opf()
+            }
         },
         async new_css(id: string) {
             const css = '@charset "UTF-8";\n'

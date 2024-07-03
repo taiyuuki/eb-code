@@ -909,7 +909,7 @@ const useEPUB = defineStore('epub', {
                 }
             }  
         },
-        remove_file(node: FileNode) {
+        async remove_file(node: FileNode) {
             const manifest_node = opf.dom?.querySelector('manifest')
             const spine_node = opf.dom?.querySelector('spine')
             if (manifest_node) {
@@ -941,8 +941,13 @@ const useEPUB = defineStore('epub', {
                 arr_remove(this.tabs, node)
                 this.open_first()
             }
-            invoke_remove_file(this.dir, node.id)
-
+            await invoke_remove_file(this.dir, node.id)
+        },
+        async remove_file_by_id(id: string) {
+            const node = this.nodes[TREE.HTML].children?.find(n => n.id === id)
+            if (node) {
+                await this.remove_file(node)
+            }
         },
         async rename_file(node: FileNode, new_name: string) {
             const item = opf.dom?.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
@@ -1243,12 +1248,14 @@ const useEPUB = defineStore('epub', {
                 await this.save_opf()
             }
         },
-        async new_html(i: number, data: string) {
+        async new_html(i: number, data: string, id?: string, open = true) {
             let hi = 1
-            let id = `${this.manifest_path}${this.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
-            while (this.nodes[TREE.HTML].children!.some(n => n.id === id)) {
-                hi++
+            if (id === void 0) {
                 id = `${this.manifest_path}${this.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
+                while (this.nodes[TREE.HTML].children!.some(n => n.id === id)) {
+                    hi++
+                    id = `${this.manifest_path}${this.text_path}Section${hi.toString().padStart(4, '0')}.xhtml`
+                }
             }
             const xhtml = fmt_html(data) 
             await invoke_write_text(this.dir, id, xhtml)
@@ -1259,8 +1266,10 @@ const useEPUB = defineStore('epub', {
                 type: 'html',
                 parent: this.nodes[TREE.HTML],
             })
-            this.add_tab(this.nodes[TREE.HTML].children![i + 1])
-            this.open(this.nodes[TREE.HTML].children![i + 1])
+            if (open) {
+                this.add_tab(this.nodes[TREE.HTML].children![i + 1])
+                this.open(this.nodes[TREE.HTML].children![i + 1])
+            }
 
             const manifest_node = opf.dom?.querySelector('manifest')
             const manifest_id = basename(id).replace(/\s/g, '_')

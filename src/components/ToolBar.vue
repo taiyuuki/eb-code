@@ -10,8 +10,12 @@ const emit = defineEmits<{
     (e: 'create', version: number): void,
     (e: 'meta'): void,
     (e: 'cover'): void,
+    (e: 'insert-file'): void,
     (e: 'contents'): void,
-    (e: 'preview'): void
+    (e: 'preview'): void,
+    (e: 'split-at-marker'): void
+    (e: 'split-at-cursor'): void
+    (e: 'insert-marker'): void
 }>()
 
 const theme = useTheme()
@@ -66,13 +70,47 @@ function set_theme(t: string) {
         class="sprt"
       />
       <MenuIcon
+        name="separator"
+        tip="插入分割标记"
+        :disable="!epub.editable"
+        @click="emit('insert-marker')"
+      />
+      <MenuIcon
+        name="separator-horizontal"
+        tip="在标记处分割"
+        :disable="!epub.editable"
+        @click="emit('split-at-marker')"
+      />
+      <MenuIcon
+        name="separator-vertical"
+        tip="在光标处分割"
+        :disable="!epub.editable"
+        @click="emit('split-at-cursor')"
+      />
+      <q-separator
+        m="x-10"
+        vertical
+        class="sprt"
+      />
+      <MenuIcon
+        name="image"
+        tip="添加文件"
+        :disable="!epub.editable"
+        @click="emit('insert-file')"
+      />
+      <q-separator
+        m="x-10"
+        vertical
+        class="sprt"
+      />
+      <MenuIcon
         name="epub-meta"
         tip="元数据"
         :disable="!epub.editable"
         @click="epub.editable && emit('meta')"
       />
       <MenuIcon
-        name="image"
+        name="cover"
         tip="封面"
         :disable="!epub.editable"
         @click="epub.editable && emit('cover')"
@@ -119,14 +157,12 @@ function set_theme(t: string) {
 
 <style scoped>
 .toolbar {
+  color: #0088f0;
   display: flex;
   justify-content: space-between;
-  background-color: var(--vscode-menu-background);
   padding: 0 5px;
-  color: var(--vscode-menu-foreground);
   border-width: 0 0 1px 0;
   border-style: solid;
-  border-color: var(--vscode-textSeparator-foreground);
   user-select: none;
 }
 </style>

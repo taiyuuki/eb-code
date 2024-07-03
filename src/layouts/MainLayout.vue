@@ -79,6 +79,22 @@ function set_meta() {
 function toggle_preview() {
     titlebar.value.toggle_preview()
 }
+
+function insert_file() {
+    titlebar.value.insert_file()
+}
+
+function insert_split_marker() {
+    titlebar.value.insert_split_marker()
+}
+
+function split_at_marker() {
+    titlebar.value.split_at_marker()
+}
+
+function split_at_cursor() {
+    titlebar.value.split_at_cursor()
+}
 </script>
 
 <template>
@@ -95,6 +111,10 @@ function toggle_preview() {
         @cover="cover_setting = true"
         @contents="contents_setting = true"
         @preview="toggle_preview"
+        @insert-file="insert_file"
+        @insert-marker="insert_split_marker"
+        @split-at-marker="split_at_marker"
+        @split-at-cursor="split_at_cursor"
       />
       <router-view />
       <StatusBar />

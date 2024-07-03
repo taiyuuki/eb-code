@@ -4,7 +4,7 @@ import { ask, message, open, save } from '@tauri-apps/plugin-dialog'
 import { TauriEvent, listen } from '@tauri-apps/api/event'
 import { getVersion } from '@tauri-apps/api/app'
 import { str_random } from '@taiyuuki/utils'
-import { changed, invoke_clean_cache, invoke_create_epub, invoke_open_epub, invoke_save_epub, invoke_write_text } from '@/invoke'
+import { changed, invoke_clean_cache, invoke_create_epub, invoke_get_text, invoke_open_epub, invoke_save_epub, invoke_search, invoke_write_text } from '@/invoke'
 import { useEPUB } from '@/stores/epub'
 import { DISPLAY, TREE } from '@/static'
 import { cover_setting } from '@/composables/cover_setting'
@@ -14,9 +14,10 @@ import { dirty_meta } from '@/composables/dirty_meta'
 import { contents_setting } from '@/composables/contents_setting'
 import { usePreview } from '@/stores/preview'
 import { check_update } from '@/notif/update'
-import { get_editor, redo, undo } from '@/editor'
+import { get_editor, insert_text, redo, undo } from '@/editor'
 import { check_xml, domToXml, split_DOM } from '@/utils/xml'
 import { fmt_html } from '@/utils/format'
+import { dirname, extname, filename } from '@/utils/path'
 
 const appWindow = new Window('main')
 const is_maximized = ref(false)
@@ -264,7 +265,7 @@ function insert_split_marker() {
 
                 return
             }
-            editor.setValue(text)
+            insert_text(split_marker)
         }
 
     }
@@ -343,6 +344,73 @@ async function split_at_cursor() {
     }
 }
 
+async function split_at_marker() {
+    const find_mark = await invoke_search(epub.dir, '<hr class="ebook-split-marker"/>', false, false, false, false, false)
+    const file_map = new Map<string, { index: number, code: string }>()
+
+    for await (const node of epub.nodes[TREE.HTML].children!) {
+        const mark = find_mark.find(m => m[0] === node.id)
+        if (!mark) {
+            continue
+        }
+        const id = mark[0]
+        const index = epub.nodes[TREE.HTML].children!.findIndex(n => n.id === id)
+        const [code] = await invoke_get_text(id, epub.dir)
+        
+        const origin_dom = check_xml(code)
+        if (!origin_dom) {
+            message(`${id}文件格式错误！`, { title: '错误' })
+
+            return
+        }
+        let nodes = document.createNodeIterator(origin_dom, NodeFilter.SHOW_ELEMENT)
+        function find_split_node() {
+            let node = nodes.nextNode() as HTMLElement
+            while (node) {
+                if (node?.tagName === 'hr' && node?.classList?.contains('ebook-split-marker')) {
+                    return node
+                }
+                node = nodes.nextNode() as HTMLElement
+            }
+
+            return null
+        }
+        let split_node = find_split_node()
+        let i = 1
+        const temp_dom = origin_dom.cloneNode(true) as Document
+        while (split_node) {
+            const { before, after } = split_DOM(split_node)
+            const before_id = `${`${dirname(id)}/${filename(id)}`}_${i.toString().padStart(4, '0')}.${extname(id)}`
+            temp_dom.body.replaceChildren()
+            while (before.firstChild) {
+                temp_dom.body.appendChild(before.firstChild)
+            }
+            file_map.set(before_id, { index, code: fmt_html(domToXml(temp_dom)) })
+            nodes = document.createNodeIterator(after)
+            split_node = find_split_node()
+            i++
+            if (!split_node) {
+                const after_id = `${`${dirname(id)}/${filename(id)}`}_${i.toString().padStart(4, '0')}.${extname(id)}`
+                temp_dom.body.replaceChildren()
+                while (after.firstChild) {
+                    temp_dom.body.appendChild(after.firstChild)
+                }
+                file_map.set(after_id, { index, code: fmt_html(domToXml(temp_dom)) })
+            }
+        }
+    }
+
+    let j = 0
+    for await (const [id, { index, code }] of file_map) {
+        await epub.new_html(index + j, code, id, false)
+        j++
+    }
+
+    for await (const mark of find_mark) {
+        await epub.remove_file_by_id(mark[0])
+    }
+}
+
 defineExpose({
     open_epub_file,
     create_epub,
@@ -352,6 +420,9 @@ defineExpose({
     edit_metadata,
     toggle_preview,
     insert_file,
+    insert_split_marker,
+    split_at_cursor,
+    split_at_marker,
 })
 </script>
 
@@ -516,6 +587,7 @@ defineExpose({
             v-close-popup="epub.editable"
             :disable="!epub.editable"
             :clickable="epub.editable"
+            @click="split_at_marker"
           >
             <q-item-section>
               在标记位置拆分

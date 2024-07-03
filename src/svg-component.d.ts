@@ -7,20 +7,20 @@
 declare module '~virtual/svg-component' {
   const SvgIcon: import("vue").DefineComponent<{
       name: {
-          type: import("vue").PropType<"contents" | "create-epub-2" | "create-epub-3" | "epub-meta" | "eyes" | "image" | "read-book" | "save-file" | "search">;
+          type: import("vue").PropType<"contents" | "cover" | "create-epub-2" | "create-epub-3" | "epub-meta" | "eyes" | "image" | "read-book" | "save-file" | "search" | "separator-horizontal" | "separator-vertical" | "separator">;
           default: string;
           required: true;
       };
   }, {}, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<import("vue").ExtractPropTypes<{
       name: {
-          type: import("vue").PropType<"contents" | "create-epub-2" | "create-epub-3" | "epub-meta" | "eyes" | "image" | "read-book" | "save-file" | "search">;
+          type: import("vue").PropType<"contents" | "cover" | "create-epub-2" | "create-epub-3" | "epub-meta" | "eyes" | "image" | "read-book" | "save-file" | "search" | "separator-horizontal" | "separator-vertical" | "separator">;
           default: string;
           required: true;
       };
   }>>, {
-      name: "contents" | "create-epub-2" | "create-epub-3" | "epub-meta" | "eyes" | "image" | "read-book" | "save-file" | "search";
+      name: "contents" | "cover" | "create-epub-2" | "create-epub-3" | "epub-meta" | "eyes" | "image" | "read-book" | "save-file" | "search" | "separator-horizontal" | "separator-vertical" | "separator";
   }>;
-  export const svgNames: ["contents", "create-epub-2", "create-epub-3", "epub-meta", "eyes", "image", "read-book", "save-file", "search"];
-  export type SvgName = "contents" | "create-epub-2" | "create-epub-3" | "epub-meta" | "eyes" | "image" | "read-book" | "save-file" | "search";
+  export const svgNames: ["contents", "cover", "create-epub-2", "create-epub-3", "epub-meta", "eyes", "image", "read-book", "save-file", "search", "separator-horizontal", "separator-vertical", "separator"];
+  export type SvgName = "contents" | "cover" | "create-epub-2" | "create-epub-3" | "epub-meta" | "eyes" | "image" | "read-book" | "save-file" | "search" | "separator-horizontal" | "separator-vertical" | "separator";
   export default SvgIcon;
 }

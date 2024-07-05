@@ -15,6 +15,7 @@ const epub = useEPUB()
 const option = useOption()
 const recent = useRecent()
 const theme = useTheme()
+const router = useRouter()
 
 onBeforeMount(() => {
     document.documentElement.classList.add('monaco-component')
@@ -115,7 +116,7 @@ async function open_recent(path: string) {
 <template>
   <q-layout>
     <q-inner-loading
-      :showing="epub.is_opening"
+      :showing="epub.is_working"
       :dark="theme.dark"
       z-index="3000"
     >

@@ -22,7 +22,6 @@ import { useRecent } from '@/stores/recent'
 
 const appWindow = new Window('main')
 const is_maximized = ref(false)
-const new_epub_menu = ref()
 
 function close_window() {
     appWindow.close()
@@ -48,7 +47,7 @@ const recent = useRecent()
 
 // 文件
 async function open_epub_file() {
-    if (epub.is_opening || epub.is_saving) {
+    if (epub.is_working || epub.is_saving) {
         notif_negative('当前文件尚未处理完毕，请稍后再试。')
 
         return
@@ -112,7 +111,7 @@ async function save_epub() {
     if (epub.save_path === '') {
         save_epub_to()
     }
-    else if (epub.is_opening || epub.is_saving) {
+    else if (epub.is_working || epub.is_saving) {
         notif_negative('当前文件尚未处理完毕，请稍后再试。')
   
         return
@@ -141,7 +140,7 @@ async function save_epub_to() {
     if (epub.dir === '') {
         return
     }
-    if (epub.is_opening || epub.is_saving) {
+    if (epub.is_working || epub.is_saving) {
         notif_negative('当前文件尚未处理完毕，请稍后再试。')
 
         return
@@ -467,7 +466,6 @@ defineExpose({
               />
             </q-item-section>
             <q-menu
-              ref="new_epub_menu"
               anchor="top end"
               self="top start"
             >

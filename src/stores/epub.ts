@@ -85,7 +85,7 @@ const useEPUB = defineStore('epub', {
         dir: '', // 缓存文件夹
         base_path: '', // 缓存文件夹完整路径
         display: DISPLAY.NONE, // 展示
-        is_opening: false, // 正在打开EPUB
+        is_working: false, // 正在打开EPUB
         is_saving: false, // 正在保存EPOUB
         is_reading: false, // 正在读取文本文件内容
         is_writing: false, // 正在写入文本
@@ -142,7 +142,7 @@ const useEPUB = defineStore('epub', {
     },
     actions: {
         async open_epub(path: string) {
-            this.is_opening = true
+            this.is_working = true
             const recent = useRecent(stores)
             try {
                 const payload = await invoke_open_epub(path)
@@ -157,7 +157,7 @@ const useEPUB = defineStore('epub', {
                 message(`无法打开${basename(path)}！`, { title: '打开失败' })
                 recent.remove(path)
             }
-            this.is_opening = false
+            this.is_working = false
         },
         async parse(payload: EpubContent) {
             
@@ -963,17 +963,16 @@ const useEPUB = defineStore('epub', {
             await invoke_remove_file(this.dir, node.id)
         },
         async remove_file_by_id(id: string) {
-            const node = this.nodes[TREE.HTML].children?.find(n => n.id === id)
+            const node = this.flat_nodes[id]
             if (node) {
                 await this.remove_file(node)
             }
         },
-        async rename_file(node: FileNode, new_name: string) {
+        async rename_file(node: FileNode, new_name: string, has_next?: boolean) {
             const item = opf.dom?.querySelector(`item[href="${node.id.replace(this.manifest_path, '')}"]`)
             if (item) {
                 const old_manifest_id = item?.getAttribute('id')
                 const new_manifest_id = new_name.replace(/\s/g, '_')
-                const old_name = node.id.replace(this.manifest_path, '')
                     
                 item.setAttribute('href', new_manifest_id)
                 item.setAttribute('id', new_manifest_id)
@@ -989,25 +988,33 @@ const useEPUB = defineStore('epub', {
                 if (cover_meta) {
                     cover_meta.setAttribute('content', new_manifest_id)
                 }
-
-                this.save_opf()
+                if (!has_next) {
+                    await this.save_opf()
+                }
 
                 // 重命名XHTML里的资源
-                if (is_image(old_name) || is_font(old_name)) {
-                    await invoke_replace(
-                        this.dir, 
-                        old_name, 
-                        false, 
-                        false, 
-                        false,
-                        true,
-                        false,
-                        new_name,
-                    )
-                    if (this.display === DISPLAY.CODE && is_html(this.current.id)) {
-                        await this.reload_current()
-                    }
+                const reg = `(<link.+?href="|<script.+?src="|<img.+?src="|<a.+?href=")(.+?)${basename(node.id)}"`
+                await invoke_replace(
+                    this.dir, 
+                    reg, 
+                    true, 
+                    false, 
+                    false,
+                    true,
+                    false,
+                    `$1$2${basename(new_name)}"`,
+                )
+                if (!has_next && this.display === DISPLAY.CODE && is_html(this.current.id)) {
+                    await this.reload_current()
                 }
+            }
+        },
+        async rename_file_by_id(id: string, new_id: string, has_next?: boolean) {
+            const node = this.nodes[TREE.HTML].children?.find(n => n.id === id)
+            if (node) {
+                await this.rename_file(node, new_id, has_next)
+                node.id = new_id
+                node.name = new_id
             }
         },
         move(old_i: number, new_i: number) {
@@ -1619,12 +1626,13 @@ const useEPUB = defineStore('epub', {
                 preview.id = node.id + (hash ?? '')
             }
 
-            // 如果是同一个节点，不操作
-            if (this.is_reading || this.is_opening || this.is_saving) {
+            if (this.is_reading || this.is_working || this.is_saving) {
                 notif_warning('程序繁忙, 请稍等片刻后再试！')
 
                 return
             }
+
+            // 如果是同一个节点，不操作
             if (activity_nodes.opened_node === node && !lnum) {
 
                 return

@@ -166,6 +166,16 @@ body {
     color: var(--vscode-errorForeground);
 }
 
+// 输入框外部边框 
+.q-field--outlined .q-field__control::after {
+    border-color: transparent;
+}
+
+// 输入框外部边框 - 聚焦
+.q-field--outlined.q-field--highlighted .q-field__control:after {
+    border-color: var(--vscode-focusBorder);
+}
+
 .text-negative {
     color: var(--vscode-inputValidation-errorBorder)!important;
 }

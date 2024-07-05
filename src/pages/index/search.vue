@@ -21,9 +21,9 @@ const dot = ref(false)
 const multi_line = ref(true)
 const diff_mode = ref<1 | 2 | 3 | 4>(1)
 
-const error_tips = computed(() => {
-    return `无效的正则表达式： ${keyword.value}`
-})
+// const error_tips = computed(() => {
+//     return `无效的正则表达式： ${keyword.value}`
+// })
 
 const disable_replace = computed(() => {
     return has_error.value || keyword.value === ''
@@ -147,65 +147,14 @@ function regexp_error_tips() {
     p="x-10"
     m="t-10"
   >
-    <q-input
-      v-model="keyword"
-      :dark="theme.dark"
-      debounce="800"
-      outlined
-      label="搜索"
-      :error="has_error"
-      bottom-slots
-      hide-bottom-space
-      dense
-      tabindex="100"
-      @update:model-value="search"
-    >
-      <template #append>
-        <div
-          :class="{ 'input-icon': true, 'input-icon-active': case_sensitive }"
-          @click="case_sensitive = !case_sensitive"
-        >
-          <div
-            class="i-codicon:case-sensitive"
-            inline-block
-          />
-          <q-tooltip :delay="500">
-            区分大小写
-          </q-tooltip>
-        </div>
-        <div
-          :class="{ 'input-icon': true, 'input-icon-active': word }"
-          @click="word = !word"
-        >
-          <div
-            class="i-codicon:whole-word"
-            inline-block
-          />
-          <q-tooltip :delay="500">
-            全文字匹配
-          </q-tooltip>
-        </div>
-        <div
-          :class="{ 'input-icon': true, 'input-icon-active': regex }"
-          @click="regex = !regex"
-        >
-          <div
-            class="i-codicon:regex"
-            inline-block
-            pointer
-          >
-            <q-tooltip :delay="500">
-              使用正则表达式
-            </q-tooltip>
-          </div>
-        </div>
-      </template>
-      <template #error>
-        <div v-if="has_error">
-          {{ error_tips }}
-        </div>
-      </template>
-    </q-input>
+    <InputSearch 
+      v-model:case_sensitive="case_sensitive"
+      v-model:word="word"
+      v-model:regex="regex"
+      v-model:keyword="keyword"
+      v-model:has_error="has_error"
+      @search="search"
+    />
   </div>
   <div
     p="x-10"
@@ -345,25 +294,3 @@ function regexp_error_tips() {
   </div>
 </template>
 
-<style scoped>
-.input-icon {
-  border-width: 1px;
-  border-radius: 3px;
-  cursor: pointer;
-  display: inline-block;
-  width: 28px;
-  height: 28px;
-  box-sizing: border-box;
-}
-
-.input-icon:hover {
-  background-color: var(--vscode-inputOption-hoverBackground);
-}
-
-.input-icon.input-icon-active {
-  border-style: solid;
-  color: var(--vscode-inputOption-activeForeground);
-  border-color: var(--vscode-inputOption-activeBorder);
-  background-color: var(--vscode-inputOption-activeBackground);
-}
-</style>

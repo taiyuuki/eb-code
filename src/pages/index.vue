@@ -19,6 +19,8 @@ const activity_node = useActivity()
 
 const sidebar_width = ref(250)
 
+const preview_limits = computed(() => preview.display ? [0, Infinity] : [0, 0])
+
 function open_file(node: FileNode) {
     epub.open(node)
 }
@@ -101,7 +103,8 @@ app_window.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async() => {
         <template #after>
           <q-splitter
             v-model="preview.width"
-            :limits="[0, Infinity]"
+            :limits="preview_limits"
+            :disable="!preview.display"
             unit="px"
             separator-class="sprt"
             reverse

@@ -15,6 +15,8 @@ import { xhtml_template } from '@/template/xhtml'
 
 const props = withDefaults(defineProps<TreeProps>(), { indent: 10 })
 const theme = useTheme()
+const epub = useEPUB()
+const show_mul_rename = ref(false)
 
 const rn = ref('')
 
@@ -24,7 +26,6 @@ const next_indent = computed(() => {
 const line_width = computed(() => {
     return `${props.indent * 2}px`
 })
-const epub = useEPUB()
 
 function toggle(node: FileNode) {
     epub.open(node)
@@ -83,7 +84,7 @@ async function add_file(node: FileNode) {
             if (is_image(_name)) {
                 asset_path = epub.image_path
                 const file = epub.manifest_path + asset_path + manifest_id
-                const node = epub.nodes[TREE.IMAGE].children!.find(n => n.name === file)
+                const node = epub.flat_nodes[file]
                 if (node) {
                     has = true
                 }
@@ -94,7 +95,7 @@ async function add_file(node: FileNode) {
             else if (is_font(_name)) {
                 asset_path = epub.font_path
                 const file = epub.manifest_path + asset_path + manifest_id
-                const node = epub.nodes[TREE.FONT].children!.find(n => n.name === file)
+                const node = epub.flat_nodes[file]
                 if (node) {
                     has = true
                 }
@@ -105,7 +106,7 @@ async function add_file(node: FileNode) {
             else if (is_style(_name)) {
                 asset_path = epub.style_path
                 const file = epub.manifest_path + asset_path + manifest_id
-                const node = epub.nodes[TREE.STYLE].children!.find(n => n.name === file)
+                const node = epub.flat_nodes[file]
                 if (node) {
                     has = true
                 }
@@ -116,7 +117,7 @@ async function add_file(node: FileNode) {
             else if (is_html(_name)) {
                 asset_path = epub.text_path
                 const file = epub.manifest_path + asset_path + manifest_id
-                const node = epub.nodes[TREE.HTML].children!.find(n => n.name === file)
+                const node = epub.flat_nodes[file]
                 if (node) {
                     has = true
                 }
@@ -127,7 +128,7 @@ async function add_file(node: FileNode) {
             else if (is_audio(_name)) {
                 asset_path = epub.audio_path
                 const file = epub.manifest_path + asset_path + manifest_id
-                const node = epub.nodes[TREE.AUDIO].children!.find(n => n.name === file)
+                const node = epub.flat_nodes[file]
                 if (node) {
                     has = true
                 }
@@ -138,7 +139,7 @@ async function add_file(node: FileNode) {
             else if (is_video(_name)) {
                 asset_path = epub.video_path
                 const file = epub.manifest_path + asset_path + manifest_id
-                const node = epub.nodes[TREE.VIDEO].children!.find(n => n.name === file)
+                const node = epub.flat_nodes[file]
                 if (node) {
                     has = true
                 }
@@ -149,7 +150,7 @@ async function add_file(node: FileNode) {
             else if (is_scripts(_name)) {
                 asset_path = epub.script_path
                 const file = epub.manifest_path + asset_path + manifest_id
-                const node = epub.nodes[TREE.JS].children!.find(n => n.name === file)
+                const node = epub.flat_nodes[file]
                 if (node) {
                     has = true
                 }
@@ -161,7 +162,7 @@ async function add_file(node: FileNode) {
             else {
                 asset_path = epub.other_path
                 const file = epub.manifest_path + asset_path + manifest_id
-                const node = epub.nodes[TREE.OTHER].children!.find(n => n.name === file)
+                const node = epub.flat_nodes[file]
                 if (node) {
                     has = true
                 }
@@ -411,6 +412,35 @@ function set_semantic_over() {
                 重命名
               </q-item-section>
             </q-item>
+            <q-item
+              v-if="is_html(node.id)"
+              clickable
+            >
+              <q-item-section>
+                批量
+              </q-item-section>
+              <q-item-section side>
+                <div
+                  class="i-ic:round-keyboard-arrow-right"
+                  h="20"
+                  w="20"
+                />
+              </q-item-section>
+              <q-menu
+                anchor="top end"
+                self="top start"
+              >
+                <q-list>
+                  <q-item
+                    v-close-popup
+                    clickable
+                    @click="show_mul_rename = true"
+                  >
+                    <q-item-section>重命名</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-item>
             <template v-if="node.type === 'navigation' && is_html(node.id)">
               <q-item
                 v-close-popup
@@ -532,6 +562,13 @@ function set_semantic_over() {
         @complate="set_semantic_over"
       />
     </template>
+  </q-dialog>
+  <q-dialog
+    v-model="show_mul_rename"
+    no-shake
+    no-backdrop-dismiss
+  >
+    <MulRename @close="show_mul_rename = false" />
   </q-dialog>
 </template>
 

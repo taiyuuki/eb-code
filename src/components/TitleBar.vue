@@ -336,7 +336,10 @@ async function split_at_cursor() {
 }
 
 async function split_at_marker() {
-    const find_mark = await invoke_search(epub.dir, '<hr class="ebook-split-marker"/>', false, false, false, false, false)
+    const find_mark = await invoke_search({
+        dir: epub.dir,
+        pattern: '<hr class="ebook-split-marker"/>',
+    })
     const file_map = new Map<string, { index: number, code: string }>()
 
     for await (const node of epub.nodes[TREE.HTML].children!) {

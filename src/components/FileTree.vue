@@ -6,7 +6,7 @@ import { arr_remove } from '@taiyuuki/utils'
 import type { FileNode, Moved, TreeProps } from './types'
 import { useEPUB } from '@/stores/epub'
 import { useTheme } from '@/stores/theme'
-import { basename, filename, mimetype } from '@/utils/path'
+import { basename, filename, mimetype, relative } from '@/utils/path'
 import { is_audio, is_font, is_html, is_image, is_scripts, is_style, is_video } from '@/utils/is'
 import { notif_negative, notif_warning } from '@/notif'
 import { invoke_rename_file } from '@/invoke'
@@ -17,6 +17,7 @@ const props = withDefaults(defineProps<TreeProps>(), { indent: 10 })
 const theme = useTheme()
 const epub = useEPUB()
 const show_mul_rename = ref(false)
+const show_mul_remove = ref(false)
 
 const rn = ref('')
 
@@ -211,7 +212,7 @@ let temp_i = -1
 function rename(node: FileNode, i: number) {
     const parent = node.parent
     if (parent) {
-        temp_node = parent.children![i]
+        temp_node = node
         temp_i = i
         rn.value = filename(node.id)
         parent.children![i] = reactive({
@@ -254,9 +255,9 @@ function rename_over() {
                 }
                 else {
   
-                    invoke_rename_file(epub.dir, temp_node.id, id).then(() => {
+                    invoke_rename_file(epub.dir, temp_node.id, id).then(async() => {
                       
-                        epub.rename_file(temp_node, id.replace(epub.manifest_path, ''))
+                        await epub.rename_file(temp_node, relative(id, epub.opf_id))
                         temp_node.id = id
                         temp_node.name = id
                         parent.children![temp_i] = temp_node
@@ -434,6 +435,13 @@ function set_semantic_over() {
                   <q-item
                     v-close-popup
                     clickable
+                    @click="show_mul_remove = true"
+                  >
+                    <q-item-section>删除</q-item-section>
+                  </q-item>
+                  <q-item
+                    v-close-popup
+                    clickable
                     @click="show_mul_rename = true"
                   >
                     <q-item-section>重命名</q-item-section>
@@ -569,6 +577,13 @@ function set_semantic_over() {
     no-backdrop-dismiss
   >
     <MulRename @close="show_mul_rename = false" />
+  </q-dialog>
+  <q-dialog
+    v-model="show_mul_remove"
+    no-shake
+    no-backdrop-dismiss
+  >
+    <MulRemove @close="show_mul_remove = false" />
   </q-dialog>
 </template>
 

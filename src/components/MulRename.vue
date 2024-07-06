@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { message } from '@tauri-apps/plugin-dialog'
-import InputSearch from './InputSearch.vue'
 import { useEPUB } from '@/stores/epub'
 import { TREE } from '@/static'
 import { vMove } from '@/directives/v-move'
@@ -134,7 +133,11 @@ async function rename() {
         epub.is_working = false
         await epub.save_opf()
         await message('已完成', { title: '批量重命名' })
-        await epub.reload_current()
+        nextTick(async() => {
+            await epub.parse_contents()
+            await epub.load_contents_link()
+            await epub.reload_current()
+        })      
     }
 }
 </script>
@@ -189,7 +192,7 @@ async function rename() {
       p="5"
       opacity="75"
     >
-      提示：当出现重复的文件名时，会自动在后面添加数字序号，s-0001、s-0002以此类推。
+      提示：当文件重名时，会自动在后面添加数字序号，例如s-0001、s-0002以此类推。
     </div>
     <div>
       <q-checkbox

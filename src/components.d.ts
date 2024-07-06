@@ -22,6 +22,7 @@ declare module 'vue' {
     MenuIcon: typeof import('./components/MenuIcon.vue')['default']
     MetaItem: typeof import('./components/MetaItem.vue')['default']
     MetaSet: typeof import('./components/MetaSet.vue')['default']
+    MulRemove: typeof import('./components/MulRemove.vue')['default']
     MulRename: typeof import('./components/MulRename.vue')['default']
     NaviBar: typeof import('./components/NaviBar.vue')['default']
     RenameCell: typeof import('./components/RenameCell.vue')['default']

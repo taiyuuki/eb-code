@@ -187,7 +187,8 @@ function register_openner(editor: monaco.editor.IStandaloneCodeEditor) {
             url = url.substring(7)
         }
         const epub = useEPUB(stores)
-        epub.follow_link(url)
+        const [u, hash] = url.split('#')
+        epub.follow_link(u, hash)
     }
 }
 

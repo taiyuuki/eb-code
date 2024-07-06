@@ -151,64 +151,59 @@ const invoke_rename_file = function() {
 // 搜索
 const invoke_search = function() {
     type Payload = [string, SearchResult[]][]
+    type SearchOption = {
+        dir: string, 
+        pattern: string, 
+        regex?: boolean, 
+        case_sensitive?: boolean,
+        word?: boolean,
+        multi_line?: boolean,
+        dot?: boolean,
+    }
 
     const ir = new InvokeRequest<Payload>('searched', 'search-error')
 
-    return function(
-        dir: string, 
-        pattern: string, 
-        regex: boolean, 
-        case_sensitive: boolean,
-        word: boolean,
-        multi_line: boolean,
-        dot: boolean,
-    ) {
+    return function(search_option: SearchOption) {
+        const searchOption = Object.assign({
+            regex: false, 
+            case_sensitive: false,
+            word: false,
+            multi_line: false,
+            dot: false,
+        }, search_option)
 
-        return ir.invoke('find', {
-            searchOption: {
-                dir,
-                pattern,
-                regex, 
-                case_sensitive, 
-                word,
-                multi_line,
-                dot,
-            }, 
-        })
+        return ir.invoke('find', { searchOption })
     }
 }()
 
 // 替换
 const invoke_replace = function() {
     type Payload = string
-    const ir = new InvokeRequest<Payload>('replaced', 'replace-error')
-
-    return function(
+    type RelaceOption = {
         dir: string,
         pattern: string,
-        regex: boolean,
-        case_sensitive: boolean, 
-        word: boolean,
-        multi_line: boolean,
-        dot: boolean,
+        regex?: boolean,
+        case_sensitive?: boolean, 
+        word?: boolean,
+        multi_line?: boolean,
+        dot?: boolean,
         replacement: string,
-    ) {
+    }
+    const ir = new InvokeRequest<Payload>('replaced', 'replace-error')
+
+    return function(replace_option: RelaceOption) {
         if (!changed.dirty) {
             changed.dirty = true
         }
+        const replaceOption = Object.assign({
+            regex: false,
+            case_sensitive: false, 
+            word: false,
+            multi_line: false,
+            dot: false,
+        }, replace_option)
 
-        return ir.invoke('replace', {
-            replaceOption: {
-                dir,
-                pattern,
-                regex,
-                case_sensitive,
-                replacement,
-                word,
-                multi_line,
-                dot,
-            }, 
-        })
+        return ir.invoke('replace', { replaceOption })
     }
 }()
 

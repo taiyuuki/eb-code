@@ -48,16 +48,15 @@ async function search() {
         return
     }
     try {
-        search_result.value = await invoke_search(
-            epub.dir,
-            keyword.value,
-            regex.value, 
-            case_sensitive.value,
-            word.value,
-            multi_line.value,
-            dot.value,
-
-        )
+        search_result.value = await invoke_search({
+            dir: epub.dir,
+            pattern: keyword.value,
+            regex: regex.value, 
+            case_sensitive: case_sensitive.value,
+            word: word.value,
+            multi_line: multi_line.value,
+            dot: dot.value,
+        })
     }
     catch (_) {
         has_error.value = true
@@ -84,16 +83,16 @@ async function replace() {
         return
     }
     try {
-        await invoke_replace(
-            epub.dir, 
-            keyword.value,
-            regex.value,
-            case_sensitive.value,
-            word.value, 
-            multi_line.value,
-            dot.value,
-            repl.value,
-        )
+        await invoke_replace({
+            dir: epub.dir, 
+            pattern: keyword.value,
+            regex: regex.value,
+            case_sensitive: case_sensitive.value,
+            word: word.value, 
+            multi_line: multi_line.value,
+            dot: dot.value,
+            replacement: repl.value,
+        })
         if (epub.display === DISPLAY.CODE && is_html(epub.current.id)) {
             await epub.reload_current()
         }

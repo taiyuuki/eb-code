@@ -77,7 +77,6 @@ pub fn matcher_replace(
             let regex_match = captures.get(i).unwrap();
             let start = regex_match.start();
             let end = regex_match.end();
-
             let from = format!("${}", i);
             if replacement.contains(&from) {
                 let to = String::from_utf8(haystack.get(start..end).unwrap().to_vec()).unwrap();
@@ -169,7 +168,7 @@ pub fn replace_file(replace_option: ReplaceOption) -> Result<(), String> {
                 .filter(|e| {
                     let ext = e.path().extension();
                     if let Some(ext) = ext {
-                        return ext == "xhtml" || ext == "html";
+                        return ext == "xhtml" || ext == "html" || ext == "ncx";
                     }
                     false
                 })

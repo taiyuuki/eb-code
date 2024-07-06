@@ -375,7 +375,10 @@ const useEPUB = defineStore('epub', {
             
         },
         async parse_contents() {
-            const payload = await invoke_get_text(`${this.manifest_path}${this.nav_href}`, this.dir)
+            const nav_id = join(dirname(this.opf_id), this.nav_href)
+
+            const payload = await invoke_get_text(nav_id, this.dir)
+
             contents.dom = xmlToDom(payload[0])
 
             contents.namespaceURI = contents.dom.documentElement.namespaceURI || contents.namespaceURI
@@ -453,15 +456,11 @@ const useEPUB = defineStore('epub', {
             }
         },
         async load_contents_link() {
-            const result = await invoke_search(
-                this.dir,
-                'id=".*?"',
-                true,
-                false,
-                false,
-                false,
-                false,
-            )
+            const result = await invoke_search({
+                dir: this.dir,
+                pattern: 'id=".*?"',
+                regex: true,
+            })
             this.contents_links.length = 0
             this.nodes[TREE.HTML]?.children?.forEach(node => {
                 this.contents_links.push(node)
@@ -480,15 +479,13 @@ const useEPUB = defineStore('epub', {
             })
         },
         async get_contents_header() {
-            const result = await invoke_search(
-                this.dir,
-                '<h\\d.*?>.*?</h\\d>',
-                true,
-                false,
-                false,
-                true,
-                true,
-            )
+            const result = await invoke_search({
+                dir: this.dir,
+                pattern: '<h\\d.*?>.*?</h\\d>',
+                regex: true,
+                multi_line: true,
+                dot: true,
+            })
             const nodes: ContentsNode[] = []
             const reg = /(<h\d.*?)(>.*?<\/h\d>)/g
             const map = new WeakMap()
@@ -928,7 +925,7 @@ const useEPUB = defineStore('epub', {
                 }
             }  
         },
-        async remove_file(node: FileNode) {
+        async remove_file(node: FileNode, has_next?: boolean) {
             const manifest_node = opf.dom?.querySelector('manifest')
             const spine_node = opf.dom?.querySelector('spine')
             if (manifest_node) {
@@ -949,10 +946,15 @@ const useEPUB = defineStore('epub', {
                         const meta = opf.dom?.querySelector('metadata')
                         meta?.removeChild(meta_cover)
                     }
-                    this.save_opf()
                 }
             }
             const i = tree_index(node.id)
+
+            const guide_node = this.guide.find(n => n.id === node.id)
+
+            if (guide_node) {
+                arr_remove(this.guide, guide_node)
+            }
 
             arr_remove(this.nodes[i].children ?? [], node)
             arr_remove(this.nodes, node)
@@ -960,12 +962,21 @@ const useEPUB = defineStore('epub', {
                 arr_remove(this.tabs, node)
                 this.open_first()
             }
+            
+            if (!has_next) {
+                if (guide_node) {
+                    await this.save_guide()
+                }
+                else {
+                    await this.save_opf()
+                }
+            }
             await invoke_remove_file(this.dir, node.id)
         },
-        async remove_file_by_id(id: string) {
+        async remove_file_by_id(id: string, has_next?: boolean) {
             const node = this.flat_nodes[id]
             if (node) {
-                await this.remove_file(node)
+                await this.remove_file(node, has_next)
             }
         },
         async rename_file(node: FileNode, new_name: string, has_next?: boolean) {
@@ -974,7 +985,7 @@ const useEPUB = defineStore('epub', {
                 const old_manifest_id = item?.getAttribute('id')
                 const new_manifest_id = new_name.replace(/\s/g, '_')
                     
-                item.setAttribute('href', new_manifest_id)
+                item.setAttribute('href', relative(new_name, this.opf_id))
                 item.setAttribute('id', new_manifest_id)
 
                 // 重命名书脊
@@ -993,19 +1004,22 @@ const useEPUB = defineStore('epub', {
                 }
 
                 // 重命名XHTML里的资源
-                const reg = `(<link.+?href="|<script.+?src="|<img.+?src="|<a.+?href=")(.+?)${basename(node.id)}"`
-                await invoke_replace(
-                    this.dir, 
-                    reg, 
-                    true, 
-                    false, 
-                    false,
-                    true,
-                    false,
-                    `$1$2${basename(new_name)}"`,
-                )
-                if (!has_next && this.display === DISPLAY.CODE && is_html(this.current.id)) {
-                    await this.reload_current()
+                const pattern = `(<link.+?href="|<script.+?src="|<img.+?src="|<a.+?href="|<content.+src=".*?)${basename(node.id)}(#?.*?)"`
+                const replacement = `$1${basename(new_name)}$2"`
+
+                await invoke_replace({
+                    dir: this.dir, 
+                    pattern, 
+                    regex: true,
+                    multi_line: true,
+                    replacement,
+                })
+                if (!has_next) {
+                    await this.parse_contents()
+                    await this.load_contents_link()
+                    if (this.display === DISPLAY.CODE && is_html(this.current.id)) {
+                        await this.reload_current()
+                    }
                 }
             }
         },
@@ -1690,9 +1704,9 @@ const useEPUB = defineStore('epub', {
                 this.add_tab(node)
             }
         },
-        async follow_link(url: string) {
+        async follow_link(url: string, hash?: string) {
             const id = join(dirname(this.current.id), url)
-            this.open_by_id(id)
+            this.open_by_id(id, undefined, hash)
         },
         close_epub() {
             this.display = DISPLAY.NONE

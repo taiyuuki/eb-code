@@ -20,7 +20,10 @@ const observer = new PerformanceObserver(list => {
                     epub.parse(payload)
                 }, e => {
                     if (e !== '0') {
-                        notif_negative(`${basename(e)}不是有效的EPUB文件。`)
+                        const name = basename(e)
+                        if (!name.startsWith('eb-code')) {
+                            notif_negative(`${basename(e)}不是有效的EPUB文件。`)
+                        }
                     }
                 }) 
             }

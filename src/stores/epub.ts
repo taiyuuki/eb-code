@@ -1004,8 +1004,8 @@ const useEPUB = defineStore('epub', {
                 }
 
                 // 重命名XHTML里的资源
-                const pattern = `(<link.+?href="|<script.+?src="|<img.+?src="|<a.+?href="|<content.+src=".*?)${basename(node.id)}(#?.*?)"`
-                const replacement = `$1${basename(new_name)}$2"`
+                const pattern = `(<link.+?href|<script.+?src|<img.+?src|<a.+?href|<content.+src)(=".*?)${basename(node.id)}(#?.*?)"`
+                const replacement = `$1$2${basename(new_name)}$3"`
 
                 await invoke_replace({
                     dir: this.dir, 

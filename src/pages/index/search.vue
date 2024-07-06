@@ -34,7 +34,7 @@ const counter = computed(() => {
         total: 0,
         found: 0,
     }
-    c.total = Object.values(search_result.value).reduce((a, b) => a + b.length, 0)
+    c.total = Object.values(search_result.value).reduce((a, b) => a + b[1].length, 0)
     c.found = Object.keys(search_result.value).length
 
     return c

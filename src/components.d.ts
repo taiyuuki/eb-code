@@ -7,7 +7,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    BulkOper: typeof import('./components/BulkOper.vue')['default']
     CodeEditor: typeof import('./components/CodeEditor.vue')['default']
     ContentsSet: typeof import('./components/ContentsSet.vue')['default']
     ContentsTree: typeof import('./components/ContentsTree.vue')['default']
@@ -25,7 +24,6 @@ declare module 'vue' {
     MulRemove: typeof import('./components/MulRemove.vue')['default']
     MulRename: typeof import('./components/MulRename.vue')['default']
     NaviBar: typeof import('./components/NaviBar.vue')['default']
-    RenameCell: typeof import('./components/RenameCell.vue')['default']
     ReplaceResult: typeof import('./components/ReplaceResult.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
@@ -37,6 +35,5 @@ declare module 'vue' {
     TitleTag: typeof import('./components/TitleTag.vue')['default']
     ToolBar: typeof import('./components/ToolBar.vue')['default']
     Welcome: typeof import('./components/Welcome.vue')['default']
-    WellcomStart: typeof import('./components/WellcomStart.vue')['default']
   }
 }

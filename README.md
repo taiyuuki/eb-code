@@ -4,10 +4,11 @@ EPUB文档编辑器，目前正在开发中。
 
 # Preview
 
-![pre01.jpg](./res/pre01.jpg)
-![pre02.gif](./res/pre02.gif)
-![pre03.gif](./res/pre03.gif)
-![pre04.gif](./res/pre04.gif)
+![pre01](./res/pre01.jpg)
+![pre02](./res/pre02.png)
+![pre03](./res/pre03.gif)
+![pre04](./res/pre04.gif)
+![pre05](./res/pre05.gif)
 
 ## Features
 

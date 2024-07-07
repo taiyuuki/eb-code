@@ -24,7 +24,7 @@ const head = dom.querySelector('head')
 checks.value.forEach((_, i) => {
     const style_node = epub.nodes[TREE.STYLE].children![i]
     const href = relative(style_node.id, props.node.id)
-    const link = dom.querySelector(`link[href="${href}"]`)
+    const link = dom.querySelector(`link[href="${href}"]`) ?? dom.querySelector(`link[href="./${href}"]`)
     if (link) {
         checks.value[i] = true
     }

@@ -3,6 +3,7 @@ import Draggable from 'vuedraggable'
 import { TauriEvent } from '@tauri-apps/api/event'
 import { getCurrent } from '@tauri-apps/api/window'
 import { ask } from '@tauri-apps/plugin-dialog'
+import { arr_remove } from '@taiyuuki/utils'
 import type { FileNode } from '@/components/types'
 import { DISPLAY } from '@/static'
 import { useTheme } from '@/stores/theme'
@@ -28,6 +29,9 @@ function open_file(node: FileNode) {
 function close_file(node: FileNode) {
     if (node.open) {
         epub.open_pre(node)
+    }
+    else {
+        arr_remove(epub.tabs, node)
     }
     if (epub.tabs.length === 0) {
         activity_node.close()

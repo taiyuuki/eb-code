@@ -22,7 +22,7 @@ pub const NAV: &str = r##"<?xml version="1.0" encoding="utf-8"?>
 <head>
     <title>ePub NAV</title>
     <meta charset="utf-8" />
-    <link href="../Styles/nav.css" rel="stylesheet" type="text/css"/></head>
+    <link href="Styles/nav.css" rel="stylesheet" type="text/css"/></head>
 <body epub:type="frontmatter">
     <nav epub:type="toc" id="toc" role="doc-toc">
         <h1>Contents</h1>

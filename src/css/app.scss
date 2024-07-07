@@ -55,6 +55,16 @@ body {
     overflow: hidden!important;
 }
 
+input{
+    height: 0;
+    padding-block: 26px!important;
+    background-clip: content-box!important;
+}
+
+input::first-line{
+    color: var(--vscode-foreground);
+  }
+
 .selected {
     background: var(--vscode-list-activeSelectionBackground)!important;
     color: var(--vscode-list-activeSelectionForeground)!important;

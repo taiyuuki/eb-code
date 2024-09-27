@@ -9,6 +9,7 @@ const DISPLAY = {
 const NOT_SUPPORTED_THEMES = [
     'github-dark-default', 
     'github-dark-dimmed',
+    'github-dark-high-contrast',
     'vesper',
 ]
 

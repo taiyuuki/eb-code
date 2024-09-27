@@ -81,4 +81,6 @@ pnpm tauri signer generate -w ./~/.tauri/myapp.key
 
 然后创建密码文件~/.tauri/password.key，内容就是输入的那个密码，如果留空了，创建一个空白文件即可。
 
+然后将myapp.key.pub的文件内容写入src-tauri/tauriconf.json中的`plugin.updater.pubkey`字段。
+
 最后运行`pnpm tauri:build`打包。

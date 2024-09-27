@@ -1,6 +1,10 @@
 {
   "extends": "@quasar/app-vite/tsconfig-preset",
   "compilerOptions": {
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
     "baseUrl": "./",
     "types": [
       "vite-plugin-pages/client",

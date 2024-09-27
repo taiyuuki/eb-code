@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { TauriEvent } from '@tauri-apps/api/event'
-import { getCurrent } from '@tauri-apps/api/window'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { ask } from '@tauri-apps/plugin-dialog'
 import { arr_remove } from '@taiyuuki/utils'
 import type { FileNode } from '@/components/types'
@@ -15,7 +15,7 @@ import { usePreview } from '@/stores/preview'
 const preview = usePreview()
 const theme = useTheme()
 const epub = useEPUB()
-const app_window = getCurrent()
+const app_window = getCurrentWindow()
 const activity_node = useActivity()
 
 const sidebar_width = ref(250)
